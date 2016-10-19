@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+npm-debug.log
+
+# Built JS files.
+dist/
+
+# Usually notes and concept files.
+*.ignore.*

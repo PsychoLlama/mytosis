@@ -1,0 +1,3 @@
+--check-leaks
+--reporter dot
+--require babel-register
