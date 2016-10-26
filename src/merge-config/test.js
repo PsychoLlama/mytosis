@@ -13,8 +13,8 @@ describe('A database configuration object', () => {
     expect(result.storage).toEqual([]);
   });
 
-  it('should contain a methods object', () => {
-    expect(result.methods).toEqual({
+  it('should contain an extend object', () => {
+    expect(result.extend).toEqual({
       root: {},
       context: {},
     });
@@ -54,17 +54,17 @@ describe('A database configuration object', () => {
       expect(hooks.before.update.length).toBe(0);
     });
 
-    it('should add methods', () => {
+    it('should add extensions', () => {
       const noop = () => {};
       result = config([{
-        methods: {
+        extend: {
           root: { noop },
           context: { noop },
         },
       }]);
 
-      expect(result.methods.root).toContain({ noop });
-      expect(result.methods.context).toContain({ noop });
+      expect(result.extend.root).toContain({ noop });
+      expect(result.extend.context).toContain({ noop });
     });
 
     it('should add storage', () => {
@@ -158,24 +158,24 @@ describe('A database configuration object', () => {
       expect(result.hooks.before.read).toEqual([first, second]);
     });
 
-    it('should prefer later-defined methods when conflicts happen', () => {
+    it('should prefer later-defined extensions when conflicts happen', () => {
       const first = () => {};
       const second = () => {};
 
       const result = config([{
-        methods: {
+        extend: {
           root: { method: first },
           context: { method: first },
         },
       }, {
-        methods: {
+        extend: {
           root: { method: second },
           context: { method: second },
         },
       }]);
 
-      expect(result.methods.root.method).toBe(second);
-      expect(result.methods.context.method).toBe(second);
+      expect(result.extend.root.method).toBe(second);
+      expect(result.extend.context.method).toBe(second);
     });
 
   });

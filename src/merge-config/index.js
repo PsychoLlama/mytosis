@@ -32,7 +32,7 @@ const base = {
    * API extensions.
    * @type {Object}
    */
-  methods: {
+  extend: {
     root: {},
     context: {},
   },
@@ -92,9 +92,9 @@ const merge = {
    * @param  {Object} ext={} - An object with method extensions.
    * @param  {Object} ext.root - Methods to add to a root context.
    * @param  {Object} ext.context - Methods for node contexts.
-   * @return {Object} - The combined methods object.
+   * @return {Object} - The combined extensions object.
    */
-  methods: ({ root, context }, ext = {}) => ({
+  extensions: ({ root, context }, ext = {}) => ({
     root: Object.assign(root, ext.root),
     context: Object.assign(context, ext.context),
   }),
@@ -126,14 +126,14 @@ const merge = {
    * @param  {Object} base.hooks - Database lifecycle hooks.
    * @param  {Array} base.storage - A list of storage drivers.
    * @param  {Object} base.network - A list of network drivers.
-   * @param  {Object} base.methods - Method extensions.
+   * @param  {Object} base.extend - Method extensions.
    * @param  {Object} ext - An object to merge with the base.
    * @return {Object} - The complete, merged plugin object.
    */
   plugins: (base, ext) => ({
     hooks: merge.hooks(base.hooks, ext.hooks),
     storage: merge.storage(base.storage, ext.storage),
-    methods: merge.methods(base.methods, ext.methods),
+    extend: merge.extensions(base.extend, ext.extend),
     network: merge.network(base.network, ext.network),
   }),
 };
