@@ -6,7 +6,7 @@ describe('A database configuration object', () => {
   let result;
 
   beforeEach(() => {
-    result = config();
+    result = config([]);
   });
 
   it('should contain storage settings', () => {
@@ -44,7 +44,7 @@ describe('A database configuration object', () => {
   describe('merge', () => {
 
     it('should not add undefined items', () => {
-      const { hooks, network, storage } = config({});
+      const { hooks, network, storage } = config([{}]);
       expect(storage.length).toBe(0);
       expect(network.clients.length).toBe(0);
       expect(network.servers.length).toBe(0);
@@ -56,12 +56,12 @@ describe('A database configuration object', () => {
 
     it('should add methods', () => {
       const noop = () => {};
-      result = config({
+      result = config([{
         methods: {
           root: { noop },
           context: { noop },
         },
-      });
+      }]);
 
       expect(result.methods.root).toContain({ noop });
       expect(result.methods.context).toContain({ noop });
@@ -70,9 +70,9 @@ describe('A database configuration object', () => {
     it('should add storage', () => {
       const storage = { name: 'Storage driver' };
 
-      const result = config({
+      const result = config([{
         storage: [storage],
-      });
+      }]);
 
       expect(result.storage).toEqual([storage]);
     });
@@ -83,7 +83,7 @@ describe('A database configuration object', () => {
         clients: [client],
       };
 
-      const result = config({ network });
+      const result = config([{ network }]);
       expect(result.network.clients).toEqual([client]);
     });
 
@@ -92,7 +92,7 @@ describe('A database configuration object', () => {
       const network = {
         servers: [server],
       };
-      const result = config({ network });
+      const result = config([{ network }]);
 
       expect(result.network.servers).toEqual([server]);
     });
@@ -103,7 +103,7 @@ describe('A database configuration object', () => {
         before: { write },
       };
 
-      const result = config({ hooks });
+      const result = config([{ hooks }]);
 
       expect(result.hooks.before.write).toEqual([write]);
     });
@@ -112,7 +112,7 @@ describe('A database configuration object', () => {
       const first = () => {};
       const second = () => {};
 
-      const result = config({
+      const result = config([{
         network: {
           clients: [first],
           servers: [first],
@@ -122,7 +122,7 @@ describe('A database configuration object', () => {
           clients: [second],
           servers: [second],
         },
-      });
+      }]);
 
       expect(result.network.clients).toEqual([first, second]);
       expect(result.network.servers).toEqual([first, second]);
@@ -132,11 +132,11 @@ describe('A database configuration object', () => {
       const first = () => {};
       const second = () => {};
 
-      const result = config({
+      const result = config([{
         storage: [first],
       }, {
         storage: [second],
-      });
+      }]);
 
       expect(result.storage).toEqual([first, second]);
     });
@@ -145,7 +145,7 @@ describe('A database configuration object', () => {
       const first = () => {};
       const second = () => {};
 
-      const result = config({
+      const result = config([{
         hooks: {
           before: { read: first },
         },
@@ -153,7 +153,7 @@ describe('A database configuration object', () => {
         hooks: {
           before: { read: second },
         },
-      });
+      }]);
 
       expect(result.hooks.before.read).toEqual([first, second]);
     });
@@ -162,7 +162,7 @@ describe('A database configuration object', () => {
       const first = () => {};
       const second = () => {};
 
-      const result = config({
+      const result = config([{
         methods: {
           root: { method: first },
           context: { method: first },
@@ -172,7 +172,7 @@ describe('A database configuration object', () => {
           root: { method: second },
           context: { method: second },
         },
-      });
+      }]);
 
       expect(result.methods.root.method).toBe(second);
       expect(result.methods.context.method).toBe(second);

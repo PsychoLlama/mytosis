@@ -11,16 +11,36 @@ const hooks = {
  * @type {Object}
  */
 const base = {
+
+  /**
+   * Lifecycle hooks.
+   * @type {Object}
+   */
   hooks: {
     before: hooks,
     after: hooks,
     catch: hooks,
   },
+
+  /**
+   * A list of storage drivers.
+   * @type {Array}
+   */
   storage: [],
+
+  /**
+   * API extensions.
+   * @type {Object}
+   */
   methods: {
     root: {},
     context: {},
   },
+
+  /**
+   * Network drivers.
+   * @type {Object}
+   */
   network: {
     clients: [],
     servers: [],
@@ -120,9 +140,9 @@ const merge = {
 
 /**
  * Merges plugin objects into a single object.
- * @param  {...Object} plugins - A list of plugin objects.
+ * @param  {Object[]} plugins - A list of plugin objects.
  * @return {Object} - The merged plugin object.
  */
-export default (...plugins) => (
+export default (plugins) => (
   plugins.reduce(merge.plugins, base)
 );
