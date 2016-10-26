@@ -22,8 +22,8 @@ const base = {
     context: {},
   },
   network: {
-    client: [],
-    server: [],
+    clients: [],
+    servers: [],
   },
 };
 
@@ -82,14 +82,14 @@ const merge = {
   /**
    * Merges two network configurations together.
    * @param  {Object} base - The base network object to extend.
-   * @param  {Array} base.client - A list of network clients.
-   * @param  {Array} base.server - A list of network servers.
+   * @param  {Array} base.clients - A list of network clients.
+   * @param  {Array} base.servers - A list of network servers.
    * @param  {Object} ext={} - Extensions to the base object.
    * @return {Object} - The merged network object.
    */
-  network: ({ client, server }, ext = {}) => ({
-    client: client.concat(ext.client || []),
-    server: server.concat(ext.server || []),
+  network: ({ clients, servers }, ext = {}) => ({
+    clients: clients.concat(ext.clients || []),
+    servers: servers.concat(ext.servers || []),
   }),
 
   /**

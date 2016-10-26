@@ -22,8 +22,8 @@ describe('A database configuration object', () => {
 
   it('should contain network settings', () => {
     expect(result.network).toEqual({
-      client: [],
-      server: [],
+      clients: [],
+      servers: [],
     });
   });
 
@@ -46,8 +46,8 @@ describe('A database configuration object', () => {
     it('should not add undefined items', () => {
       const { hooks, network, storage } = config({});
       expect(storage.length).toBe(0);
-      expect(network.client.length).toBe(0);
-      expect(network.server.length).toBe(0);
+      expect(network.clients.length).toBe(0);
+      expect(network.servers.length).toBe(0);
       expect(hooks.before.read.length).toBe(0);
       expect(hooks.before.write.length).toBe(0);
       expect(hooks.before.request.length).toBe(0);
@@ -80,21 +80,21 @@ describe('A database configuration object', () => {
     it('should add network client drivers', () => {
       const client = { name: 'Network client' };
       const network = {
-        client: [client],
+        clients: [client],
       };
 
       const result = config({ network });
-      expect(result.network.client).toEqual([client]);
+      expect(result.network.clients).toEqual([client]);
     });
 
     it('should add network server drivers', () => {
       const server = { name: 'Network server' };
       const network = {
-        server: [server],
+        servers: [server],
       };
       const result = config({ network });
 
-      expect(result.network.server).toEqual([server]);
+      expect(result.network.servers).toEqual([server]);
     });
 
     it('should merge before hooks', () => {
@@ -114,18 +114,18 @@ describe('A database configuration object', () => {
 
       const result = config({
         network: {
-          client: [first],
-          server: [first],
+          clients: [first],
+          servers: [first],
         },
       }, {
         network: {
-          client: [second],
-          server: [second],
+          clients: [second],
+          servers: [second],
         },
       });
 
-      expect(result.network.client).toEqual([first, second]);
-      expect(result.network.server).toEqual([first, second]);
+      expect(result.network.clients).toEqual([first, second]);
+      expect(result.network.servers).toEqual([first, second]);
     });
 
     it('should add storage drivers in the order they\'re defined', () => {
