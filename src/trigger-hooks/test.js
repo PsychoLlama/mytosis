@@ -106,4 +106,19 @@ describe('A trigger', () => {
     expect(value).toEqual([2]);
   });
 
+  it('should work for synchronous hooks', async () => {
+    const value = await trigger({
+      hooks: [
+        async (num) => num + 2,
+        (num) => num + 2,
+      ],
+      args: [0],
+      transform (output) {
+        return [output];
+      },
+    });
+
+    expect(value).toEqual([4]);
+  });
+
 });
