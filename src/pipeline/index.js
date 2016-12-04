@@ -69,3 +69,22 @@ export const before = {
   }),
 
 };
+
+export const after = {
+
+  read: (config, [key, value, options]) => trigger({
+    args: [key, value, defaults(config, options)],
+    hooks: config.hooks.after.read,
+
+    transform: format((value) => {
+
+      // Override the value.
+      if (value instanceof Object) {
+        return [undefined, value];
+      }
+
+      return [];
+    }),
+  }),
+
+};

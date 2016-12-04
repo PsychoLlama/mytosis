@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 import mergeConfigs from '../merge-configs';
-import { before, defaults, format } from './index';
+import { after, before, defaults, format } from './index';
 import expect, { createSpy } from 'expect';
 
 const hooks = (hooks) => mergeConfigs([{ hooks }]);
@@ -122,6 +122,43 @@ describe('The before.read pipeline', () => {
       const [, options] = await before.read(config, ['sup']);
 
       expect(options).toEqual({ overridden: true });
+    });
+
+  });
+
+});
+
+describe('The after.read pipeline', () => {
+
+  it('should allow hooks to change the values', async () => {
+    const read = (key) => [`${key}, but better`];
+    const config = hooks({
+      after: { read },
+    });
+
+    const value = { value: true };
+    const [key] = await after.read(config, ['key', value]);
+
+    expect(key).toBe('key, but better');
+  });
+
+  describe('hook that returns an object', () => {
+
+    it('should replace the value', async () => {
+      const read = (key, value) => ({ ...value, better: true });
+      const config = hooks({
+        after: { read },
+      });
+
+      const [, value] = await after.read(config, [
+        'key',
+        { original: true },
+      ]);
+
+      expect(value).toEqual({
+        original: true,
+        better: true,
+      });
     });
 
   });
