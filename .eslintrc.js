@@ -11,8 +11,8 @@ eslint.env = {
 
 // Default configs plus my personal fav.
 eslint.extends = [
-	'eslint:recommended',
-	'llama',
+  'eslint:recommended',
+  'llama',
 ];
 
 // Custom parser for draft-stage language features.
@@ -31,14 +31,14 @@ eslint.parserOptions = {
 // Add custom rules here.
 eslint.rules = {
 
-  // JS:next specific rules.
-  "babel/generator-star-spacing": 'error',
-  "babel/new-cap": 'error',
-  "babel/array-bracket-spacing": 'error',
-  "babel/object-curly-spacing": ['error', 'always'],
-  "babel/object-shorthand": 'error',
-  "babel/arrow-parens": 'error',
-  "babel/no-await-in-loop": 'off',
-  "babel/flow-object-type": 'error',
-  "babel/func-params-comma-dangle": 'error',
+  // JS-Next specific rules.
+  'babel/generator-star-spacing': 'error',
+  'babel/new-cap': 'error',
+  'babel/array-bracket-spacing': 'error',
+  'babel/object-curly-spacing': ['error', 'always'],
+  'babel/object-shorthand': 'error',
+  'babel/arrow-parens': 'error',
+  'babel/no-await-in-loop': 'off',
+  'babel/flow-object-type': 'error',
+  'babel/func-params-comma-dangle': 'error',
 };
