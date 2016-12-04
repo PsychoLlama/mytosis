@@ -1,42 +1,88 @@
 /* eslint-env mocha */
 import mergeConfigs from '../merge-configs';
-import { before } from './index';
-import expect from 'expect';
+import { before, defaults, format } from './index';
+import expect, { createSpy } from 'expect';
 
 const hooks = (hooks) => mergeConfigs([{ hooks }]);
 
-describe.only('The read pipeline', () => {
+describe('The pipeline\'s default option setter', () => {
 
-  const key = 'read-pipeline-test';
-  const config = mergeConfigs([]);
+  const storage = { storage: true };
+  const client = { client: true };
+  const config = mergeConfigs([{
+    storage: [storage],
+    network: {
+      clients: [client],
+    },
+  }]);
 
-  it('should set the default network options', async () => {
-    const config = mergeConfigs([{
-      storage: [{ storage: true }],
-      network: {
-        clients: [{ client: true }],
-      },
-    }]);
+  it('should add storage and network fields', () => {
+    const options = defaults(config, {});
 
-    const [, options] = await before.read(config, [key]);
-
-    // Excluding memory option for now.
     expect(options).toContain({
-      clients: [{ client: true }],
-      storage: [{ storage: true }],
+      storage: [storage],
+      clients: [client],
     });
   });
 
-  it('should not overwrite given read options', async () => {
-    const clients = [{ 'totally-a-client': true }];
-    const storage = [{ 'postgres-but-better': true }];
-    const args = [key, { clients, storage }];
-    const [, options] = await before.read(config, args);
+  it('should use given storage options instead of the default', () => {
+    const options = defaults(config, {
+      storage: [{ custom: true }],
+    });
 
-    expect(options).toContain({ clients, storage });
+    expect(options).toContain({
+      storage: [{ custom: true }],
+      clients: [client],
+    });
   });
 
-  it('should allow hooks to change the key', async () => {
+  it('should use given network options instead of the default', () => {
+    const options = defaults(config, {
+      clients: [{ custom: true }],
+    });
+
+    expect(options).toContain({
+      clients: [{ custom: true }],
+      storage: [storage],
+    });
+  });
+
+});
+
+describe('The pipeline\'s output formatter', () => {
+  const spy = createSpy();
+  const transform = format(spy);
+
+  beforeEach(::spy.reset);
+
+  it('should return new arguments when given', () => {
+    const result = transform(['new arg list'], ['original list']);
+    expect(result).toEqual(['new arg list']);
+  });
+
+  it('should patch missing args with the previous args', () => {
+    const result = transform(
+      [undefined, 'second new item'],
+      ['first old item', 'second old item']
+    );
+    expect(result).toEqual(['first old item', 'second new item']);
+  });
+
+  it('should call the handler when unknown args are given', () => {
+    spy.andReturn(['successful']);
+    const result = transform(
+      new Set(),
+      ['old args']
+    );
+
+    expect(result).toEqual(['successful']);
+  });
+
+});
+
+describe('The before.read pipeline', () => {
+
+  it('should allow hooks to change the args', async () => {
     const overridden = 'Haha changed your key';
     const read = async () => [overridden];
     const config = hooks({
@@ -63,21 +109,6 @@ describe.only('The read pipeline', () => {
       expect(key).toBe('String return');
     });
 
-    it('should carry options from the last args', async () => {
-      const read = async () => 'Precious';
-      const config = hooks({
-        before: { read },
-      });
-
-      const [key, options] = await before.read(config, ['lamesauce']);
-
-      expect(key).toBe('Precious');
-      expect(options).toContain({
-        clients: [],
-        storage: [],
-      });
-    });
-
   });
 
   describe('hook that returns an object', () => {
@@ -93,17 +124,6 @@ describe.only('The read pipeline', () => {
       expect(options).toEqual({ overridden: true });
     });
 
-    it('should reuse the last key', async () => {
-      const read = async () => ({ 'you are here': true });
-      const config = hooks({
-        before: { read },
-      });
-
-      const [key] = await before.read(config, ['initial']);
-      expect(key).toBe('initial');
-    });
-
   });
-
 
 });
