@@ -1,14 +1,14 @@
-# jet
+# database
 
 *Distributed graph database*
 
-## Why
-<!-- Explain why you built the project -->
+[![Travis branch](https://img.shields.io/travis/PsychoLlama/database/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/database)
 
-## How
-<!-- Explain how it solves the problem -->
+`database` is a work in progress, wrapping the work of the [`graph-crdt`](https://github.com/PsychoLlama/graph-crdt) data structure into a friendly, modular API.
 
 ## API
+
+> Meh, docs later.
 
 ### Installing
 
@@ -17,25 +17,25 @@
 
 Using npm, run this:
 ```sh
-$ npm install jet
+$ npm install database
 ```
 
 Now from your project, you can import it:
 
 ```js
 // ES Modules
-import * as jet from 'jet'
+import * as database from 'database'
 
 // CommonJS
-const jet = require('jet')
+const database = require('database')
 ```
 
 #### Using git
-If you enjoy living on the edge, you can install the latest version of `jet` from GitLab.
+If you enjoy living on the edge, you can install the latest version of `database` from GitHub.
 
 ```sh
-$ git clone https://GitLab/PsychoLlama      jet
-$ cd https://GitLab/PsychoLlama      jet
+$ git clone https://github.com/PsychoLlama/database.git database
+$ cd https://GitLab/PsychoLlama database
 
 # Install the dependencies.
 $ npm install
