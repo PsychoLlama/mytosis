@@ -1,10 +1,10 @@
-# database
+# mytosis
 
 *Distributed graph database*
 
-[![Travis branch](https://img.shields.io/travis/PsychoLlama/database/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/database)
+[![Travis branch](https://img.shields.io/travis/PsychoLlama/mytosis/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/mytosis)
 
-`database` is a work in progress, wrapping the work of the [`graph-crdt`](https://github.com/PsychoLlama/graph-crdt) data structure into a friendly, modular API.
+`mytosis` is a work in progress, wrapping the work of the [`graph-crdt`](https://github.com/PsychoLlama/graph-crdt) data structure into a friendly, modular API.
 
 ## API
 
@@ -17,25 +17,21 @@
 
 Using npm, run this:
 ```sh
-$ npm install database
+$ npm install mytosis
 ```
 
 Now from your project, you can import it:
 
 ```js
-// ES Modules
-import * as database from 'database'
-
-// CommonJS
-const database = require('database')
+import database from 'mytosis'
 ```
 
 #### Using git
-If you enjoy living on the edge, you can install the latest version of `database` from GitHub.
+If you enjoy living on the edge, you can install the latest version of `mytosis` from GitHub.
 
 ```sh
-$ git clone https://github.com/PsychoLlama/database.git database
-$ cd https://GitLab/PsychoLlama database
+$ git clone https://github.com/PsychoLlama/mytosis.git mytosis
+$ cd mytosis
 
 # Install the dependencies.
 $ npm install
