@@ -101,8 +101,7 @@ export const before = {
       return [undefined, value];
     }
 
-    // No tranformation.
-    return [];
+    return null;
 
   }),
 
@@ -114,15 +113,9 @@ export const before = {
 
 export const after = {
 
-  read: createPipeline('after', 'read', (value) => {
-
-    // Override the value.
-    if (value instanceof Object) {
-      return [undefined, value];
-    }
-
-    return [];
-
-  }),
+  read: createPipeline('after', 'read'),
+  write: createPipeline('after', 'write'),
+  request: createPipeline('after', 'request'),
+  update: createPipeline('after', 'update'),
 
 };

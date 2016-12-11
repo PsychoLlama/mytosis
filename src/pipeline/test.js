@@ -128,44 +128,6 @@ describe('The before.read pipeline', () => {
 
 });
 
-describe('The after.read pipeline', () => {
-
-  it('should allow hooks to change the values', async () => {
-    const read = (key) => [`${key}, but better`];
-    const config = hooks({
-      after: { read },
-    });
-
-    const value = { value: true };
-    const [key] = await pipeline.after.read(config, ['key', value, {}]);
-
-    expect(key).toBe('key, but better');
-  });
-
-  describe('hook that returns an object', () => {
-
-    it('should replace the value', async () => {
-      const read = (key, value) => ({ ...value, better: true });
-      const config = hooks({
-        after: { read },
-      });
-
-      const [, value] = await pipeline.after.read(config, [
-        'key',
-        { original: true },
-        {},
-      ]);
-
-      expect(value).toEqual({
-        original: true,
-        better: true,
-      });
-    });
-
-  });
-
-});
-
 describe('The pipeline', () => {
 
   const methods = [
@@ -173,6 +135,11 @@ describe('The pipeline', () => {
     ['before', 'write'],
     ['before', 'request'],
     ['before', 'update'],
+
+    ['after', 'read'],
+    ['after', 'write'],
+    ['after', 'request'],
+    ['after', 'update'],
   ];
 
   methods.forEach(([tense, method]) => {
