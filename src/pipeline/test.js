@@ -119,7 +119,7 @@ describe('The before.read pipeline', () => {
         before: { read },
       });
 
-      const [, options] = await pipeline.before.read(config, ['sup']);
+      const [, options] = await pipeline.before.read(config, ['sup', {}]);
 
       expect(options).toEqual({ overridden: true });
     });
@@ -137,7 +137,7 @@ describe('The after.read pipeline', () => {
     });
 
     const value = { value: true };
-    const [key] = await pipeline.after.read(config, ['key', value]);
+    const [key] = await pipeline.after.read(config, ['key', value, {}]);
 
     expect(key).toBe('key, but better');
   });
@@ -153,6 +153,7 @@ describe('The after.read pipeline', () => {
       const [, value] = await pipeline.after.read(config, [
         'key',
         { original: true },
+        {},
       ]);
 
       expect(value).toEqual({
@@ -191,6 +192,22 @@ describe('The pipeline', () => {
           { replaced: true },
         ]);
 
+      });
+
+      it('should add default options', async () => {
+        const args = ['string', { setting: true }];
+        const config = hooks();
+
+        const result = await pipeline[tense][method](config, args);
+
+        expect(result).toEqual([
+          'string',
+          {
+            setting: true,
+            storage: [],
+            clients: [],
+          },
+        ]);
       });
 
     });

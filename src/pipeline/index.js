@@ -13,6 +13,20 @@ export const defaults = (config, options = {}) => ({
 });
 
 /**
+ * Adds default options to the last argument value (typically options).
+ * @param  {Object} config - The database configuration object.
+ * @param  {Array} args - A list of arguments.
+ * @return {Array} - Newly arguments, with default options added.
+ */
+const normalizeArgs = (config, args = []) => {
+  const last = args[args.length - 1];
+
+  return args.slice(0, args.length - 1).concat([
+    defaults(config, last),
+  ]);
+};
+
+/**
  * Handles common return values from pipeline hooks.
  * @param  {Function} map - Turns non-array return values into an array.
  * @return {Function} - Formats output from one hook for the next.
@@ -50,65 +64,65 @@ export const format = (map) => (
  */
 const skip = () => [];
 
+/**
+ * Creates an event pipeline.
+ * @param  {String} tense - The verb tense.
+ * @param  {String} action - The action being dispatched.
+ * @param  {Function} [types] - Handles special hook return values.
+ * @return {Function} - Triggers a pipeline.
+ */
+const createPipeline = (tense, action, types = skip) => (
+
+  /**
+   * Triggers a pipeline.
+   * @param  {Object} config - Database configuration object.
+   * @param  {Array} args - The initial parameters.
+   * @return {Promise} - Resolves to the pipeline output.
+   */
+  (config, args) => trigger({
+    hooks: config.hooks[tense][action],
+    args: normalizeArgs(config, args),
+    transform: format(types),
+  })
+
+);
+
 export const before = {
 
-  read: (config, [key, options]) => trigger({
-    args: [key, defaults(config, options)],
+  read: createPipeline('before', 'read', (value) => {
 
-    hooks: config.hooks.before.read,
+    // Override the key.
+    if (typeof value === 'string') {
+      return [value];
+    }
 
-    transform: format((value) => {
+    // Override the options.
+    if (value instanceof Object) {
+      return [undefined, value];
+    }
 
-      // Override the key.
-      if (typeof value === 'string') {
-        return [value];
-      }
+    // No tranformation.
+    return [];
 
-      // Override the options.
-      if (value instanceof Object) {
-        return [undefined, value];
-      }
-
-      // No tranformation.
-      return [];
-    }),
   }),
 
-  write: (config, args) => trigger({
-    args,
-    hooks: config.hooks.before.write,
-    transform: format(skip),
-  }),
-
-  request: (config, args) => trigger({
-    args,
-    hooks: config.hooks.before.request,
-    transform: format(skip),
-  }),
-
-  update: (config, args) => trigger({
-    args,
-    hooks: config.hooks.before.update,
-    transform: format(skip),
-  }),
+  write: createPipeline('before', 'write'),
+  request: createPipeline('before', 'request'),
+  update: createPipeline('before', 'update'),
 
 };
 
 export const after = {
 
-  read: (config, [key, value, options]) => trigger({
-    args: [key, value, defaults(config, options)],
-    hooks: config.hooks.after.read,
+  read: createPipeline('after', 'read', (value) => {
 
-    transform: format((value) => {
+    // Override the value.
+    if (value instanceof Object) {
+      return [undefined, value];
+    }
 
-      // Override the value.
-      if (value instanceof Object) {
-        return [undefined, value];
-      }
+    return [];
 
-      return [];
-    }),
   }),
 
 };
