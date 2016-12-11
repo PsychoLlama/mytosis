@@ -1105,9 +1105,9 @@ eslint-config-llama@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/eslint-config-llama/-/eslint-config-llama-3.0.0.tgz#0eb5b4a18c0b77505ecbc6cbb4f833f1576b7f1f"
 
-eslint-plugin-babel@^3.3.0:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-babel/-/eslint-plugin-babel-3.3.0.tgz#2f494aedcf6f4aa4e75b9155980837bc1fbde193"
+eslint-plugin-babel@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-babel/-/eslint-plugin-babel-4.0.0.tgz#a92114e2c493ac3034b030d7ecf96e174a76ef3f"
 
 eslint@^3.8.1:
   version "3.11.1"
