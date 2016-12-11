@@ -44,6 +44,12 @@ export const format = (map) => (
 
 );
 
+/**
+ * Ignore a pipeline return value, skipping to the next.
+ * @return {Array} - An empty list of arguments.
+ */
+const skip = () => [];
+
 export const before = {
 
   read: (config, [key, options]) => trigger({
@@ -66,6 +72,24 @@ export const before = {
       // No tranformation.
       return [];
     }),
+  }),
+
+  write: (config, args) => trigger({
+    args,
+    hooks: config.hooks.before.write,
+    transform: format(skip),
+  }),
+
+  request: (config, args) => trigger({
+    args,
+    hooks: config.hooks.before.request,
+    transform: format(skip),
+  }),
+
+  update: (config, args) => trigger({
+    args,
+    hooks: config.hooks.before.update,
+    transform: format(skip),
   }),
 
 };

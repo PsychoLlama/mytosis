@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 import mergeConfigs from '../merge-configs';
-import { after, before, defaults, format } from './index';
+import * as pipeline from './index';
 import expect, { createSpy } from 'expect';
 
 const hooks = (hooks) => mergeConfigs([{ hooks }]);
@@ -17,7 +17,7 @@ describe('The pipeline\'s default option setter', () => {
   }]);
 
   it('should add storage and network fields', () => {
-    const options = defaults(config, {});
+    const options = pipeline.defaults(config, {});
 
     expect(options).toContain({
       storage: [storage],
@@ -26,7 +26,7 @@ describe('The pipeline\'s default option setter', () => {
   });
 
   it('should use given storage options instead of the default', () => {
-    const options = defaults(config, {
+    const options = pipeline.defaults(config, {
       storage: [{ custom: true }],
     });
 
@@ -37,7 +37,7 @@ describe('The pipeline\'s default option setter', () => {
   });
 
   it('should use given network options instead of the default', () => {
-    const options = defaults(config, {
+    const options = pipeline.defaults(config, {
       clients: [{ custom: true }],
     });
 
@@ -51,7 +51,7 @@ describe('The pipeline\'s default option setter', () => {
 
 describe('The pipeline\'s output formatter', () => {
   const spy = createSpy();
-  const transform = format(spy);
+  const transform = pipeline.format(spy);
 
   beforeEach(::spy.reset);
 
@@ -89,7 +89,7 @@ describe('The before.read pipeline', () => {
       before: { read },
     });
 
-    const [key] = await before.read(config, [
+    const [key] = await pipeline.before.read(config, [
       'original boring key',
     ]);
 
@@ -104,7 +104,7 @@ describe('The before.read pipeline', () => {
         before: { read },
       });
 
-      const [key] = await before.read(config, ['Original key']);
+      const [key] = await pipeline.before.read(config, ['Original key']);
 
       expect(key).toBe('String return');
     });
@@ -119,7 +119,7 @@ describe('The before.read pipeline', () => {
         before: { read },
       });
 
-      const [, options] = await before.read(config, ['sup']);
+      const [, options] = await pipeline.before.read(config, ['sup']);
 
       expect(options).toEqual({ overridden: true });
     });
@@ -137,7 +137,7 @@ describe('The after.read pipeline', () => {
     });
 
     const value = { value: true };
-    const [key] = await after.read(config, ['key', value]);
+    const [key] = await pipeline.after.read(config, ['key', value]);
 
     expect(key).toBe('key, but better');
   });
@@ -150,7 +150,7 @@ describe('The after.read pipeline', () => {
         after: { read },
       });
 
-      const [, value] = await after.read(config, [
+      const [, value] = await pipeline.after.read(config, [
         'key',
         { original: true },
       ]);
@@ -161,6 +161,39 @@ describe('The after.read pipeline', () => {
       });
     });
 
+  });
+
+});
+
+describe('The pipeline', () => {
+
+  const methods = [
+    ['before', 'read'],
+    ['before', 'write'],
+    ['before', 'request'],
+    ['before', 'update'],
+  ];
+
+  methods.forEach(([tense, method]) => {
+    describe(`"${tense}.${method}" method`, async () => {
+
+      it('should allow hooks to override the arguments', async () => {
+        const args = ['original string', { options: true }];
+        const config = hooks({
+          [tense]: {
+            [method]: () => [undefined, { replaced: true }],
+          },
+        });
+
+        const result = await pipeline[tense][method](config, args);
+        expect(result).toEqual([
+          'original string',
+          { replaced: true },
+        ]);
+
+      });
+
+    });
   });
 
 });
