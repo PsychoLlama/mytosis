@@ -9,3 +9,13 @@ node_js:
 script:
   - npm run test
   - npm run lint
+
+deploy:
+  provider: npm
+  email: Jesse_Gibson@me.com
+  api_key:
+    secure: aJ/DceZXOijXXN0r78oB/4cw9FOeoJ09DnY0YqwzL/CVmSHWe5fIdN1bj/Pavh2hU0noOWesVd+TS4CVnmLzrcz2GA3+bPbiINVgM7A50UUFdK9pkQa46+AZhpkov/MKJMjRrtjiW+70c+ohNrEZ+/ULT55apjBcNwwKvNDUivWcGs4EKalR/geVaz0BK5v0gie70uPt5NDkDv7sSuwYAXSkCAw0YtZ//51Qz+UFQRlvH1bBT3D8ZfW3HQCHbvlF7uAT63QO3iV8JH8Rbx7uUszIYixhnvOyXyP8B8Lsqf7v9nDp73Wg+68ntDFXATldN89kXmNpu5OrYaAgwRqYozO5PxNI6FP51GtcYiiAFN8vlij90RW763Of4PNnPb6x/4TpubvgM5ci1HXdCdoTzIJ79Hv/kQNO/41pwDuVbN9AYGXRoUHWrpB4gDkuCJXg8vryXmt7zLTzf+98E2/P90crVCybt18lg4XlYBqYSAgrarBVIPR/T6Pqzy7ykAhH9qenuHRYv8VMw2aeINwyz3vYtbzbpsFfaQAcENdvLSi3gta72SVYSrxd4xc9n1OcmCKgwECvTXByd6NdCrWNDGxNdqDB2njTvfEpKPUQsGc7URCqwEPIwEoVTyxV7dGXHnAnKyXMMHTDGOfmE3wESeHCDYEcK53zY9FsRGe0je4=
+  on:
+    node: '6'
+    tags: true
+    repo: PsychoLlama/mytosis
