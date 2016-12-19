@@ -2,7 +2,9 @@
 
 *Distributed graph database*
 
-[![Travis branch](https://img.shields.io/travis/PsychoLlama/mytosis/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/mytosis)
+[![Travis build](https://img.shields.io/travis/PsychoLlama/mytosis/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/mytosis)
+[![downloads](https://img.shields.io/npm/dt/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
+[![version](https://img.shields.io/npm/v/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
 
 `mytosis` is a work in progress, wrapping the work of the [`graph-crdt`](https://github.com/PsychoLlama/graph-crdt) data structure into a friendly, modular API.
 
