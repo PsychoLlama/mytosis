@@ -1,7 +1,6 @@
 /* eslint-env mocha*/
 import trigger from './index';
 import expect, { createSpy } from 'expect';
-import Promise from 'bluebird';
 
 describe('A trigger', () => {
 

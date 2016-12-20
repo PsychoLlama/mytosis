@@ -4,10 +4,6 @@
     "stage-0"
   ],
   "plugins": [
-    "transform-runtime",
-    ["transform-async-to-module-method", {
-      "module": "bluebird",
-      "method": "coroutine"
-    }]
+    "transform-runtime"
   ]
 }
