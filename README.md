@@ -10,7 +10,11 @@
 
 ## API
 
-> Meh, docs later.
+So, yeah, it's currently listed as `v1`, but that was an accident. Whoops!
+
+The API should be considered **unstable until `v2`**, then semver kicks in. Promise.
+
+Maybe then I'll write some documentation.
 
 ### Installing
 

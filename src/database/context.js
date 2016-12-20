@@ -25,7 +25,7 @@ export default class Context extends Node {
   async read (field) {
 
     /** Read from the node. */
-    const result = super.read(field);
+    const result = super.value(field);
 
     /** Detect and resolve pointers. */
     if (result instanceof Object) {
@@ -50,5 +50,15 @@ export default class Context extends Node {
 
     /** Merge the value. */
     this.merge({ [field]: value });
+  }
+
+  /**
+   * Creates a copy of the context.
+   * @return {Context} - A new context with the same uid and root.
+   */
+  new () {
+    const config = this.meta();
+
+    return new Context(this.root, config);
   }
 }

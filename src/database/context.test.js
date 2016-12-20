@@ -66,4 +66,25 @@ describe('A context', () => {
 
   });
 
+  describe('"new" call', () => {
+
+    it('should return a new context', () => {
+      const copy = node.new();
+      expect(copy).toBeA(Context);
+    });
+
+    it('should use the same uid', () => {
+      const copy = node.new();
+      expect(copy.meta()).toContain({
+        uid: String(node),
+      });
+    });
+
+    it('should attach the same root reference', () => {
+      const copy = node.new();
+      expect(copy.root).toBe(root);
+    });
+
+  });
+
 });
