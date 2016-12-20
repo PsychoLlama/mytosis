@@ -43,7 +43,7 @@ class Database {
    */
   async read (uid) {
     const graph = this[data];
-    return graph.read(uid);
+    return graph.value(uid);
   }
 }
 

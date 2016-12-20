@@ -42,7 +42,7 @@ describe('A database', () => {
       await db.write('user', { name: 'Jesse' });
       const graph = db[database.graph];
 
-      const node = graph.read('user');
+      const node = graph.value('user');
       expect(node).toBeA(Context);
 
       const name = await node.read('name');
@@ -54,7 +54,7 @@ describe('A database', () => {
       await db.write('user', { handle: 'BobTheGreat' });
 
       const graph = db[database.graph];
-      const user = graph.read('user');
+      const user = graph.value('user');
 
       expect(await user.read('name')).toBe('Bob');
       expect(await user.read('handle')).toBe('BobTheGreat');
