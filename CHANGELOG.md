@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.2.1
+### Fixed
+- npm was publishing the `src` folder, not `dist`.
+
 ## v1.2.0
 ### Fixed
 - Context instances are kept in the graph, opposed to their primitive `Node` counterparts.
