@@ -3,21 +3,21 @@ import { Graph } from 'graph-crdt';
 import Context from './context';
 
 const settings = Symbol('database configuration');
-const data = Symbol('database graph');
 
 /**
  * Plugin manager for graph-crdt.
  * @class Database
  */
-class Database {
+class Database extends Graph {
 
   /**
    * Instantiates a new graph database.
    * @param  {Object} config - A database configuration object.
    */
   constructor (config) {
+    super();
+
     this[settings] = config;
-    this[data] = new Graph();
   }
 
   /**
@@ -27,13 +27,12 @@ class Database {
    * @return {Context} - Resolves to the context written.
    */
   async write (uid, value) {
-    const graph = this[data];
     const node = new Context(this, { uid });
 
     node.merge(value);
-    graph.merge({ [node]: node });
+    this.merge({ [uid]: node });
 
-    return node;
+    return this.value(uid);
   }
 
   /**
@@ -42,8 +41,7 @@ class Database {
    * @return {Context|undefined} - Resolves to the node.
    */
   async read (uid) {
-    const graph = this[data];
-    return graph.value(uid);
+    return this.value(uid);
   }
 }
 
@@ -59,6 +57,5 @@ function database (...configs) {
 }
 
 database.configuration = settings;
-database.graph = data;
 
 export default database;

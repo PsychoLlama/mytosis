@@ -23,8 +23,7 @@ describe('A database', () => {
   });
 
   it('should create a new graph', () => {
-    const graph = db[database.graph];
-    expect(graph).toBeA(Graph);
+    expect(db).toBeA(Graph);
   });
 
   describe('read', () => {
@@ -40,9 +39,8 @@ describe('A database', () => {
 
     it('should save to the graph', async () => {
       await db.write('user', { name: 'Jesse' });
-      const graph = db[database.graph];
 
-      const node = graph.value('user');
+      const node = db.value('user');
       expect(node).toBeA(Context);
 
       const name = await node.read('name');
@@ -53,8 +51,7 @@ describe('A database', () => {
       await db.write('user', { name: 'Bob' });
       await db.write('user', { handle: 'BobTheGreat' });
 
-      const graph = db[database.graph];
-      const user = graph.value('user');
+      const user = db.value('user');
 
       expect(await user.read('name')).toBe('Bob');
       expect(await user.read('handle')).toBe('BobTheGreat');
@@ -66,6 +63,7 @@ describe('A database', () => {
       });
 
       expect(user).toBeA(Context);
+      expect(user).toBe(db.value('user'));
 
       const name = await user.read('name');
       expect(name).toBe('Bob');

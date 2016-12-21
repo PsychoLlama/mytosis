@@ -25,7 +25,7 @@ export default class Context extends Node {
   async read (field) {
 
     /** Read from the node. */
-    const result = super.value(field);
+    const result = this.value(field);
 
     /** Detect and resolve pointers. */
     if (result instanceof Object) {
