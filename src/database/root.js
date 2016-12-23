@@ -19,6 +19,16 @@ class Database extends Graph {
     super();
 
     this[settings] = config;
+
+    const extensions = config.extend.root;
+
+    /** Add API extensions from the config. */
+    Object.keys(extensions).forEach((key) => {
+      const value = extensions[key];
+
+      /** Non-enumerable and immutable. */
+      Object.defineProperty(this, key, { value });
+    });
   }
 
   /**

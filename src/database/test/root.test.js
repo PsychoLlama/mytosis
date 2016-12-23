@@ -71,4 +71,34 @@ describe('A database', () => {
 
   });
 
+  describe('extended API', () => {
+    const extend = (api) => database({
+      extend: { root: api },
+    });
+
+    it('should be added', () => {
+      const db = extend({
+        method: () => true,
+        prop: 'yep',
+      });
+
+      expect(db.method).toBeA(Function);
+      expect(db.prop).toBe('yep');
+    });
+
+    it('should be non-enumerable', () => {
+      const db = extend({ prop: 'value' });
+      const keys = Object.keys(db);
+      expect(keys).toNotContain('prop');
+    });
+
+    it('should be immutable', () => {
+      const db = extend({ stuff: 'original' });
+      expect(() => {
+        db.stuff = 'something else';
+      }).toThrow(Error);
+    });
+
+  });
+
 });
