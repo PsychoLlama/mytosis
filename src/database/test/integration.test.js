@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-import database from '../index';
+import database from '../../index';
 import expect from 'expect';
 
 describe('The database', () => {

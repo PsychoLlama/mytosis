@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import expect, { spyOn } from 'expect';
-import database from './root';
-import Context from './context';
+import database from '../root';
+import Context from '../context';
 
 describe('A context', () => {
   let node, root;

@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import { Graph } from 'graph-crdt';
-import Context from './context';
-import database from './root';
+import Context from '../context';
+import database from '../root';
 import expect from 'expect';
 
 describe('A database', () => {

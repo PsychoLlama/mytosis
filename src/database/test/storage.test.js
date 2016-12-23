@@ -2,7 +2,7 @@
 /* eslint-env mocha */
 import expect, { spyOn } from 'expect';
 import { Graph, Node } from 'graph-crdt';
-import database from '../index';
+import database from '../../index';
 
 // Simple storage mock.
 class Storage {
