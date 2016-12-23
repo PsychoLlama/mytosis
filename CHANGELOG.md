@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## Unreleased
+### Added
+- `before.write` pipeline added for storage plugins.
+
 ## v1.3.0
 ### Added
 - Integration with storage plugins.

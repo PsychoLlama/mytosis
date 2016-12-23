@@ -1,6 +1,7 @@
 import merge from '../merge-configs';
 import { Graph, Node } from 'graph-crdt';
 import Context from './context';
+import * as pipeline from '../pipeline';
 
 const settings = Symbol('database configuration');
 
@@ -24,22 +25,30 @@ class Database extends Graph {
    * Merges a node into the graph.
    * @param  {String} uid - The unique ID of the node.
    * @param  {Object} value - The fields to add/update.
+   * @param  {Object} [options] - Override default behavior.
    * @return {Context} - Resolves to the context written.
    */
-  async write (uid, value) {
+  async write (uid, value, options) {
+    const config = this[settings];
     const node = new Context(this, { uid });
 
     node.merge(value);
 
     this.merge({ [uid]: node });
 
-    const update = Graph.source({
-      [uid]: this.value(uid),
-    });
+    const [
+      update,
+      params,
+    ] = await pipeline.before.write(config, [
+      Graph.source({
+        [uid]: this.value(uid),
+      }),
+      options,
+    ]);
 
     /** Persist the change. */
-    for (const store of this[settings].storage) {
-      await store.write(update);
+    for (const store of params.storage) {
+      await store.write(update, params);
     }
 
     return this.value(uid);

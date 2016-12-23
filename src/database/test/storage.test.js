@@ -1,29 +1,8 @@
-/* eslint-disable require-jsdoc */
 /* eslint-env mocha */
 import expect, { spyOn } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 import database from '../../index';
-
-// Simple storage mock.
-class Storage {
-  constructor () {
-    this.cache = {};
-  }
-
-  async write (graph) {
-    const { cache } = this;
-
-    for (const [uid, node] of graph) {
-      cache[uid] = JSON.stringify(node);
-    }
-  }
-
-  async read (uid) {
-    const value = this.cache[uid];
-
-    return value && JSON.parse(value);
-  }
-}
+import { Storage } from './mocks';
 
 describe('A storage plugin', () => {
   let db, storage;
@@ -77,6 +56,24 @@ describe('A storage plugin', () => {
       expect(write.calls.length).toBe(1);
       await profile.write('username', 'SuperBob');
       expect(write.calls.length).toBe(2);
+    });
+
+    it('should be passed the options object', async () => {
+      await db.write('users', {}, {
+        potatoes: true,
+      });
+
+      const [, options] = write.calls[0].arguments;
+      expect(options).toContain({
+        potatoes: true,
+      });
+    });
+
+    it('should not be called if storage is disabled', async () => {
+      await db.write('users', {}, {
+        storage: [],
+      });
+      expect(write).toNotHaveBeenCalled();
     });
 
   });
