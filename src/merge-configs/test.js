@@ -1,5 +1,5 @@
 /* eslint-env mocha*/
-import config from './index';
+import config, { base } from './index';
 import expect from 'expect';
 
 describe('A database configuration object', () => {
@@ -65,6 +65,18 @@ describe('A database configuration object', () => {
 
       expect(result.extend.root).toContain({ noop });
       expect(result.extend.context).toContain({ noop });
+    });
+
+    it('should not mutate the base "extend"', () => {
+      config([{
+        extend: {
+          root: { root: true },
+          context: { context: true },
+        },
+      }]);
+
+      expect(base.extend.root).toEqual({});
+      expect(base.extend.context).toEqual({});
     });
 
     it('should add storage', () => {

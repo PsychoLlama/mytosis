@@ -9,6 +9,9 @@
 ### Added
 - Root API extensions via the `config.extend.root` object.
 
+### Fixed
+- Adding methods or properties to config objects mutated the base configuration, applying those API extensions to all databases.
+
 ## v1.4.0
 ### Added
 - New `before.write` pipeline allows hooks to override values before they reach storage plugins.

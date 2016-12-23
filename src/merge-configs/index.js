@@ -10,7 +10,7 @@ const hooks = {
  * will boil down to one of these.
  * @type {Object}
  */
-const base = {
+export const base = {
 
   /**
    * Lifecycle hooks.
@@ -95,8 +95,8 @@ const merge = {
    * @return {Object} - The combined extensions object.
    */
   extensions: ({ root, context }, ext = {}) => ({
-    root: Object.assign(root, ext.root),
-    context: Object.assign(context, ext.context),
+    root: Object.assign({}, root, ext.root),
+    context: Object.assign({}, context, ext.context),
   }),
 
   /**
