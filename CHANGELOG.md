@@ -5,7 +5,7 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
-## Unreleased
+## v1.4.0
 ### Added
 - New `before.write` pipeline allows hooks to override values before they reach storage plugins.
 - New `after.write` pipeline allows hooks to replace or augment contexts before resolving to the user.
