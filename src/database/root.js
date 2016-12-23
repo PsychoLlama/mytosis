@@ -1,5 +1,5 @@
 import merge from '../merge-configs';
-import { Graph } from 'graph-crdt';
+import { Graph, Node } from 'graph-crdt';
 import Context from './context';
 
 const settings = Symbol('database configuration');
@@ -30,7 +30,17 @@ class Database extends Graph {
     const node = new Context(this, { uid });
 
     node.merge(value);
+
     this.merge({ [uid]: node });
+
+    const update = Graph.source({
+      [uid]: this.value(uid),
+    });
+
+    /** Persist the change. */
+    for (const store of this[settings].storage) {
+      await store.write(update);
+    }
 
     return this.value(uid);
   }
@@ -41,7 +51,30 @@ class Database extends Graph {
    * @return {Context|undefined} - Resolves to the node.
    */
   async read (uid) {
-    return this.value(uid);
+    const cached = this.value(uid);
+
+    if (cached) {
+      return cached;
+    }
+
+    let node = null;
+
+    // Ask the storage plugins for it.
+    for (const store of this[settings].storage) {
+      const result = await store.read(uid);
+      const update = Node.source(result);
+      if (result) {
+        node = node || new Context(this, { uid });
+        node.merge(update);
+      }
+    }
+
+    // Cache the value.
+    if (node) {
+      this.merge({ [uid]: node });
+    }
+
+    return node;
   }
 }
 

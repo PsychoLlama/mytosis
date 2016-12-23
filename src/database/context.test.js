@@ -8,7 +8,12 @@ describe('A context', () => {
 
   beforeEach(() => {
     root = database();
-    node = new Context(root);
+
+    const context = new Context(root);
+    const { uid } = context.meta();
+
+    root.merge({ [uid]: context });
+    node = root.value(uid);
   });
 
   it('should expose the database root', () => {

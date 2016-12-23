@@ -48,8 +48,10 @@ export default class Context extends Node {
       value = { edge: String(value) };
     }
 
+    const { uid } = this.meta();
+
     /** Merge the value. */
-    this.merge({ [field]: value });
+    await this.root.write(uid, { [field]: value });
   }
 
   /**
