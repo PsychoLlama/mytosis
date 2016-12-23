@@ -1,6 +1,6 @@
 {
   "name": "mytosis",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Decentralized graph database",
   "main": "dist/index.js",
   "js:next": "src/index.js",
