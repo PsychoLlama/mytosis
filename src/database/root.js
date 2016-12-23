@@ -30,28 +30,33 @@ class Database extends Graph {
    */
   async write (uid, value, options) {
     const config = this[settings];
-    const node = new Context(this, { uid });
+    const update = new Context(this, { uid });
 
-    node.merge(value);
+    update.merge(value);
 
-    this.merge({ [uid]: node });
+    this.merge({ [uid]: update });
+
+    const node = this.value(uid);
 
     const [
-      update,
+      graph,
       params,
     ] = await pipeline.before.write(config, [
-      Graph.source({
-        [uid]: this.value(uid),
-      }),
+      Graph.source({ [uid]: node }),
       options,
     ]);
 
     /** Persist the change. */
     for (const store of params.storage) {
-      await store.write(update, params);
+      await store.write(graph, params);
     }
 
-    return this.value(uid);
+    const [result] = await pipeline.after.write(config, [
+      node,
+      params,
+    ]);
+
+    return result;
   }
 
   /**

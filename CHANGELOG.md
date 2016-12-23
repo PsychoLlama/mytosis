@@ -7,7 +7,8 @@
 
 ## Unreleased
 ### Added
-- `before.write` pipeline added for storage plugins.
+- New `before.write` pipeline allows hooks to override values before they reach storage plugins.
+- New `after.write` pipeline allows hooks to replace or augment contexts before resolving to the user.
 
 ## v1.3.0
 ### Added

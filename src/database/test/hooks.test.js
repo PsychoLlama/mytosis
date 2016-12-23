@@ -10,13 +10,6 @@ describe('Database hook', () => {
   beforeEach(() => {
     storage = new Storage();
     hook = createSpy();
-
-    db = database({
-      hooks: {
-        before: { write: hook },
-      },
-      storage: [storage],
-    });
   });
 
   describe('"before.write"', () => {
@@ -24,6 +17,12 @@ describe('Database hook', () => {
 
     beforeEach(() => {
       write = spyOn(storage, 'write').andCallThrough();
+      db = database({
+        hooks: {
+          before: { write: hook },
+        },
+        storage: [storage],
+      });
     });
 
     afterEach(() => write.restore());
@@ -41,6 +40,52 @@ describe('Database hook', () => {
 
       const [contents] = write.calls[0].arguments;
       expect(contents).toBe(graph);
+    });
+
+  });
+
+  describe('"after.write"', () => {
+
+    beforeEach(() => {
+      db = database({
+        hooks: {
+          after: { write: hook },
+        },
+      });
+    });
+
+    it('should be called after writes', async () => {
+      await db.write('users', {});
+      expect(hook).toHaveBeenCalled();
+    });
+
+    it('should be passed the context', async () => {
+      const settings = await db.write('settings', {
+        enabled: true,
+      });
+      const [node] = hook.calls[0].arguments;
+      expect(node).toBe(settings);
+    });
+
+    it('should be passed the options', async () => {
+      await db.write('beans', {}, {
+        cool: true,
+      });
+
+      const [, options] = hook.calls[0].arguments;
+      expect(options).toContain({
+        cool: true,
+      });
+    });
+
+    it('should allow overriding of the return context', async () => {
+      hook.andReturn([
+        { trickery: true },
+      ]);
+      const result = await db.write('beans', {});
+      expect(result).toEqual({
+        trickery: true,
+      });
     });
 
   });
