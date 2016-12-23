@@ -5,7 +5,7 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
-## Unreleased
+## v1.5.0
 ### Added
 - Root API extensions via the `config.extend.root` object.
 - Context API extensions via the `config.extend.context` object.
