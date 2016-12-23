@@ -1,4 +1,5 @@
 import { Node } from 'graph-crdt';
+import database from './root';
 
 /**
  * Asynchronous node interface.
@@ -15,6 +16,16 @@ export default class Context extends Node {
     super(node);
 
     this.root = root;
+
+    if (root) {
+      const config = root[database.configuration];
+      const extend = config.extend.context;
+      Object.keys(extend).forEach((key) => {
+        const value = extend[key];
+
+        Object.defineProperty(this, key, { value });
+      });
+    }
   }
 
   /**

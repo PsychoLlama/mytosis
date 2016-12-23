@@ -90,6 +90,51 @@ describe('A context', () => {
       expect(copy.root).toBe(root);
     });
 
+    it('should include API extensions', () => {
+      const root = database({
+        extend: {
+          context: { hello: 'coder' },
+        },
+      });
+
+      const ctx = new Context(root);
+      const copy = ctx.new();
+      expect(copy.hello).toBe('coder');
+    });
+
+  });
+
+  describe('API extension', () => {
+    const extend = (context) => database({
+      extend: { context },
+    });
+
+    it('should contain extensions from the config', () => {
+      const root = extend({
+        wazzup () {},
+      });
+
+      const ctx = new Context(root);
+      expect(ctx.wazzup).toBeA(Function);
+    });
+
+    it('should be non-enumerable', () => {
+      const root = extend({ 'non-enumerable': true });
+
+      const ctx = new Context(root);
+      const keys = Object.keys(ctx);
+      expect(keys).toNotContain('non-enumerable');
+    });
+
+    it('should be immutable', () => {
+      const root = extend({ hey: 'there' });
+
+      const ctx = new Context(root);
+      expect(() => {
+        ctx.hey = 'change!';
+      }).toThrow(Error);
+    });
+
   });
 
 });

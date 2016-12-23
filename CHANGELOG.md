@@ -8,6 +8,7 @@
 ## Unreleased
 ### Added
 - Root API extensions via the `config.extend.root` object.
+- Context API extensions via the `config.extend.context` object.
 
 ### Fixed
 - Adding methods or properties to config objects mutated the base configuration, applying those API extensions to all databases.
