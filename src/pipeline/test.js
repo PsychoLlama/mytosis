@@ -78,6 +78,12 @@ describe('The pipeline\'s output formatter', () => {
     expect(result).toEqual(['successful']);
   });
 
+  it('should assume no overriding if null is given', () => {
+    spy.andReturn(null);
+    const result = transform(new Map(), ['original']);
+    expect(result).toEqual(['original']);
+  });
+
 });
 
 describe('The before.read pipeline', () => {

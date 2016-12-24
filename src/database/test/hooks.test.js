@@ -18,10 +18,10 @@ describe('Database hook', () => {
     beforeEach(() => {
       write = spyOn(storage, 'write').andCallThrough();
       db = database({
+        storage: [storage],
         hooks: {
           before: { write: hook },
         },
-        storage: [storage],
       });
     });
 
@@ -85,6 +85,56 @@ describe('Database hook', () => {
       const result = await db.write('beans', {});
       expect(result).toEqual({
         trickery: true,
+      });
+    });
+
+  });
+
+  describe('"before.read"', () => {
+    let read, hook;
+
+    beforeEach(() => {
+      read = spyOn(storage, 'read');
+      hook = createSpy();
+      db = database({
+        storage: [storage],
+        hooks: {
+          before: { read: hook },
+        },
+      });
+    });
+
+    it('should call the hook before reads', async () => {
+      expect(hook).toNotHaveBeenCalled();
+      await db.read('users');
+      expect(hook).toHaveBeenCalled();
+    });
+
+    it('should pass the key and options', async () => {
+      const options = { 'engage hyperdrive': true };
+      await db.read('key name', options);
+      const [key, opts] = hook.calls[0].arguments;
+      expect(key).toBe('key name');
+      expect(opts).toContain(options);
+    });
+
+    it('should allow overriding the key', async () => {
+      hook.andCall((key) => `prefix/${key}`);
+      await db.read('stuff');
+      const [uid] = read.calls[0].arguments;
+      expect(uid).toBe('prefix/stuff');
+    });
+
+    it('should allow overriding the options', async () => {
+      hook.andCall((key, options) => (
+        Object.assign({ overridden: true }, options)
+      ));
+
+      await db.read('key', { original: true });
+      const [, options] = read.calls[0].arguments;
+      expect(options).toContain({
+        overridden: true,
+        original: true,
       });
     });
 

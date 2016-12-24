@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## Unreleased
+### Added
+- New `before.read` pipeline allows hooks to override key names or options before they reach the storage drivers.
+
 ## v1.5.0
 ### Added
 - Root API extensions via the `config.extend.root` object.

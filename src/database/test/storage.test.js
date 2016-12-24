@@ -125,6 +125,18 @@ describe('A storage plugin', () => {
       expect(read.calls.length).toBe(1);
     });
 
+    it('should be passed the options object', async () => {
+      await db.read('key', { potatoes: true });
+      const [, options] = read.calls[0].arguments;
+      expect(options).toBeAn(Object);
+      expect(options).toContain({ potatoes: true });
+    });
+
+    it('should not be called if storage is disabled', async () => {
+      await db.read('key', { storage: [] });
+      expect(read).toNotHaveBeenCalled();
+    });
+
   });
 
 });

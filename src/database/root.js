@@ -71,31 +71,42 @@ class Database extends Graph {
 
   /**
    * Read a context from the database.
-   * @param  {String} uid - The node's unique ID.
-   * @return {Context|undefined} - Resolves to the node.
+   * @param  {String} key - The node's unique ID.
+   * @param  {Object} [options] - Plugin-level options.
+   * @return {Context|null} - Resolves to the node.
    */
-  async read (uid) {
-    const cached = this.value(uid);
+  async read (key, options) {
+    const config = this[settings];
 
-    if (cached) {
-      return cached;
-    }
+    const [
+      uid,
+      params,
+    ] = await pipeline.before.read(config, [
+      key,
+      options,
+    ]);
 
-    let node = null;
+    let node = this.value(uid);
 
-    // Ask the storage plugins for it.
-    for (const store of this[settings].storage) {
-      const result = await store.read(uid);
-      const update = Node.source(result);
-      if (result) {
-        node = node || new Context(this, { uid });
-        node.merge(update);
+    /** Not cached. */
+    if (node === null) {
+
+      /** Ask the storage plugins for it. */
+      for (const store of params.storage) {
+        const result = await store.read(uid, params);
+        const update = Node.source(result);
+
+        if (result) {
+          node = node || new Context(this, { uid });
+          node.merge(update);
+        }
       }
-    }
 
-    // Cache the value.
-    if (node) {
-      this.merge({ [uid]: node });
+      /** Cache the value. */
+      if (node) {
+        this.merge({ [uid]: node });
+      }
+
     }
 
     return node;

@@ -43,7 +43,7 @@ export const format = (map) => (
 
     /** If an array isn't returned, turn it into one. */
     if (!(next instanceof Array)) {
-      next = map(next);
+      next = map(next) || [];
     }
 
     /** Uses the last input to patch any missing arguments. */
