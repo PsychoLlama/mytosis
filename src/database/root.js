@@ -81,7 +81,7 @@ class Database extends Graph {
     const [
       uid,
       params,
-    ] = await pipeline.before.read(config, [
+    ] = await pipeline.before.read.node(config, [
       key,
       options,
     ]);
@@ -112,7 +112,7 @@ class Database extends Graph {
     /** After-read hooks. */
     const [
       result,
-    ] = await pipeline.after.read(config, [
+    ] = await pipeline.after.read.node(config, [
       node,
       params,
     ]);

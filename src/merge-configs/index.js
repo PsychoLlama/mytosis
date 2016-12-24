@@ -1,5 +1,8 @@
 const hooks = {
-  read: [],
+  read: {
+    node: [],
+    field: [],
+  },
   write: [],
   update: [],
   request: [],
@@ -50,12 +53,28 @@ export const base = {
 const merge = {
 
   /**
+   * Merges read hooks together.
+   * @param  {Object} hooks - Read hooks.
+   * @param  {Function[]} hooks.node - Node-related read events.
+   * @param  {Function[]} hooks.field - Field-related read events.
+   * @param  {Object} target - Read-related hooks to add.
+   * @return {Object} - The merged read hooks.
+   */
+  read: ({
+    node,
+    field,
+  }, target = {}) => ({
+    node: node.concat(target.node || []),
+    field: node.concat(target.field || []),
+  }),
+
+  /**
    * Merges a hook object with another.
-   * @param  {Object} hook - The base hook to extend.
-   * @param  {Object} hook.read - The base hook to extend.
-   * @param  {Object} hook.write - The base hook to extend.
-   * @param  {Object} hook.update - The base hook to extend.
-   * @param  {Object} hook.request - The base hook to extend.
+   * @param  {Object} hook - A collection of hooks to extend.
+   * @param  {Object} hook.read - Read hooks.
+   * @param  {Array} hook.write - The base hook to extend.
+   * @param  {Array} hook.update - The base hook to extend.
+   * @param  {Array} hook.request - The base hook to extend.
    * @param  {Object} target={} - The hooks to add.
    * @return {Object} - The merged hook object.
    */
@@ -65,7 +84,7 @@ const merge = {
     update,
     request,
   }, target = {}) => ({
-    read: read.concat(target.read || []),
+    read: merge.read(read, target.read),
     write: write.concat(target.write || []),
     update: update.concat(target.update || []),
     request: request.concat(target.request || []),

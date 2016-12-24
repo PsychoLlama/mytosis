@@ -99,7 +99,9 @@ describe('Database hook', () => {
       db = database({
         storage: [storage],
         hooks: {
-          before: { read: hook },
+          before: {
+            read: { node: hook },
+          },
         },
       });
     });
@@ -147,7 +149,9 @@ describe('Database hook', () => {
       hook = createSpy();
       db = database({
         hooks: {
-          after: { read: hook },
+          after: {
+            read: { node: hook },
+          },
         },
       });
 

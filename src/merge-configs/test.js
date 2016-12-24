@@ -1,4 +1,4 @@
-/* eslint-env mocha*/
+/* eslint-env mocha */
 import config, { base } from './index';
 import expect from 'expect';
 
@@ -29,7 +29,10 @@ describe('A database configuration object', () => {
 
   it('should contain a hooks object', () => {
     const hook = {
-      read: [],
+      read: {
+        node: [],
+        field: [],
+      },
       write: [],
       request: [],
       update: [],
@@ -48,7 +51,8 @@ describe('A database configuration object', () => {
       expect(storage.length).toBe(0);
       expect(network.clients.length).toBe(0);
       expect(network.servers.length).toBe(0);
-      expect(hooks.before.read.length).toBe(0);
+      expect(hooks.before.read.node.length).toBe(0);
+      expect(hooks.before.read.field.length).toBe(0);
       expect(hooks.before.write.length).toBe(0);
       expect(hooks.before.request.length).toBe(0);
       expect(hooks.before.update.length).toBe(0);
@@ -159,15 +163,19 @@ describe('A database configuration object', () => {
 
       const result = config([{
         hooks: {
-          before: { read: first },
+          before: {
+            read: { node: first },
+          },
         },
       }, {
         hooks: {
-          before: { read: second },
+          before: {
+            read: { node: second },
+          },
         },
       }]);
 
-      expect(result.hooks.before.read).toEqual([first, second]);
+      expect(result.hooks.before.read.node).toEqual([first, second]);
     });
 
     it('should prefer later-defined extensions when conflicts happen', () => {

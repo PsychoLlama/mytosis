@@ -66,12 +66,11 @@ const skip = () => [];
 
 /**
  * Creates an event pipeline.
- * @param  {String} tense - The verb tense.
- * @param  {String} action - The action being dispatched.
+ * @param  {String} path - The path to the hooks inside a hooks object.
  * @param  {Function} [types] - Handles special hook return values.
  * @return {Function} - Triggers a pipeline.
  */
-const createPipeline = (tense, action, types = skip) => (
+const createPipeline = (path, types = skip) => (
 
   /**
    * Triggers a pipeline.
@@ -80,7 +79,9 @@ const createPipeline = (tense, action, types = skip) => (
    * @return {Promise} - Resolves to the pipeline output.
    */
   (config, args) => trigger({
-    hooks: config.hooks[tense][action],
+    hooks: path.reduce((hooks, type) => (
+      hooks[type]
+    ), config.hooks),
     args: normalizeArgs(config, args),
     transform: format(types),
   })
@@ -89,33 +90,39 @@ const createPipeline = (tense, action, types = skip) => (
 
 export const before = {
 
-  read: createPipeline('before', 'read', (value) => {
+  read: {
+    node: createPipeline(['before', 'read', 'node'], (value) => {
 
-    // Override the key.
-    if (typeof value === 'string') {
-      return [value];
-    }
+      // Override the key.
+      if (typeof value === 'string') {
+        return [value];
+      }
 
-    // Override the options.
-    if (value instanceof Object) {
-      return [undefined, value];
-    }
+      // Override the options.
+      if (value instanceof Object) {
+        return [undefined, value];
+      }
 
-    return null;
+      return null;
 
-  }),
+    }),
+    field: createPipeline(['before', 'read', 'field']),
+  },
 
-  write: createPipeline('before', 'write'),
-  request: createPipeline('before', 'request'),
-  update: createPipeline('before', 'update'),
+  write: createPipeline(['before', 'write']),
+  request: createPipeline(['before', 'request']),
+  update: createPipeline(['before', 'update']),
 
 };
 
 export const after = {
 
-  read: createPipeline('after', 'read'),
-  write: createPipeline('after', 'write'),
-  request: createPipeline('after', 'request'),
-  update: createPipeline('after', 'update'),
+  read: {
+    node: createPipeline(['after', 'read', 'node']),
+    field: createPipeline(['after', 'read', 'field']),
+  },
+  write: createPipeline(['after', 'write']),
+  request: createPipeline(['after', 'request']),
+  update: createPipeline(['after', 'update']),
 
 };

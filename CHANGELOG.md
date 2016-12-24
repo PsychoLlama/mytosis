@@ -10,6 +10,9 @@
 - New `before.read` pipeline allows hooks to override key names or options before they reach the storage drivers.
 - New `after.read` pipeline allows hooks to override return values.
 
+### Changed
+- Database configuration objects now have nested fields in `config.hooks[before/after].read`. The fields, `node` and `field`, relate to what type of data is being read.
+
 ## v1.5.0
 ### Added
 - Root API extensions via the `config.extend.root` object.

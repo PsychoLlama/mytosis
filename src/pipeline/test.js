@@ -86,50 +86,42 @@ describe('The pipeline\'s output formatter', () => {
 
 });
 
-describe('The before.read pipeline', () => {
+describe('The before.read.node pipeline', () => {
 
-  it('should allow hooks to change the args', async () => {
-    const overridden = 'Haha changed your key';
-    const read = async () => [overridden];
+  it('should allow hooks to change the key', async () => {
+    const read = async () => 'String return';
     const config = hooks({
-      before: { read },
+      before: {
+        read: { node: read },
+      },
     });
 
-    const [key] = await pipeline.before.read(config, [
-      'original boring key',
+    const [
+      key,
+    ] = await pipeline.before.read.node(config, [
+      'Original key',
+      {},
     ]);
 
-    expect(key).toBe(overridden);
+    expect(key).toBe('String return');
   });
 
-  describe('hook that returns a string', () => {
-
-    it('should overwrite the key', async () => {
-      const read = async () => 'String return';
-      const config = hooks({
-        before: { read },
-      });
-
-      const [key] = await pipeline.before.read(config, ['Original key']);
-
-      expect(key).toBe('String return');
+  it('should allow hooks to change the options', async () => {
+    const read = async () => ({ overridden: true });
+    const config = hooks({
+      before: {
+        read: { node: read },
+      },
     });
 
-  });
+    const [,
+      options,
+    ] = await pipeline.before.read.node(config, [
+      'sup',
+      {},
+    ]);
 
-  describe('hook that returns an object', () => {
-
-    it('should overwrite the options', async () => {
-      const read = async () => ({ overridden: true });
-      const config = hooks({
-        before: { read },
-      });
-
-      const [, options] = await pipeline.before.read(config, ['sup', {}]);
-
-      expect(options).toEqual({ overridden: true });
-    });
-
+    expect(options).toEqual({ overridden: true });
   });
 
 });
@@ -137,29 +129,45 @@ describe('The before.read pipeline', () => {
 describe('The pipeline', () => {
 
   const methods = [
-    ['before', 'read'],
+    ['before', 'read', 'node'],
+    ['before', 'read', 'field'],
     ['before', 'write'],
     ['before', 'request'],
     ['before', 'update'],
 
-    ['after', 'read'],
+    ['after', 'read', 'node'],
+    ['after', 'read', 'field'],
     ['after', 'write'],
     ['after', 'request'],
     ['after', 'update'],
   ];
 
-  methods.forEach(([tense, method]) => {
-    describe(`"${tense}.${method}" method`, async () => {
+  const buildConfig = (path, fn) => {
+    const hooksObject = {};
+
+    path.reduce((object, field, index) => {
+      const value = index === path.length - 1 ? fn : {};
+      object[field] = value;
+
+      return object[field];
+    }, hooksObject);
+
+    return hooks(hooksObject);
+  };
+
+  const getPipeline = (path) => path.reduce((obj, type) => (
+    obj[type]
+  ), pipeline);
+
+  methods.forEach((path) => {
+    describe(`"${path.join('.')}" method`, async () => {
 
       it('should allow hooks to override the arguments', async () => {
         const args = ['original string', { options: true }];
-        const config = hooks({
-          [tense]: {
-            [method]: () => [undefined, { replaced: true }],
-          },
-        });
+        const hook = () => [undefined, { replaced: true }];
+        const config = buildConfig(path, hook);
 
-        const result = await pipeline[tense][method](config, args);
+        const result = await getPipeline(path)(config, args);
         expect(result).toEqual([
           'original string',
           { replaced: true },
@@ -171,7 +179,7 @@ describe('The pipeline', () => {
         const args = ['string', { setting: true }];
         const config = hooks();
 
-        const result = await pipeline[tense][method](config, args);
+        const result = await getPipeline(path)(config, args);
 
         expect(result).toEqual([
           'string',
