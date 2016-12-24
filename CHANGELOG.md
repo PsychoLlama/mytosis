@@ -5,7 +5,7 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
-## Unreleased
+## v1.6.0
 ### Added
 - New `before.read.node` pipeline allows hooks to override key names or options before they reach the storage drivers.
 - New `after.read.node` pipeline allows hooks to override return values.
