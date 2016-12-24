@@ -1,3 +1,4 @@
+import * as pipeline from '../pipeline';
 import { Node } from 'graph-crdt';
 import database from './root';
 
@@ -31,16 +32,26 @@ export default class Context extends Node {
   /**
    * Reads a value from the node.
    * @param  {String} field - The field to read.
+   * @param  {String} [options] - Plugin-level options.
    * @return {Promise} - Resolves to the value or undefined.
    */
-  async read (field) {
+  async read (field, options) {
+
+    const config = this.root[database.configuration];
+    const [
+      key,
+      params,
+    ] = await pipeline.before.read.field(config, [
+      field,
+      options,
+    ]);
 
     /** Read from the node. */
-    const result = this.value(field);
+    const result = this.value(key);
 
     /** Detect and resolve pointers. */
     if (result instanceof Object) {
-      return this.root.read(result.edge);
+      return this.root.read(result.edge, params);
     }
 
     return result;

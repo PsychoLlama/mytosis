@@ -90,7 +90,7 @@ describe('Database hook', () => {
 
   });
 
-  describe('"before.read"', () => {
+  describe('"before.read.node"', () => {
     let read, hook;
 
     beforeEach(() => {
@@ -142,7 +142,7 @@ describe('Database hook', () => {
 
   });
 
-  describe('"after.read"', () => {
+  describe('"after.read.node"', () => {
     let hook;
 
     beforeEach(async () => {
@@ -177,6 +177,59 @@ describe('Database hook', () => {
       hook.andReturn(['haha, replaced!']);
       const value = await db.read('data');
       expect(value).toBe('haha, replaced!');
+    });
+
+  });
+
+  describe('"before.read.field"', () => {
+    let hook, node, read;
+
+    beforeEach(async () => {
+      hook = createSpy();
+      db = database({
+        storage: [storage],
+        hooks: {
+          before: {
+            read: { field: hook },
+          },
+        },
+      });
+
+      node = await db.write('context hook test', {});
+      read = spyOn(storage, 'read').andCallThrough();
+    });
+
+    it('should be passed the field and options', async () => {
+      await node.read('name', { passed: true });
+      expect(hook).toHaveBeenCalled();
+
+      const [field, options] = hook.calls[0].arguments;
+      expect(field).toBe('name');
+      expect(options).toContain({ passed: true });
+    });
+
+    it('should allow override of the field', async () => {
+      await node.write('replaced', 'resolved');
+      hook.andReturn(['replaced']);
+
+      const value = await node.read('nothing here');
+      expect(value).toBe('resolved');
+    });
+
+    it('should allow override of the options', async () => {
+      await node.write('edge', { edge: 'potatoes' });
+
+      hook.andCall((field, options) => [
+        undefined,
+        Object.assign({
+          overridden: true,
+        }, options),
+      ]);
+
+      await node.read('edge');
+
+      const [, options] = read.calls[0].arguments;
+      expect(options).toContain({ overridden: true });
     });
 
   });
