@@ -234,4 +234,53 @@ describe('Database hook', () => {
 
   });
 
+  describe('"after.read.field"', () => {
+    let hook, node;
+
+    beforeEach(async () => {
+      hook = createSpy();
+      db = database({
+        hooks: {
+          after: {
+            read: { field: hook },
+          },
+        },
+      });
+
+      node = await db.write('after.read.field tests', {});
+    });
+
+    it('should be given the field, value, & options', async () => {
+      await node.write('level', 5);
+      await node.read('level', { opts: true });
+      expect(hook).toHaveBeenCalled();
+
+      const [field, value, options] = hook.calls[0].arguments;
+      expect(field).toBe('level');
+      expect(value).toBe(5);
+      expect(options).toContain({ opts: true });
+    });
+
+    it('should allow overriding the value', async () => {
+      hook.andReturn(['was the key', 'replaced']);
+      const value = await node.read('whatever');
+
+      expect(value).toBe('replaced');
+    });
+
+    it('should be called after resolving edges', async () => {
+      const edge = await db.write('edge', {});
+      await node.write('edge', edge);
+
+      hook.andCall((field, value) => {
+        expect(value).toBe(edge);
+        return [field, 'replaced value'];
+      });
+
+      const value = await node.read('edge');
+      expect(value).toBe('replaced value');
+    });
+
+  });
+
 });

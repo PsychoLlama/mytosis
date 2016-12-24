@@ -47,14 +47,23 @@ export default class Context extends Node {
     ]);
 
     /** Read from the node. */
-    const result = this.value(key);
+    let result = this.value(key);
 
     /** Detect and resolve pointers. */
     if (result instanceof Object) {
-      return this.root.read(result.edge, params);
+      result = await this.root.read(result.edge, params);
     }
 
-    return result;
+    const [
+      ,
+      value,
+    ] = await pipeline.after.read.field(config, [
+      key,
+      result,
+      params,
+    ]);
+
+    return value;
   }
 
   /**
