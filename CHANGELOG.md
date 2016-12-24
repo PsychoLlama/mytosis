@@ -8,6 +8,7 @@
 ## Unreleased
 ### Added
 - New `before.read` pipeline allows hooks to override key names or options before they reach the storage drivers.
+- New `after.read` pipeline allows hooks to override return values.
 
 ## v1.5.0
 ### Added

@@ -140,4 +140,41 @@ describe('Database hook', () => {
 
   });
 
+  describe('"after.read"', () => {
+    let hook;
+
+    beforeEach(async () => {
+      hook = createSpy();
+      db = database({
+        hooks: {
+          after: { read: hook },
+        },
+      });
+
+      await db.write('data', {
+        existing: true,
+      });
+    });
+
+    it('should be called after reads', async () => {
+      await db.read('data');
+      expect(hook).toHaveBeenCalled();
+    });
+
+    it('should be passed the read value and options', async () => {
+      const data = await db.read('data', { cool: 'totally' });
+      const [node, options] = hook.calls[0].arguments;
+
+      expect(node).toBe(data);
+      expect(options).toContain({ cool: 'totally' });
+    });
+
+    it('should allow override of the return node', async () => {
+      hook.andReturn(['haha, replaced!']);
+      const value = await db.read('data');
+      expect(value).toBe('haha, replaced!');
+    });
+
+  });
+
 });

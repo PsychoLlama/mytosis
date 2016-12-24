@@ -109,7 +109,15 @@ class Database extends Graph {
 
     }
 
-    return node;
+    /** After-read hooks. */
+    const [
+      result,
+    ] = await pipeline.after.read(config, [
+      node,
+      params,
+    ]);
+
+    return result;
   }
 }
 
