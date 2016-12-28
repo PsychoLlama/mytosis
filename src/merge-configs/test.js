@@ -13,6 +13,10 @@ describe('A database configuration object', () => {
     expect(result.storage).toEqual([]);
   });
 
+  it('should contain query engines', () => {
+    expect(result.engines).toEqual({});
+  });
+
   it('should contain an extend object', () => {
     expect(result.extend).toEqual({
       root: {},
@@ -101,6 +105,23 @@ describe('A database configuration object', () => {
 
       const result = config([{ network }]);
       expect(result.network.clients).toEqual([client]);
+    });
+
+    it('should add query engines', () => {
+
+      const engine = { version: 'potato9000' };
+
+      const engines = {
+        potatoQL: engine,
+      };
+
+      const result = config([{ engines }]);
+      expect(result.engines).toEqual({
+        potatoQL: engine,
+      });
+
+      // Should not mutate base.
+      expect(base.engines).toEqual({});
     });
 
     it('should add network server drivers', () => {
