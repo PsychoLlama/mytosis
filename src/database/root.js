@@ -119,6 +119,14 @@ class Database extends Graph {
 
     return result;
   }
+
+  /**
+   * description
+   * @return {undefined}
+   */
+  query () {
+    throw new Error();
+  }
 }
 
 /**
