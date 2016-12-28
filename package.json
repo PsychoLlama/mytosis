@@ -11,7 +11,8 @@
     "fix-lint": "npm run lint -- --fix",
     "dev": "npm run build -- --watch",
     "test": "mocha 'src/**/*test.js' --opts mocha.opts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "watch": "npm test -- --watch --reporter min"
   },
   "keywords": [],
   "author": "Jesse Gibson <jesse@gundb.io> (http://techllama.com)",
