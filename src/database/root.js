@@ -119,6 +119,27 @@ class Database extends Graph {
 
     return result;
   }
+
+  /**
+   * description
+   * @param  {Mixed} query - query that is passed to the engine
+   * @param  {Object} options - options for executing the query
+   * @return {undefined}
+   */
+  query (query, options) {
+
+    const config = this[settings];
+    const engines = config.engines;
+    const engine = options.engine;
+
+    // Make sure the engine exists
+    if (!engines.hasOwnProperty(engine)) {
+      throw new Error('No engine is defined in options');
+    }
+
+    const queryEngine = engines[engine];
+    return queryEngine.executeQuery(query, this);
+  }
 }
 
 /**

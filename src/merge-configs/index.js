@@ -48,6 +48,12 @@ export const base = {
     clients: [],
     servers: [],
   },
+
+  /**
+   * Query engines.
+   * @type {Object}
+   */
+  engines: {},
 };
 
 const merge = {
@@ -140,6 +146,14 @@ const merge = {
   storage: (base, ext = []) => base.concat(ext),
 
   /**
+   * Merges two engine objects together.
+   * @param  {Object} base - Collection of query engines.
+   * @param  {Object} ext={} - Collection of query engines.
+   * @return {Object} - The merged collection.
+   */
+  engines: (base, ext = {}) => Object.assign({}, base, ext),
+
+  /**
    * Merges two plugin objects together.
    * @param  {Object} base - The base plugin object to extend.
    * @param  {Object} base.hooks - Database lifecycle hooks.
@@ -154,7 +168,9 @@ const merge = {
     storage: merge.storage(base.storage, ext.storage),
     extend: merge.extensions(base.extend, ext.extend),
     network: merge.network(base.network, ext.network),
+    engines: merge.engines(base.engines, ext.engines),
   }),
+
 };
 
 /**

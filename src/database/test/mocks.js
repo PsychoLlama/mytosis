@@ -19,3 +19,8 @@ export class Storage {
     return value && JSON.parse(value);
   }
 }
+
+export const queryEngine = {
+  executeQuery () {
+  },
+};
