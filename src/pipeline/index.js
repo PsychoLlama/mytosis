@@ -13,77 +13,45 @@ export const defaults = (config, options = {}) => ({
 });
 
 /**
- * Adds default options to the last argument value (typically options).
+ * Adds default options for pipeline objects.
  * @param  {Object} config - The database configuration object.
- * @param  {Array} args - A list of arguments.
- * @return {Array} - Newly arguments, with default options added.
+ * @param  {Object} options - An action being passed through the pipeline.
+ * @return {Object} - A new value with default options added (does not mutate).
  */
-const normalizeArgs = (config, args = []) => {
-  const last = args[args.length - 1];
+const addDefaultProps = (config, options) => ({
 
-  return args.slice(0, args.length - 1).concat([
-    defaults(config, last),
-  ]);
-};
+  // Provide default destinations.
+  network: config.network.clients,
+  storage: config.storage,
+
+  ...options,
+});
 
 /**
- * Handles common return values from pipeline hooks.
- * @param  {Function} map - Turns non-array return values into an array.
- * @return {Function} - Formats output from one hook for the next.
+ * Returns whatever it's passed.
+ * @param  {Mixed} value - Any value.
+ * @return {Mixed} - That same value.
  */
-export const format = (map) => (
-
-  /**
-   * Takes output from one hook and formats it for the next.
-   * @param  {Mixed} next - Anything a hook can return.
-   * @param  {Array} last - The input to the last hook.
-   * @return {Array} - The arguments for the next hook.
-   */
-  (next, last) => {
-
-    /** If an array isn't returned, turn it into one. */
-    if (!(next instanceof Array)) {
-      next = map(next) || [];
-    }
-
-    /** Uses the last input to patch any missing arguments. */
-    return last.map((prev, index) => {
-      if (next[index] === undefined) {
-        return prev;
-      }
-
-      return next[index];
-    });
-  }
-
-);
-
-/**
- * Ignore a pipeline return value, skipping to the next.
- * @return {Array} - An empty list of arguments.
- */
-const skip = () => [];
+const identity = (value) => value;
 
 /**
  * Creates an event pipeline.
  * @param  {String} path - The path to the hooks inside a hooks object.
- * @param  {Function} [types] - Handles special hook return values.
+ * @param  {Function} [transform] - Handles special return values from hooks.
  * @return {Function} - Triggers a pipeline.
  */
-const createPipeline = (path, types = skip) => (
+const createPipeline = (path, transform = identity) => (
 
   /**
    * Triggers a pipeline.
    * @param  {Object} config - Database configuration object.
-   * @param  {Array} args - The initial parameters.
+   * @param  {Array} options - The initial parameters.
    * @return {Promise} - Resolves to the pipeline output.
    */
-  (config, args) => trigger({
-    hooks: path.reduce((hooks, type) => (
-      hooks[type]
-    ), config.hooks),
-    args: normalizeArgs(config, args),
-    transform: format(types),
+  (config, options) => trigger({
+    hooks: path.reduce((hooks, type) => hooks[type], config.hooks),
+    initial: addDefaultProps(config, options),
+    transform: transform,
   })
 
 );
@@ -91,21 +59,7 @@ const createPipeline = (path, types = skip) => (
 export const before = {
 
   read: {
-    node: createPipeline(['before', 'read', 'node'], (value) => {
-
-      // Override the key.
-      if (typeof value === 'string') {
-        return [value];
-      }
-
-      // Override the options.
-      if (value instanceof Object) {
-        return [undefined, value];
-      }
-
-      return null;
-
-    }),
+    node: createPipeline(['before', 'read', 'node']),
     field: createPipeline(['before', 'read', 'field']),
   },
 

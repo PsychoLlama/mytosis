@@ -3,7 +3,6 @@
   "version": "1.6.0",
   "description": "Decentralized graph database",
   "main": "dist/index.js",
-  "js:next": "src/index.js",
   "scripts": {
     "build": "babel src/ -d dist/",
     "prepublish": "npm run build",
@@ -15,7 +14,7 @@
     "watch": "npm test -- --watch --reporter min"
   },
   "keywords": [],
-  "author": "Jesse Gibson <jesse@gundb.io> (http://techllama.com)",
+  "author": "Jesse Gibson <jesse_gibson@me.com> (http://psychollama.io)",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.16.0",

@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import mergeConfigs from '../merge-configs';
 import * as pipeline from './index';
-import expect, { createSpy } from 'expect';
+import expect from 'expect';
 
 const hooks = (hooks) => mergeConfigs([{ hooks }]);
 
@@ -49,64 +49,9 @@ describe('The pipeline\'s default option setter', () => {
 
 });
 
-describe('The pipeline\'s output formatter', () => {
-  const spy = createSpy();
-  const transform = pipeline.format(spy);
-
-  beforeEach(::spy.reset);
-
-  it('should return new arguments when given', () => {
-    const result = transform(['new arg list'], ['original list']);
-    expect(result).toEqual(['new arg list']);
-  });
-
-  it('should patch missing args with the previous args', () => {
-    const result = transform(
-      [undefined, 'second new item'],
-      ['first old item', 'second old item']
-    );
-    expect(result).toEqual(['first old item', 'second new item']);
-  });
-
-  it('should call the handler when unknown args are given', () => {
-    spy.andReturn(['successful']);
-    const result = transform(
-      new Set(),
-      ['old args']
-    );
-
-    expect(result).toEqual(['successful']);
-  });
-
-  it('should assume no overriding if null is given', () => {
-    spy.andReturn(null);
-    const result = transform(new Map(), ['original']);
-    expect(result).toEqual(['original']);
-  });
-
-});
-
 describe('The before.read.node pipeline', () => {
 
-  it('should allow hooks to change the key', async () => {
-    const read = async () => 'String return';
-    const config = hooks({
-      before: {
-        read: { node: read },
-      },
-    });
-
-    const [
-      key,
-    ] = await pipeline.before.read.node(config, [
-      'Original key',
-      {},
-    ]);
-
-    expect(key).toBe('String return');
-  });
-
-  it('should allow hooks to change the options', async () => {
+  it('should allow hooks to replace the read options', async () => {
     const read = async () => ({ overridden: true });
     const config = hooks({
       before: {
@@ -114,12 +59,9 @@ describe('The before.read.node pipeline', () => {
       },
     });
 
-    const [,
-      options,
-    ] = await pipeline.before.read.node(config, [
-      'sup',
-      {},
-    ]);
+    const options = await pipeline.before.read.node(config, {
+      string: 'sup',
+    });
 
     expect(options).toEqual({ overridden: true });
   });
@@ -163,32 +105,42 @@ describe('The pipeline', () => {
     describe(`"${path.join('.')}" method`, async () => {
 
       it('should allow hooks to override the arguments', async () => {
-        const args = ['original string', { options: true }];
-        const hook = () => [undefined, { replaced: true }];
+        const options = { original: 'yep' };
+        const hook = (initial) => ({ ...initial, added: true });
         const config = buildConfig(path, hook);
 
-        const result = await getPipeline(path)(config, args);
-        expect(result).toEqual([
-          'original string',
-          { replaced: true },
-        ]);
+        const result = await getPipeline(path)(config, options);
+        expect(result).toContain({
+          ...options,
+          added: true,
+        });
 
       });
 
-      it('should add default options', async () => {
-        const args = ['string', { setting: true }];
+      it('should add default settings', async () => {
+        const options = { setting: true };
         const config = hooks();
 
-        const result = await getPipeline(path)(config, args);
+        const result = await getPipeline(path)(config, options);
 
-        expect(result).toEqual([
-          'string',
-          {
-            setting: true,
-            storage: [],
-            clients: [],
-          },
-        ]);
+        expect(result).toEqual({
+          setting: true,
+          storage: [],
+          network: [],
+        });
+      });
+
+      it('should not force defaults if otherwise specified', async () => {
+        const options = {
+          setting: true,
+          storage: [{ storage: true }],
+          network: [{ network: true }],
+        };
+
+        const config = hooks();
+        const result = await getPipeline(path)(config, options);
+
+        expect(result).toEqual(options);
       });
 
     });
