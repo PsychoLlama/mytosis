@@ -38,30 +38,24 @@ export default class Context extends Node {
   async read (field, options) {
 
     const config = this.root[database.configuration];
-    const [
-      key,
-      params,
-    ] = await pipeline.before.read.field(config, [
+    const params = await pipeline.before.read.field(config, {
+      ...options,
+      node: this,
       field,
-      options,
-    ]);
+    });
 
     /** Read from the node. */
-    let result = this.value(key);
+    let result = this.value(params.field);
 
     /** Detect and resolve pointers. */
     if (result instanceof Object) {
       result = await this.root.read(result.edge, params);
     }
 
-    const [
-      ,
-      value,
-    ] = await pipeline.after.read.field(config, [
-      key,
-      result,
-      params,
-    ]);
+    const { value } = await pipeline.after.read.field(config, {
+      ...params,
+      value: result,
+    });
 
     return value;
   }

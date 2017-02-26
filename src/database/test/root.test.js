@@ -41,6 +41,7 @@ describe('A database', () => {
       await db.write('user', { name: 'Jesse' });
 
       const node = db.value('user');
+
       expect(node).toBeA(Context);
 
       const name = await node.read('name');

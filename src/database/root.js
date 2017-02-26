@@ -38,7 +38,7 @@ class Database extends Graph {
    * @param  {Object} [options] - Override default behavior.
    * @return {Context} - Resolves to the context written.
    */
-  async write (uid, value, options) {
+  async write (uid, value, options = {}) {
     const config = this[settings];
     const update = new Context(this, { uid });
 
@@ -48,25 +48,22 @@ class Database extends Graph {
 
     const node = this.value(uid);
 
-    const [
-      graph,
-      params,
-    ] = await pipeline.before.write(config, [
-      Graph.source({ [uid]: node }),
-      options,
-    ]);
+    const params = await pipeline.before.write(config, {
+      ...options,
+      graph: Graph.source({ [uid]: node }),
+    });
 
     /** Persist the change. */
     for (const store of params.storage) {
-      await store.write(graph, params);
+      await store.write(params.graph, params);
     }
 
-    const [result] = await pipeline.after.write(config, [
-      node,
-      params,
-    ]);
+    const result = await pipeline.after.write(config, {
+      ...options,
+      context: node,
+    });
 
-    return result;
+    return result.context;
   }
 
   /**
@@ -75,49 +72,44 @@ class Database extends Graph {
    * @param  {Object} [options] - Plugin-level options.
    * @return {Context|null} - Resolves to the node.
    */
-  async read (key, options) {
+  async read (key, options = {}) {
     const config = this[settings];
 
-    const [
-      uid,
-      params,
-    ] = await pipeline.before.read.node(config, [
+    const params = await pipeline.before.read.node(config, {
+      ...options,
       key,
-      options,
-    ]);
+    });
 
-    let node = this.value(uid);
+    let node = this.value(params.key);
 
     /** Not cached. */
     if (node === null) {
 
       /** Ask the storage plugins for it. */
       for (const store of params.storage) {
-        const result = await store.read(uid, params);
+        const result = await store.read(params.key, params);
         const update = Node.source(result);
 
         if (result) {
-          node = node || new Context(this, { uid });
+          node = node || new Context(this, { uid: params.key });
           node.merge(update);
         }
       }
 
       /** Cache the value. */
       if (node) {
-        this.merge({ [uid]: node });
+        this.merge({ [params.key]: node });
       }
 
     }
 
     /** After-read hooks. */
-    const [
-      result,
-    ] = await pipeline.after.read.node(config, [
-      node,
-      params,
-    ]);
+    const result = await pipeline.after.read.node(config, {
+      ...params,
+      context: node,
+    });
 
-    return result;
+    return result.context;
   }
 
   /**
