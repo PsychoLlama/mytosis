@@ -64,7 +64,7 @@ class Database extends Graph {
 
     /** Persist the change. */
     for (const store of params.storage) {
-      await store.write(params.graph, params);
+      await store.write(params);
     }
 
     const { context } = await pipeline.after.write(config, {
@@ -96,7 +96,7 @@ class Database extends Graph {
 
       /** Ask the storage plugins for it. */
       for (const store of params.storage) {
-        const result = await store.read(params.key, params);
+        const result = await store.read(params);
         const update = Node.source(result);
 
         if (result) {

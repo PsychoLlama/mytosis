@@ -26,7 +26,7 @@ describe('A storage plugin', () => {
       await db.write('users', {});
 
       expect(write).toHaveBeenCalled();
-      const [graph] = write.calls[0].arguments;
+      const [{ graph }] = write.calls[0].arguments;
       expect(graph).toBeA(Graph);
     });
 
@@ -39,7 +39,7 @@ describe('A storage plugin', () => {
       // Assert full in-memory state.
       expect(write.calls.length).toBe(2);
 
-      const [graph] = write.calls[1].arguments;
+      const [{ graph }] = write.calls[1].arguments;
       const node = graph.value('state');
 
       expect([...node]).toEqual([
@@ -63,8 +63,8 @@ describe('A storage plugin', () => {
         potatoes: true,
       });
 
-      const [, options] = write.calls[0].arguments;
-      expect(options).toContain({
+      const [action] = write.calls[0].arguments;
+      expect(action).toContain({
         potatoes: true,
       });
     });
@@ -92,7 +92,7 @@ describe('A storage plugin', () => {
       node.merge({ from: 'storage' });
       graph.merge({ [node]: node });
 
-      await storage.write(graph);
+      await storage.write({ graph });
 
       const result = await db.read(node.toString());
       expect(read).toHaveBeenCalled();
@@ -112,7 +112,7 @@ describe('A storage plugin', () => {
     it('should cache read results', async () => {
       node.merge({ from: 'storage' });
       graph.merge({ [node]: node });
-      await storage.write(graph);
+      await storage.write({ graph });
 
       expect(read.calls.length).toBe(0);
 
@@ -127,7 +127,7 @@ describe('A storage plugin', () => {
 
     it('should be passed the options object', async () => {
       await db.read('key', { potatoes: true });
-      const [, options] = read.calls[0].arguments;
+      const [options] = read.calls[0].arguments;
       expect(options).toBeAn(Object);
       expect(options).toContain({ potatoes: true });
     });

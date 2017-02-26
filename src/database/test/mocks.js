@@ -1,11 +1,9 @@
 /* eslint-disable require-jsdoc */
 
 export class Storage {
-  constructor () {
-    this.cache = {};
-  }
+  cache = {}
 
-  async write (graph) {
+  async write ({ graph }) {
     const { cache } = this;
 
     for (const [uid, node] of graph) {
@@ -13,14 +11,13 @@ export class Storage {
     }
   }
 
-  async read (uid) {
-    const value = this.cache[uid];
+  async read ({ key }) {
+    const value = this.cache[key];
 
     return value && JSON.parse(value);
   }
 }
 
 export const queryEngine = {
-  executeQuery () {
-  },
+  executeQuery () {},
 };

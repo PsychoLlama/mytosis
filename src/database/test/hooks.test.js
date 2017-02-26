@@ -38,8 +38,8 @@ describe('Database hook', () => {
 
       await db.write('stuff', {});
 
-      const [contents] = write.calls[0].arguments;
-      expect(contents).toBe(graph);
+      const [{ graph: state }] = write.calls[0].arguments;
+      expect(state).toBe(graph);
     });
 
     it('should be able to prevent writes', async () => {
@@ -140,8 +140,8 @@ describe('Database hook', () => {
         key: `prefix/${read.key}`,
       }));
       await db.read('stuff');
-      const [uid] = read.calls[0].arguments;
-      expect(uid).toBe('prefix/stuff');
+      const [{ key }] = read.calls[0].arguments;
+      expect(key).toBe('prefix/stuff');
     });
 
     it('should allow overriding the options', async () => {
@@ -151,7 +151,7 @@ describe('Database hook', () => {
       }));
 
       await db.read('key', { original: true });
-      const [, options] = read.calls[0].arguments;
+      const [options] = read.calls[0].arguments;
       expect(options).toContain({
         overridden: true,
         original: true,
@@ -252,7 +252,7 @@ describe('Database hook', () => {
 
       await node.read('edge');
 
-      const [, options] = read.calls[0].arguments;
+      const [options] = read.calls[0].arguments;
       expect(options).toContain({ overridden: true });
     });
 
