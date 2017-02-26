@@ -42,6 +42,22 @@ describe('Database hook', () => {
       expect(contents).toBe(graph);
     });
 
+    it('should be able to prevent writes', async () => {
+      const testError = new Error('Testing prevented writes');
+      hook.andCall();
+      hook.andThrow(testError);
+
+      try {
+        await db.write('user', { status: 'rejected (hopefully)' });
+        throw new Error('Pipeline before.write rejection was ignored.');
+      } catch (error) {
+        expect(error).toBe(testError);
+      }
+
+      expect(write).toNotHaveBeenCalled();
+      expect(await db.read('user')).toBe(null);
+    });
+
   });
 
   describe('"after.write"', () => {

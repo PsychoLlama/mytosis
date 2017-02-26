@@ -44,26 +44,35 @@ class Database extends Graph {
 
     update.merge(value);
 
-    this.merge({ [uid]: update });
+    let fullState = update;
+    const currentState = this.value(uid);
 
-    const node = this.value(uid);
+    if (currentState) {
+      fullState = update.new();
+
+      fullState.merge(currentState);
+      fullState.merge(update);
+    }
 
     const params = await pipeline.before.write(config, {
       ...options,
-      graph: Graph.source({ [uid]: node }),
+      graph: Graph.source({ [uid]: fullState }),
     });
+
+    this.merge({ [uid]: update });
+    const node = this.value(uid);
 
     /** Persist the change. */
     for (const store of params.storage) {
       await store.write(params.graph, params);
     }
 
-    const result = await pipeline.after.write(config, {
+    const { context } = await pipeline.after.write(config, {
       ...options,
       context: node,
     });
 
-    return result.context;
+    return context;
   }
 
   /**
