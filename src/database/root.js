@@ -32,6 +32,54 @@ class Database extends Graph {
   }
 
   /**
+   * Applies a collection of changes all at once.
+   * @param  {Graph|Database} update - A collection of updates.
+   * @param  {Object} [options] - Override global configuration.
+   * @return {Promise} - Resolves when the commit has been processed.
+   */
+  async commit (update, options = {}) {
+
+    // Storage drivers get the full state of each node.
+    const graph = new Graph();
+
+    for (const [key] of update) {
+
+      // If the node exists in the graph...
+      const current = this.value(key);
+
+      if (current) {
+        const { uid } = current.meta();
+
+        // Merge it with the update.
+        graph.merge({ [uid]: current });
+      }
+    }
+
+    graph.merge(update);
+
+    const config = await pipeline.before.write(this[settings], {
+      ...options,
+      update,
+      graph,
+    });
+
+    // Persist.
+    const writes = config.storage.map((store) => store.write(config));
+
+    // Wait for writes to finish.
+    await Promise.all(writes);
+
+    // Merge in the update.
+    const deltas = this.merge(update);
+
+    return await pipeline.after.write(this[settings], {
+      update: config.update,
+      graph: config.graph,
+      ...deltas,
+    });
+  }
+
+  /**
    * Merges a node into the graph.
    * @param  {String} uid - The unique ID of the node.
    * @param  {Object} value - The fields to add/update.
