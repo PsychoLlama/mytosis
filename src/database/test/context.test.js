@@ -69,6 +69,19 @@ describe('A context', () => {
       expect(value).toEqual({ edge: 'settings' });
     });
 
+    it('increments node state', async () => {
+      await node.write('count', 5);
+      expect(node.value('count')).toBe(5);
+
+      await node.write('count', 7);
+      expect(node.value('count')).toBe(7);
+
+      await node.write('count', 3);
+      expect(node.value('count')).toBe(3);
+
+      expect(node.state('count')).toBe(3);
+    });
+
   });
 
   describe('"new" call', () => {

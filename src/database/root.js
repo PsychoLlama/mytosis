@@ -41,11 +41,28 @@ class Database extends Graph {
   async write (uid, value, options = {}) {
     const config = this[settings];
     const update = new Context(this, { uid });
+    const currentState = this.value(uid);
+
+    // HACK: Fixes critical issue where node states aren't incremented.
+    // Safe to refactor once Database#commit() is implemented.
+    if (value && currentState) {
+      const existing = currentState.new();
+
+      for (const key in value) {
+        if (value.hasOwnProperty(key)) {
+          if (currentState.state(key)) {
+            existing.merge({ [key]: currentState.value(key) });
+            existing.meta(key).state = currentState.state(key);
+          }
+        }
+      }
+
+      update.merge(existing);
+    }
 
     update.merge(value);
 
     let fullState = update;
-    const currentState = this.value(uid);
 
     if (currentState) {
       fullState = update.new();
