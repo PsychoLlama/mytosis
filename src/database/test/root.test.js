@@ -154,6 +154,14 @@ describe('Database', () => {
       expect(result.history).toBeA(Graph);
       expect(result.update).toBeA(Graph);
     });
+
+    it('transforms nodes into DB contexts', async () => {
+      node.merge({ count: 1 });
+      await db.commit(graph);
+
+      const { uid } = node.meta();
+      expect(db.value(uid)).toBeA(Context);
+    });
   });
 
   describe('write', () => {

@@ -41,11 +41,21 @@ class Database extends Graph {
 
     // Storage drivers get the full state of each node.
     const graph = new Graph();
+    const contexts = this.new();
 
-    for (const [key] of update) {
+    for (const [id] of update) {
+      const node = update.value(id);
+
+      if (node instanceof Context) {
+        contexts.merge({ [id]: node });
+      } else {
+        const context = new Context(this, { uid: id });
+        context.merge(node);
+        contexts.merge({ [id]: context });
+      }
 
       // If the node exists in the graph...
-      const current = this.value(key);
+      const current = this.value(id);
 
       if (current) {
         const { uid } = current.meta();
@@ -70,7 +80,7 @@ class Database extends Graph {
     await Promise.all(writes);
 
     // Merge in the update.
-    const deltas = this.merge(update);
+    const deltas = this.merge(contexts);
 
     return await pipeline.after.write(this[settings], {
       update: config.update,
