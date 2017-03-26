@@ -5,6 +5,13 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.9.0
+### Added
+- new `Database#commit` method applies many updates simultaneously.
+
+### Changed
+- Hooks can no longer intercept the `context` property on writes. All updates are expressed as a graph.
+
 ## v1.8.1
 ### Fixed
 - Bug preventing node field updates.
