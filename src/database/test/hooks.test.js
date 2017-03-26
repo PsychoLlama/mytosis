@@ -75,14 +75,6 @@ describe('Database hook', () => {
       expect(hook).toHaveBeenCalled();
     });
 
-    it('should be passed the context', async () => {
-      const settings = await db.write('settings', {
-        enabled: true,
-      });
-      const [{ context }] = hook.calls[0].arguments;
-      expect(context).toBe(settings);
-    });
-
     it('should be passed the options', async () => {
       await db.write('beans', {}, {
         cool: true,
@@ -91,14 +83,6 @@ describe('Database hook', () => {
       const [write] = hook.calls[0].arguments;
       expect(write).toContain({
         cool: true,
-      });
-    });
-
-    it('should allow overriding of the return context', async () => {
-      hook.andCall((write) => ({ ...write, context: { trickery: true } }));
-      const result = await db.write('beans', {});
-      expect(result).toEqual({
-        trickery: true,
       });
     });
 

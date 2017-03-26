@@ -32,6 +32,63 @@ class Database extends Graph {
   }
 
   /**
+   * Applies a collection of changes all at once.
+   * @param  {Graph|Database} update - A collection of updates.
+   * @param  {Object} [options] - Override global configuration.
+   * @return {Promise} - Resolves when the commit has been processed.
+   */
+  async commit (update, options = {}) {
+
+    // Storage drivers get the full state of each node.
+    const graph = new Graph();
+    const contexts = this.new();
+
+    for (const [id] of update) {
+      const node = update.value(id);
+
+      if (node instanceof Context) {
+        contexts.merge({ [id]: node });
+      } else {
+        const context = new Context(this, { uid: id });
+        context.merge(node);
+        contexts.merge({ [id]: context });
+      }
+
+      // If the node exists in the graph...
+      const current = this.value(id);
+
+      if (current) {
+        const { uid } = current.meta();
+
+        // Merge it with the update.
+        graph.merge({ [uid]: current });
+      }
+    }
+
+    graph.merge(update);
+
+    const config = await pipeline.before.write(this[settings], {
+      ...options,
+      update,
+      graph,
+    });
+
+    // Persist.
+    const writes = config.storage.map((store) => store.write(config));
+
+    // Wait for writes to finish.
+    await Promise.all(writes);
+
+    // Merge in the update.
+    const deltas = this.merge(contexts);
+
+    return await pipeline.after.write(this[settings], {
+      ...config,
+      ...deltas,
+    });
+  }
+
+  /**
    * Merges a node into the graph.
    * @param  {String} uid - The unique ID of the node.
    * @param  {Object} value - The fields to add/update.
@@ -39,57 +96,28 @@ class Database extends Graph {
    * @return {Context} - Resolves to the context written.
    */
   async write (uid, value, options = {}) {
-    const config = this[settings];
-    const update = new Context(this, { uid });
-    const currentState = this.value(uid);
 
-    // HACK: Fixes critical issue where node states aren't incremented.
-    // Safe to refactor once Database#commit() is implemented.
-    if (value && currentState) {
-      const existing = currentState.new();
+    // Turn the object into a database context.
+    const context = new Context(this, { uid });
+    const current = this.value(uid);
 
-      for (const key in value) {
-        if (value.hasOwnProperty(key)) {
-          if (currentState.state(key)) {
-            existing.merge({ [key]: currentState.value(key) });
-            existing.meta(key).state = currentState.state(key);
-          }
+    // Ensure object updates increment state.
+    if (current && value) {
+      for (const field in value) {
+        if (value.hasOwnProperty(field)) {
+          context.merge({ [field]: current.value(field) });
+          context.meta(field).state = current.state(field);
         }
       }
-
-      update.merge(existing);
     }
 
-    update.merge(value);
+    context.merge(value);
 
-    let fullState = update;
+    const update = Graph.source({ [uid]: context });
 
-    if (currentState) {
-      fullState = update.new();
+    await this.commit(update, options);
 
-      fullState.merge(currentState);
-      fullState.merge(update);
-    }
-
-    const params = await pipeline.before.write(config, {
-      ...options,
-      graph: Graph.source({ [uid]: fullState }),
-    });
-
-    this.merge({ [uid]: update });
-    const node = this.value(uid);
-
-    /** Persist the change. */
-    for (const store of params.storage) {
-      await store.write(params);
-    }
-
-    const { context } = await pipeline.after.write(config, {
-      ...options,
-      context: node,
-    });
-
-    return context;
+    return this.value(uid);
   }
 
   /**
