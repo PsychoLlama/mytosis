@@ -5,6 +5,17 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.8.0
+### Changed
+- Updated dependency (graph-crdt) which now uses lamport clocks to manage state.
+
+## v1.7.0
+### Added
+- New `Database#query` method.
+
+### Changed
+- Pipeline now passes an object rather than variadic parameters.
+
 ## v1.6.0
 ### Added
 - New `before.read.node` pipeline allows hooks to override key names or options before they reach the storage drivers.
