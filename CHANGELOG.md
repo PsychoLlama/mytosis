@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.8.1
+### Fixed
+- Bug preventing node field updates.
+
 ## v1.8.0
 ### Changed
 - Updated dependency (graph-crdt) which now uses lamport clocks to manage state.
