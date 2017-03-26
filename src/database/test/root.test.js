@@ -186,6 +186,16 @@ describe('Database', () => {
       expect(await user.read('handle')).toBe('BobTheGreat');
     });
 
+    it('updates node fields', async () => {
+      const user = await db.write('user', { followers: 50 });
+
+      await db.write('user', { followers: 49 });
+      expect(await user.read('followers')).toBe(49);
+
+      await db.write('user', { followers: 51 });
+      expect(await user.read('followers')).toBe(51);
+    });
+
     it('returns the written context', async () => {
       const user = await db.write('user', {
         name: 'Bob',

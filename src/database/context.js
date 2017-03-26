@@ -1,5 +1,5 @@
 import * as pipeline from '../pipeline';
-import { Node } from 'graph-crdt';
+import { Graph, Node } from 'graph-crdt';
 import database from './root';
 
 /**
@@ -73,10 +73,25 @@ export default class Context extends Node {
       value = { edge: String(value) };
     }
 
-    const { uid } = this.meta();
+    /** Create a node delta. */
+    const delta = this.new();
 
-    /** Merge the value. */
-    await this.root.write(uid, { [field]: value });
+    /** Bump the state if it exists. */
+    if (this.state(field)) {
+      delta.merge({ [field]: this.value(field) });
+      delta.meta(field).state = this.state(field);
+    }
+
+    /** Apply the field update. */
+    delta.merge({ [field]: value });
+
+    /** Create a graph delta. */
+    const update = Graph.source({
+      [this.meta().uid]: delta,
+    });
+
+    /** Commit the update. */
+    await this.root.commit(update);
   }
 
   /**
