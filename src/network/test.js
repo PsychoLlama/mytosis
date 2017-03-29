@@ -3,34 +3,38 @@
 import expect, { createSpy } from 'expect';
 
 import ConnectionGroup from './ConnectionGroup';
-
-class Connection {
-  constructor ({ id, type } = {}) {
-    this.type = type;
-    this.id = id;
-  }
-
-  send () {}
-}
-
+import Stream from '../stream';
 describe('ConnectionGroup', () => {
-  let list, conn;
+  let group, conn, Connection;
 
   beforeEach(() => {
-    list = new ConnectionGroup();
+    Connection = class Connection {
+      constructor ({ id, type } = {}) {
+        this.type = type;
+        this.id = id;
+      }
+
+      send = createSpy();
+
+      messages = new Stream((push) => {
+        this.push = push;
+      });
+    };
+
+    group = new ConnectionGroup();
     conn = new Connection({ id: 'conn1' });
   });
 
   describe('id()', () => {
     it('returns null if no connection is found', () => {
-      const result = list.id('no such connection');
+      const result = group.id('no such connection');
 
       expect(result).toBe(null);
     });
 
     it('returns the matching connection', () => {
-      list.add(conn);
-      const result = list.id(conn.id);
+      group.add(conn);
+      const result = group.id(conn.id);
 
       expect(result).toBe(conn);
     });
@@ -38,22 +42,32 @@ describe('ConnectionGroup', () => {
 
   describe('add()', () => {
     it('adds the connection', () => {
-      list.add(conn);
+      group.add(conn);
 
-      expect(list.id(conn.id)).toBe(conn);
+      expect(group.id(conn.id)).toBe(conn);
     });
 
     it('emits "add"', () => {
       const spy = createSpy();
-      list.on('add', spy);
-      list.add(conn);
+      group.on('add', spy);
+      group.add(conn);
 
       expect(spy).toHaveBeenCalled();
       expect(spy).toHaveBeenCalledWith(conn);
     });
 
+    it('does not emit "add" if already contained', () => {
+      const spy = createSpy();
+      group.on('add', spy);
+
+      group.add(conn);
+      group.add(conn);
+
+      expect(spy.calls.length).toBe(1);
+    });
+
     it('returns the connection', () => {
-      const result = list.add(conn);
+      const result = group.add(conn);
 
       expect(result).toBe(conn);
     });
@@ -61,28 +75,39 @@ describe('ConnectionGroup', () => {
 
   describe('remove()', () => {
     it('removes connections from the group', () => {
-      list.add(conn);
-      list.remove(conn);
+      group.add(conn);
+      group.remove(conn);
 
-      expect(list.id(conn.id)).toBe(null);
+      expect(group.id(conn.id)).toBe(null);
     });
 
     it('emits "remove"', () => {
       const spy = createSpy();
-      list.on('remove', spy);
-      list.add(conn);
-      list.remove(conn);
+      group.on('remove', spy);
+      group.add(conn);
+      group.remove(conn);
 
       expect(spy).toHaveBeenCalled();
       expect(spy).toHaveBeenCalledWith(conn);
     });
 
+    it('does not emit "remove" twice', () => {
+      const spy = createSpy();
+
+      group.on('remove', spy);
+      group.add(conn);
+      group.remove(conn);
+      group.remove(conn);
+
+      expect(spy.calls.length).toBe(1);
+    });
+
     it('does not explode if the connection does not exist', () => {
-      expect(() => list.remove(conn)).toNotThrow();
+      expect(() => group.remove(conn)).toNotThrow();
     });
 
     it('returns the connection', () => {
-      const result = list.remove(conn);
+      const result = group.remove(conn);
 
       expect(result).toBe(conn);
     });
@@ -93,10 +118,10 @@ describe('ConnectionGroup', () => {
       const conn1 = new Connection({ id: 'conn1' });
       const conn2 = new Connection({ id: 'conn2' });
 
-      list.add(conn1);
-      list.add(conn2);
+      group.add(conn1);
+      group.add(conn2);
 
-      const results = [...list];
+      const results = [...group];
       expect(results).toContain(conn1);
       expect(results).toContain(conn2);
       expect(results.length).toBe(2);
@@ -106,10 +131,10 @@ describe('ConnectionGroup', () => {
   describe('send()', () => {
     it('sends the message through each member', () => {
       conn.send = createSpy();
-      list.add(conn);
+      group.add(conn);
 
       const msg = { isMessage: true };
-      list.send(msg);
+      group.send(msg);
 
       expect(conn.send).toHaveBeenCalled();
       expect(conn.send).toHaveBeenCalledWith(msg);
@@ -118,17 +143,17 @@ describe('ConnectionGroup', () => {
 
   describe('filter()', () => {
     it('returns a new ConnectionGroup', () => {
-      const result = list.filter(() => false);
+      const result = group.filter(() => false);
 
       expect(result).toBeA(ConnectionGroup);
-      expect(result).toNotBe(list);
+      expect(result).toNotBe(group);
     });
 
     it('only contains items that match the terms', () => {
-      list.add(conn);
-      list.add(new Connection({ id: 'conn2' }));
+      group.add(conn);
+      group.add(new Connection({ id: 'conn2' }));
 
-      const result = list.filter((conn) => conn.id === 'conn1');
+      const result = group.filter((conn) => conn.id === 'conn1');
 
       expect([...result].length).toBe(1);
     });
@@ -136,23 +161,89 @@ describe('ConnectionGroup', () => {
 
   describe('type()', () => {
     it('returns a new group', () => {
-      const result = list.type('connection-type');
+      const result = group.type('connection-type');
 
       expect(result).toBeA(ConnectionGroup);
-      expect(result).toNotBe(list);
+      expect(result).toNotBe(group);
     });
 
     it('returns connections matching the type', () => {
       const conn = new Connection({ id: 'conn1', type: 'websocket' });
-      list.add(conn);
+      group.add(conn);
 
-      list.add(new Connection({ id: 'conn2', type: 'http' }));
-      list.add(new Connection({ id: 'conn3', type: 'http' }));
+      group.add(new Connection({ id: 'conn2', type: 'http' }));
+      group.add(new Connection({ id: 'conn3', type: 'http' }));
 
-      const result = list.type('websocket');
+      const result = group.type('websocket');
 
       expect([...result]).toContain(conn);
       expect([...result].length).toBe(1);
+    });
+  });
+
+  describe('messages stream', () => {
+    let spy;
+
+    beforeEach(() => {
+      spy = createSpy();
+      group.add(conn);
+    });
+
+    it('is a stream', () => {
+      expect(group.messages).toBeA(Stream);
+    });
+
+    it('reports every message in the group', () => {
+      group.messages.forEach(spy);
+      conn.push('hello');
+
+      expect(spy).toHaveBeenCalled();
+      expect(spy).toHaveBeenCalledWith('hello');
+    });
+
+    it('reports messages from connections added later', () => {
+      const conn = new Connection({ id: 'conn2' });
+      group.messages.forEach(spy);
+      group.add(conn);
+      conn.push('message');
+
+      expect(spy).toHaveBeenCalled();
+      expect(spy).toHaveBeenCalledWith('message');
+    });
+
+    it('does not report messages from removed connections', () => {
+      group.messages.forEach(spy);
+      group.remove(conn);
+      conn.push('message');
+
+      expect(spy).toNotHaveBeenCalled();
+    });
+
+    it('does not report messages from added, then removed connections', () => {
+      const conn = new Connection({ id: 'conn2' });
+      group.messages.forEach(spy);
+      group.add(conn);
+      group.remove(conn);
+      conn.push('message');
+
+      expect(spy).toNotHaveBeenCalled();
+    });
+
+    it('disposes of each subscription when dispose is called', () => {
+      const dispose = createSpy();
+      conn.messages.forEach = createSpy().andReturn({ dispose });
+
+      group.add(conn);
+      group.messages.forEach(spy).dispose();
+
+      expect(dispose).toHaveBeenCalled();
+    });
+
+    it('unsubscribes on dispose', () => {
+      group.messages.forEach(() => {}).dispose();
+
+      expect(group.listeners('add')).toEqual([]);
+      expect(group.listeners('remove')).toEqual([]);
     });
   });
 });

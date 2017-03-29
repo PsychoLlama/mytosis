@@ -1,6 +1,9 @@
 import Emitter from 'eventemitter3';
 
-const connections = Symbol('Connection map');
+import Stream from '../stream';
+
+const subscriptions = Symbol('Message subscriptions');
+const connections = Symbol('Connections');
 
 /**
  * Manages a group of network connections.
@@ -8,7 +11,36 @@ const connections = Symbol('Connection map');
  * @class ConnectionGroup
  */
 export default class ConnectionGroup extends Emitter {
+  [subscriptions] = {};
   [connections] = {};
+
+  messages = new Stream((push) => {
+
+    // Create a subscription.
+    const subscribeToConnection = (connection) => {
+      const subscription = connection.messages.forEach(push);
+      this[subscriptions][connection.id] = subscription;
+    };
+
+    // Dispose of the subscription.
+    const disposeOfSubscription = (connection) => {
+      const subscription = this[subscriptions][connection.id];
+      subscription.dispose();
+    };
+
+    // Subscribe and forward all message events.
+    this.on('add', subscribeToConnection);
+    this.on('remove', disposeOfSubscription);
+    [...this].forEach(subscribeToConnection);
+
+    // Remove all listeners.
+    return () => {
+      this.removeListener('add', subscribeToConnection);
+      this.removeListener('remove', disposeOfSubscription);
+
+      [...this].forEach(disposeOfSubscription);
+    };
+  });
 
   /**
    * Retrieves the connection that matches the given ID.
@@ -25,9 +57,12 @@ export default class ConnectionGroup extends Emitter {
    * @return {undefined}
    */
   add (connection) {
-    this[connections][connection.id] = connection;
+    const exists = this[connections].hasOwnProperty(connection.id);
 
-    this.emit('add', connection);
+    if (!exists) {
+      this[connections][connection.id] = connection;
+      this.emit('add', connection);
+    }
 
     return connection;
   }
@@ -38,9 +73,12 @@ export default class ConnectionGroup extends Emitter {
    * @return {undefined}
    */
   remove (connection) {
-    delete this[connections][connection.id];
+    const exists = this[connections].hasOwnProperty(connection.id);
 
-    this.emit('remove', connection);
+    if (exists) {
+      delete this[connections][connection.id];
+      this.emit('remove', connection);
+    }
 
     return connection;
   }
