@@ -54,7 +54,31 @@ class Subscription {
  * Lazy, asynchronous, cacheless streams.
  * @class Stream
  */
-export class Stream {
+export default class Stream {
+
+  /**
+   * Constructs a new Stream instance, `new` optional.
+   * @param  {Function} publisher - Stream publisher.
+   * @return {Stream} - The new stream instance.
+   */
+  static create (publisher) {
+    return new Stream(publisher);
+  }
+
+  /**
+   * Creates a stream from an event source.
+   * @param  {EventEmitter} emitter
+   * Really anything that looks like an event emitter.
+   * @param  {String} event - The event name.
+   * @return {Stream} - An event stream.
+   */
+  static fromEvent (emitter, event) {
+    return new Stream((push) => {
+      emitter.on(event, push);
+
+      return () => emitter.removeListener(event, push);
+    });
+  }
 
   complete = new Promise((res) => {
     this[symbol.resolve] = res;
@@ -64,6 +88,12 @@ export class Stream {
    * @param {Function} publisher - Used to generate consumable data.
    */
   constructor (publisher) {
+    if (!(publisher instanceof Function)) {
+      throw new TypeError(
+        `Stream(...) expects a function, was given "${publisher}"`
+      );
+    }
+
     this[symbol.openStream] = publisher;
     this[symbol.callbacks] = [];
   }
@@ -116,13 +146,4 @@ export class Stream {
 
     this[symbol.isOpen] = true;
   }
-}
-
-/**
- * Constructs a new Stream instance, `new` optional.
- * @param  {Function} publisher - Stream publisher.
- * @return {Stream} - The new stream instance.
- */
-export default function (publisher) {
-  return new Stream(publisher);
 }

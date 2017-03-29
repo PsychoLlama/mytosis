@@ -1,16 +1,12 @@
-/* eslint-disable babel/new-cap */
 /* eslint-env mocha */
 import expect, { createSpy } from 'expect';
+import Emitter from 'events';
 
 import Stream from './index';
 
 describe('Stream', () => {
-  it('is a function', () => {
-    expect(Stream).toBeA(Function);
-  });
-
   it('returns an object', () => {
-    const result = new Stream();
+    const result = new Stream(() => {});
 
     expect(result).toBeAn(Object);
   });
@@ -24,20 +20,20 @@ describe('Stream', () => {
     });
 
     it('does not invoke the publisher immediately', () => {
-      Stream(spy);
+      Stream.create(spy);
 
       expect(spy).toNotHaveBeenCalled();
     });
 
     it('invokes the publisher when observed', () => {
-      const stream = Stream(spy);
+      const stream = new Stream(spy);
       stream.forEach(() => {});
 
       expect(spy).toHaveBeenCalled();
     });
 
     it('passes a push & complete method', () => {
-      const stream = Stream(spy);
+      const stream = new Stream(spy);
       stream.forEach(() => {});
 
       const [push, complete] = spy.calls[0].arguments;
@@ -46,10 +42,16 @@ describe('Stream', () => {
       expect(complete).toBeA(Function);
     });
 
+    it('throws if the publisher is not a function', () => {
+      const fail = () => new Stream(true);
+
+      expect(fail).toThrow(/function/i);
+    });
+
     it('sends values to all subscribers', () => {
       const msg = {};
       spy.andCall((push) => push(msg));
-      const stream = Stream(spy);
+      const stream = new Stream(spy);
       stream.forEach(each);
 
       expect(each).toHaveBeenCalled();
@@ -155,6 +157,31 @@ describe('Stream', () => {
       push('message');
 
       expect(other).toHaveBeenCalled();
+    });
+  });
+
+  describe('static "fromEvent"', () => {
+    let emitter, stream;
+
+    beforeEach(() => {
+      emitter = new Emitter();
+      stream = Stream.fromEvent(emitter, 'message');
+    });
+
+    it('forwards events from the stream', () => {
+      const spy = createSpy();
+      stream.forEach(spy);
+      emitter.emit('message');
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('unsubscribes when there are no observers', () => {
+      const subscription = stream.forEach(() => {});
+      expect(emitter.listenerCount('message')).toBe(1);
+
+      subscription.dispose();
+      expect(emitter.listenerCount('message')).toBe(0);
     });
   });
 });
