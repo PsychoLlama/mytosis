@@ -21,8 +21,8 @@ export const defaults = (config, options = {}) => ({
 const addDefaultProps = (config, options) => ({
 
   // Provide default destinations.
-  network: config.network.clients,
   storage: config.storage,
+  network: config.network,
 
   ...options,
 });
@@ -53,11 +53,9 @@ const createPipeline = (path, transform = identity) => (
     initial: addDefaultProps(config, options),
     transform: transform,
   })
-
 );
 
 export const before = {
-
   read: {
     node: createPipeline(['before', 'read', 'node']),
     field: createPipeline(['before', 'read', 'field']),
@@ -66,17 +64,15 @@ export const before = {
   write: createPipeline(['before', 'write']),
   request: createPipeline(['before', 'request']),
   update: createPipeline(['before', 'update']),
-
 };
 
 export const after = {
-
   read: {
     node: createPipeline(['after', 'read', 'node']),
     field: createPipeline(['after', 'read', 'field']),
   },
+
   write: createPipeline(['after', 'write']),
   request: createPipeline(['after', 'request']),
   update: createPipeline(['after', 'update']),
-
 };

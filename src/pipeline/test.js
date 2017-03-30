@@ -1,20 +1,25 @@
 /* eslint-env mocha */
+import expect from 'expect';
+
+import ConnectionGroup from '../network/ConnectionGroup';
 import mergeConfigs from '../merge-configs';
 import * as pipeline from './index';
-import expect from 'expect';
 
 const hooks = (hooks) => mergeConfigs([{ hooks }]);
 
 describe('The pipeline\'s default option setter', () => {
-
   const storage = { storage: true };
   const client = { client: true };
-  const config = mergeConfigs([{
-    storage: [storage],
-    network: {
-      clients: [client],
-    },
-  }]);
+  let config;
+
+  beforeEach(() => {
+    config = mergeConfigs([{
+      storage: [storage],
+      network: {
+        clients: [client],
+      },
+    }]);
+  });
 
   it('should add storage and network fields', () => {
     const options = pipeline.defaults(config, {});
@@ -46,11 +51,9 @@ describe('The pipeline\'s default option setter', () => {
       storage: [storage],
     });
   });
-
 });
 
 describe('The before.read.node pipeline', () => {
-
   it('should allow hooks to replace the read options', async () => {
     const read = async () => ({ overridden: true });
     const config = hooks({
@@ -65,11 +68,9 @@ describe('The before.read.node pipeline', () => {
 
     expect(options).toEqual({ overridden: true });
   });
-
 });
 
 describe('The pipeline', () => {
-
   const methods = [
     ['before', 'read', 'node'],
     ['before', 'read', 'field'],
@@ -103,18 +104,13 @@ describe('The pipeline', () => {
 
   methods.forEach((path) => {
     describe(`"${path.join('.')}" method`, async () => {
-
       it('should allow hooks to override the arguments', async () => {
         const options = { original: 'yep' };
         const hook = (initial) => ({ ...initial, added: true });
         const config = buildConfig(path, hook);
 
         const result = await getPipeline(path)(config, options);
-        expect(result).toContain({
-          ...options,
-          added: true,
-        });
-
+        expect(result).toContain({ ...options, added: true });
       });
 
       it('should add default settings', async () => {
@@ -124,9 +120,9 @@ describe('The pipeline', () => {
         const result = await getPipeline(path)(config, options);
 
         expect(result).toEqual({
+          network: new ConnectionGroup(),
           setting: true,
           storage: [],
-          network: [],
         });
       });
 
@@ -142,8 +138,6 @@ describe('The pipeline', () => {
 
         expect(result).toEqual(options);
       });
-
     });
   });
-
 });

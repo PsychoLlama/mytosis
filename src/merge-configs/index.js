@@ -1,3 +1,5 @@
+import ConnectionGroup from '../network/ConnectionGroup';
+
 const hooks = {
   read: {
     node: [],
@@ -38,15 +40,6 @@ export const base = {
   extend: {
     root: {},
     context: {},
-  },
-
-  /**
-   * Network drivers.
-   * @type {Object}
-   */
-  network: {
-    clients: [],
-    servers: [],
   },
 
   /**
@@ -126,16 +119,15 @@ const merge = {
 
   /**
    * Merges two network configurations together.
-   * @param  {Object} base - The base network object to extend.
-   * @param  {Array} base.clients - A list of network clients.
-   * @param  {Array} base.servers - A list of network servers.
-   * @param  {Object} ext={} - Extensions to the base object.
-   * @return {Object} - The merged network object.
+   * @param  {ConnectionGroup} group1 - A group of network connections.
+   * @param  {ConnectionGroup} [group2] - A group to add.
+   * @return {ConnectionGroup} - The merged network object.
    */
-  network: ({ clients, servers }, ext = {}) => ({
-    clients: clients.concat(ext.clients || []),
-    servers: servers.concat(ext.servers || []),
-  }),
+  network: (group1, group2) => {
+    const single = typeof group1 === 'undefined';
+
+    return single ? group2 : group1.union(group2);
+  },
 
   /**
    * Merges two storage arrays together.
@@ -165,8 +157,8 @@ const merge = {
    */
   plugins: (base, ext) => ({
     hooks: merge.hooks(base.hooks, ext.hooks),
-    storage: merge.storage(base.storage, ext.storage),
     extend: merge.extensions(base.extend, ext.extend),
+    storage: merge.storage(base.storage, ext.storage),
     network: merge.network(base.network, ext.network),
     engines: merge.engines(base.engines, ext.engines),
   }),
@@ -178,6 +170,12 @@ const merge = {
  * @param  {Object[]} plugins - A list of plugin objects.
  * @return {Object} - The merged plugin object.
  */
-export default (plugins) => (
-  plugins.reduce(merge.plugins, base)
-);
+export default (plugins) => {
+  const config = plugins.reduce(merge.plugins, base);
+
+  // Add a default (empty) network group.
+  return {
+    ...config,
+    network: config.network || new ConnectionGroup(),
+  };
+};
