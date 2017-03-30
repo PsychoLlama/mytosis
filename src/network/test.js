@@ -4,6 +4,7 @@ import expect, { createSpy } from 'expect';
 
 import ConnectionGroup from './ConnectionGroup';
 import Stream from '../stream';
+
 describe('ConnectionGroup', () => {
   let group, conn, Connection;
 
@@ -110,6 +111,31 @@ describe('ConnectionGroup', () => {
       const result = group.remove(conn);
 
       expect(result).toBe(conn);
+    });
+  });
+
+  describe('has()', () => {
+    it('returns true if the connection is contained', () => {
+      const group = new ConnectionGroup();
+      group.add(conn);
+      const isContained = group.has(conn);
+
+      expect(isContained).toBe(true);
+    });
+
+    it('returns false if there is no such connection', () => {
+      const group = new ConnectionGroup();
+      const isContained = group.has(conn);
+
+      expect(isContained).toBe(false);
+    });
+
+    it('ignores inherited properties', () => {
+      const conn = new Connection({ id: 'toString' });
+      const group = new ConnectionGroup();
+      const isContained = group.has(conn);
+
+      expect(isContained).toBe(false);
     });
   });
 
@@ -244,6 +270,61 @@ describe('ConnectionGroup', () => {
 
       expect(group.listeners('add')).toEqual([]);
       expect(group.listeners('remove')).toEqual([]);
+    });
+  });
+
+  describe('"union" method', () => {
+    let group1, group2, conn1, conn2;
+
+    beforeEach(() => {
+      group1 = new ConnectionGroup();
+      group2 = new ConnectionGroup();
+
+      conn1 = new Connection({ id: 'conn1' });
+      conn2 = new Connection({ id: 'conn2' });
+    });
+
+    it('creates a new group', () => {
+      const group = group1.union(group2);
+
+      expect(group).toBeA(ConnectionGroup);
+      expect(group).toNotBe(group1);
+      expect(group).toNotBe(group2);
+    });
+
+    it('adds every item in both source groups', () => {
+      group1.add(conn1);
+      group2.add(conn2);
+
+      const group = group1.union(group2);
+
+      expect([...group]).toContain(conn1);
+      expect([...group]).toContain(conn2);
+    });
+
+    it('adds connections as they arive', () => {
+      const group = group1.union(group2);
+
+      group1.add(conn1);
+      group2.add(conn2);
+
+      expect([...group]).toContain(conn1);
+      expect([...group]).toContain(conn2);
+    });
+
+    it('removes a connection if neither group has it', () => {
+      group1.add(conn1);
+      group2.add(conn1);
+
+      group2.add(conn2);
+
+      const group = group1.union(group2);
+
+      group1.remove(conn1);
+      group2.remove(conn2);
+
+      expect([...group]).toContain(conn1);
+      expect([...group]).toNotContain(conn2);
     });
   });
 });

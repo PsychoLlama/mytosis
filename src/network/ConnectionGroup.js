@@ -124,6 +124,43 @@ export default class ConnectionGroup extends Emitter {
   }
 
   /**
+   * Returns whether the connection is contained within the group.
+   * @param  {Object} connection - A network plugin.
+   * @param  {String} connection.id - The connection's unique identifier.
+   * @return {Boolean} - Whether it's contained.
+   */
+  has (connection) {
+    return this[connections].hasOwnProperty(connection.id);
+  }
+
+  /**
+   * Joins two groups into a new group.
+   * @param  {ConnectionGroup} group - Source connections.
+   * @return {ConnectionGroup} - The two groups joined together.
+   */
+  union (group) {
+    const result = new ConnectionGroup();
+    const addToGroup = result.add.bind(result);
+
+    const removeFromGroup = (connection) => {
+      if (!this.has(connection) && !group.has(connection)) {
+        result.remove(connection);
+      }
+    };
+
+    [...group].forEach(addToGroup);
+    [...this].forEach(addToGroup);
+
+    group.on('add', addToGroup);
+    this.on('add', addToGroup);
+
+    group.on('remove', removeFromGroup);
+    this.on('remove', removeFromGroup);
+
+    return result;
+  }
+
+  /**
    * Yields every connection in the group.
    * @return {undefined}
    */
