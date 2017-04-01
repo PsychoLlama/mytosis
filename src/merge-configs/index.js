@@ -105,6 +105,24 @@ const merge = {
   }),
 
   /**
+   * Adds a router to the config.
+   * @throws {Error} If more than one router was given.
+   * @param  {undefined} existing - Should never exist.
+   * @param  {Function} router - A router factory.
+   * @return {Function} - The router factory.
+   */
+  router: (existing, router) => {
+    if (existing && router) {
+      const msg = 'Cannot combine routers. ' +
+        'Ensure `config.router` is only specified once.';
+
+      throw new Error(msg);
+    }
+
+    return router;
+  },
+
+  /**
    * Merges two method objects.
    * @param  {Object} base - The base object to extend.
    * @param  {Object} ext={} - An object with method extensions.
@@ -170,12 +188,12 @@ const merge = {
    */
   plugins: (base, ext) => ({
     hooks: merge.hooks(base.hooks, ext.hooks),
+    router: merge.router(base.router, ext.router),
     extend: merge.extensions(base.extend, ext.extend),
     storage: merge.storage(base.storage, ext.storage),
     network: merge.network(base.network, ext.network),
     engines: merge.engines(base.engines, ext.engines),
   }),
-
 };
 
 /**
@@ -186,9 +204,13 @@ const merge = {
 export default (plugins) => {
   const config = plugins.reduce(merge.plugins, base);
 
-  // Add a default (empty) network group.
   return {
     ...config,
+
+    // Default the router to "null".
+    router: config.router || null,
+
+    // Add a default (empty) network group.
     network: config.network || new ConnectionGroup(),
   };
 };

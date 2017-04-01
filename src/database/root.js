@@ -20,6 +20,14 @@ class Database extends Graph {
 
     this[settings] = config;
 
+    const createRouter = config.router;
+
+    const router = createRouter
+      ? createRouter(this, config)
+      : null;
+
+    Object.defineProperty(this, 'router', { value: router });
+
     const extensions = config.extend.root;
 
     /** Add API extensions from the config. */
@@ -75,6 +83,10 @@ class Database extends Graph {
 
     // Persist.
     const writes = config.storage.map((store) => store.write(config));
+
+    if (this.router) {
+      await this.router.push(config);
+    }
 
     // Wait for writes to finish.
     await Promise.all(writes);
@@ -136,12 +148,18 @@ class Database extends Graph {
 
     let node = this.value(params.key);
 
-    /** Not cached. */
+    // Not cached.
     if (node === null) {
 
-      /** Ask the storage plugins for it. */
-      for (const store of params.storage) {
-        const result = await store.read(params);
+      // Ask the storage plugins for it.
+      const reads = [...params.storage].map(store => store.read(params));
+
+      // Ask the network for it.
+      if (this.router) {
+        reads.push(this.router.pull(params));
+      }
+
+      for (const result of await Promise.all(reads)) {
         const update = Node.source(result);
 
         if (result) {
@@ -154,7 +172,6 @@ class Database extends Graph {
       if (node) {
         this.merge({ [params.key]: node });
       }
-
     }
 
     /** After-read hooks. */

@@ -2,13 +2,13 @@
 import expect, { createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 
-import { Storage } from '../../mocks';
+import { Storage, Router, createRouter } from '../../mocks';
 import Context from '../context';
 import database from '../root';
 
 describe('Database', () => {
-  let db;
   const settings = database.configuration;
+  let db;
 
   beforeEach(() => {
     db = database();
@@ -27,15 +27,55 @@ describe('Database', () => {
     expect(db).toBeA(Graph);
   });
 
+  it('instantiates a new router', () => {
+    const db = database({
+      router: createRouter,
+    });
+
+    expect(db.router).toBeA(Router);
+
+    expect(createRouter).toHaveBeenCalled();
+    expect(createRouter).toHaveBeenCalledWith(db, db[settings]);
+  });
+
   describe('read', () => {
+    let router;
+
+    beforeEach(() => {
+      router = createRouter();
+
+      db = database({
+        router: createSpy().andReturn(router),
+      });
+    });
+
     it('returns null if nothing is found', async () => {
       const settings = await db.read('settings');
       expect(settings).toBe(null);
     });
+
+    it('calls the router', async () => {
+      await db.read('lobby');
+
+      expect(router.pull).toHaveBeenCalled();
+      const [read] = router.pull.calls[0].arguments;
+
+      expect(read).toBeAn(Object);
+      expect(read.key).toBe('lobby');
+    });
+
+    it('resolves with the router response', async () => {
+      const data = Node.from({ response: 'router' }).toJSON();
+      router.pull.andReturn(data);
+
+      const result = await db.read('weather');
+      expect(result).toBeA(Context);
+      expect(result.value('response')).toBe('router');
+    });
   });
 
   describe('commit', () => {
-    let graph, node, beforeWrite, afterWrite, storage;
+    let graph, node, beforeWrite, afterWrite, storage, router;
     const Identity = (value) => value;
 
     beforeEach(() => {
@@ -46,6 +86,8 @@ describe('Database', () => {
 
       storage = new Storage();
       storage.write = createSpy();
+
+      router = new Router();
 
       graph.merge({ [node]: node });
 
@@ -60,6 +102,8 @@ describe('Database', () => {
         },
 
         storage: [storage],
+
+        router: createSpy().andReturn(router),
       });
     });
 
@@ -86,6 +130,17 @@ describe('Database', () => {
       const [write] = storage.write.calls[0].arguments;
 
       expect(write.graph).toBeA(Graph);
+    });
+
+    it('calls the router', async () => {
+      await db.commit(graph);
+
+      expect(router.push).toHaveBeenCalled();
+
+      const [config] = router.push.calls[0].arguments;
+
+      expect(config).toBeAn(Object);
+      expect(config.update).toBeA(Graph);
     });
 
     it('passes the full state of each node to storage', async () => {
