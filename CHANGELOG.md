@@ -5,6 +5,13 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.10.0
+### Added
+- Support for network plugins.
+- `ConnectionGroup` class for managing groups of network plugins.
+- `Stream` class for lazily observing event streams.
+- Support for `config.router` in database config.
+
 ## v1.9.0
 ### Added
 - new `Database#commit` method applies many updates simultaneously.
