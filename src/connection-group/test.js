@@ -2,26 +2,14 @@
 /* eslint-env mocha */
 import expect, { createSpy } from 'expect';
 
+import { Connection } from '../mocks';
 import ConnectionGroup from './index';
 import Stream from '../stream';
 
 describe('ConnectionGroup', () => {
-  let group, conn, Connection;
+  let group, conn;
 
   beforeEach(() => {
-    Connection = class Connection {
-      constructor ({ id, type } = {}) {
-        this.type = type;
-        this.id = id;
-      }
-
-      send = createSpy();
-
-      messages = new Stream((push) => {
-        this.push = push;
-      });
-    };
-
     group = new ConnectionGroup();
     conn = new Connection({ id: 'conn1' });
   });

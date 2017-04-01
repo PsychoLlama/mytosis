@@ -3,21 +3,24 @@ import expect from 'expect';
 
 import ConnectionGroup from '../connection-group/index';
 import mergeConfigs from '../merge-configs';
+import { Connection } from '../mocks';
 import * as pipeline from './index';
 
 const hooks = (hooks) => mergeConfigs([{ hooks }]);
 
 describe('The pipeline\'s default option setter', () => {
   const storage = { storage: true };
-  const client = { client: true };
-  let config;
+  let config, group, conn;
 
   beforeEach(() => {
+    group = new ConnectionGroup();
+    conn = new Connection();
+
+    group.add(conn);
+
     config = mergeConfigs([{
       storage: [storage],
-      network: {
-        clients: [client],
-      },
+      network: group,
     }]);
   });
 
@@ -26,7 +29,7 @@ describe('The pipeline\'s default option setter', () => {
 
     expect(options).toContain({
       storage: [storage],
-      clients: [client],
+      network: group,
     });
   });
 
@@ -37,18 +40,20 @@ describe('The pipeline\'s default option setter', () => {
 
     expect(options).toContain({
       storage: [{ custom: true }],
-      clients: [client],
+      network: group,
     });
   });
 
   it('should use given network options instead of the default', () => {
+    const group = new ConnectionGroup();
+
     const options = pipeline.defaults(config, {
-      clients: [{ custom: true }],
+      network: group,
     });
 
     expect(options).toContain({
-      clients: [{ custom: true }],
       storage: [storage],
+      network: group,
     });
   });
 });

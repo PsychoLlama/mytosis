@@ -2,7 +2,7 @@
 import expect, { createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 
-import { Storage } from './mocks';
+import { Storage } from '../../mocks';
 import Context from '../context';
 import database from '../root';
 
