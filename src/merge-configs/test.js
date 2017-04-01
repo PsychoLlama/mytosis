@@ -5,7 +5,7 @@ import expect from 'expect';
 
 import ConnectionGroup from '../connection-group/index';
 
-describe('database configuration', () => {
+describe('A config', () => {
   let result;
 
   beforeEach(() => {
@@ -18,6 +18,10 @@ describe('database configuration', () => {
 
   it('contains query engines', () => {
     expect(result.engines).toEqual({});
+  });
+
+  it('contains the router', () => {
+    expect(result.router).toBe(null);
   });
 
   it('contains an extend object', () => {
@@ -237,6 +241,25 @@ describe('database configuration', () => {
       expect(result.network).toBeA(ConnectionGroup);
       expect([...result.network]).toContain(conn);
       expect([...result.network]).toContain(conn2);
+    });
+  });
+
+  describe('router merge', () => {
+    it('adds the router', () => {
+      const router = { 'me-a-router': 'yey' };
+      const result = config([{ router }]);
+
+      expect(result.router).toBe(router);
+    });
+
+    it('throws if given more than one router', () => {
+      const fail = () => config([{
+        router: {},
+      }, {
+        router: {},
+      }]);
+
+      expect(fail).toThrow(/router/i);
     });
   });
 });
