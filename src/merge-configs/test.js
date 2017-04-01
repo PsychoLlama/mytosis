@@ -3,7 +3,7 @@
 import config, { base } from './index';
 import expect from 'expect';
 
-import ConnectionGroup from '../network/ConnectionGroup';
+import ConnectionGroup from '../connection-group/index';
 
 describe('database configuration', () => {
   let result;

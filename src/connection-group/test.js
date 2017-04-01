@@ -2,7 +2,7 @@
 /* eslint-env mocha */
 import expect, { createSpy } from 'expect';
 
-import ConnectionGroup from './ConnectionGroup';
+import ConnectionGroup from './index';
 import Stream from '../stream';
 
 describe('ConnectionGroup', () => {

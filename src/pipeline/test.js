@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import expect from 'expect';
 
-import ConnectionGroup from '../network/ConnectionGroup';
+import ConnectionGroup from '../connection-group/index';
 import mergeConfigs from '../merge-configs';
 import * as pipeline from './index';
 

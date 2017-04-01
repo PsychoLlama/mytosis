@@ -1,4 +1,4 @@
-import ConnectionGroup from '../network/ConnectionGroup';
+import ConnectionGroup from '../connection-group/index';
 
 const hooks = {
   read: {
