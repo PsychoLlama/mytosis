@@ -14,6 +14,21 @@ describe('ConnectionGroup', () => {
     conn = new Connection({ id: 'conn1' });
   });
 
+  describe('static "ensure" method', () => {
+    it('returns the value if it is a connection group', () => {
+      const result = ConnectionGroup.ensure(group);
+
+      expect(result).toBe(group);
+    });
+
+    it('wraps connections into a connection group', () => {
+      const result = ConnectionGroup.ensure(conn);
+
+      expect(result).toBeA(ConnectionGroup);
+      expect([...result]).toContain(conn);
+    });
+  });
+
   describe('id()', () => {
     it('returns null if no connection is found', () => {
       const result = group.id('no such connection');

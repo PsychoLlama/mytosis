@@ -224,5 +224,19 @@ describe('database configuration', () => {
       expect([...result.network]).toContain(conn);
       expect([...result.network]).toContain(conn2);
     });
+
+    it('converts single connections into connection groups', () => {
+      const conn2 = new Connection({ id: 'conn2' });
+
+      const result = config([{
+        network: conn,
+      }, {
+        network: conn2,
+      }]);
+
+      expect(result.network).toBeA(ConnectionGroup);
+      expect([...result.network]).toContain(conn);
+      expect([...result.network]).toContain(conn2);
+    });
   });
 });

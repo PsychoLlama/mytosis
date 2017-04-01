@@ -11,6 +11,26 @@ const connections = Symbol('Connections');
  * @class ConnectionGroup
  */
 export default class ConnectionGroup extends Emitter {
+
+  /**
+   * Creates a connection group from a connection,
+   * @param  {ConnectionGroup|Object} connection -
+   * Either a group of connections, or a single connection.
+   * @return {ConnectionGroup} -
+   * If a group is given, the same group is returned.
+   * If a connection is given, then it's wrapped into a new group.
+   */
+  static ensure = (connection) => {
+    if (connection instanceof ConnectionGroup) {
+      return connection;
+    }
+
+    const group = new ConnectionGroup();
+    group.add(connection);
+
+    return group;
+  };
+
   [subscriptions] = {};
   [connections] = {};
 

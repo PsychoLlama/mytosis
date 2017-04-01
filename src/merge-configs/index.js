@@ -119,14 +119,27 @@ const merge = {
 
   /**
    * Merges two network configurations together.
-   * @param  {ConnectionGroup} group1 - A group of network connections.
-   * @param  {ConnectionGroup} [group2] - A group to add.
-   * @return {ConnectionGroup} - The merged network object.
+   * @param  {ConnectionGroup} [base] - A connection or connection group.
+   * @param  {ConnectionGroup|Object} extension - A connection or group to add.
+   * @return {ConnectionGroup|Object} - The merged network object.
    */
-  network: (group1, group2) => {
-    const single = typeof group1 === 'undefined';
+  network: (base, extension) => {
 
-    return single ? group2 : group1.union(group2);
+    // Support connections not inside a group.
+    if (base) {
+      base = ConnectionGroup.ensure(base);
+    }
+
+    if (extension) {
+      extension = ConnectionGroup.ensure(extension);
+    }
+
+    // Merge two connection groups together.
+    if (base && extension) {
+      return base.union(extension);
+    }
+
+    return extension;
   },
 
   /**
