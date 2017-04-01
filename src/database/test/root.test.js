@@ -2,7 +2,7 @@
 import expect, { createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 
-import { Storage } from '../../mocks';
+import { Storage, Router } from '../../mocks';
 import Context from '../context';
 import database from '../root';
 
@@ -35,7 +35,7 @@ describe('Database', () => {
   });
 
   describe('commit', () => {
-    let graph, node, beforeWrite, afterWrite, storage;
+    let graph, node, beforeWrite, afterWrite, storage, router;
     const Identity = (value) => value;
 
     beforeEach(() => {
@@ -46,6 +46,8 @@ describe('Database', () => {
 
       storage = new Storage();
       storage.write = createSpy();
+
+      router = new Router();
 
       graph.merge({ [node]: node });
 
@@ -60,6 +62,8 @@ describe('Database', () => {
         },
 
         storage: [storage],
+
+        router: router,
       });
     });
 
@@ -86,6 +90,17 @@ describe('Database', () => {
       const [write] = storage.write.calls[0].arguments;
 
       expect(write.graph).toBeA(Graph);
+    });
+
+    it('calls the router', async () => {
+      await db.commit(graph);
+
+      expect(router.push).toHaveBeenCalled();
+
+      const [config] = router.push.calls[0].arguments;
+
+      expect(config).toBeAn(Object);
+      expect(config.update).toBeA(Graph);
     });
 
     it('passes the full state of each node to storage', async () => {

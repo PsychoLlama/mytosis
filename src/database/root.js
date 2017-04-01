@@ -76,6 +76,12 @@ class Database extends Graph {
     // Persist.
     const writes = config.storage.map((store) => store.write(config));
 
+    const { router } = this[settings];
+
+    if (router) {
+      await router.push(config);
+    }
+
     // Wait for writes to finish.
     await Promise.all(writes);
 

@@ -34,6 +34,11 @@ export class Connection {
   });
 }
 
+export class Router {
+  push = createSpy().andReturn(Promise.resolve());
+  pull = createSpy().andReturn(Promise.resolve());
+}
+
 export const queryEngine = {
   executeQuery () {},
 };

@@ -104,6 +104,13 @@ const merge = {
     catch: merge.hook(hooks.catch, ext.catch),
   }),
 
+  /**
+   * Adds a router to the config.
+   * @throws {Error} If more than one router was given.
+   * @param  {undefined} existing - Should never exist.
+   * @param  {Object} router - A router interface.
+   * @return {Object} - The router.
+   */
   router: (existing, router) => {
     if (existing && router) {
       const msg = 'Cannot combine routers. ' +
