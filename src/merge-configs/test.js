@@ -1,37 +1,37 @@
+/* eslint-disable require-jsdoc */
 /* eslint-env mocha */
 import config, { base } from './index';
 import expect from 'expect';
 
-describe('A database configuration object', () => {
+import ConnectionGroup from '../connection-group/index';
+
+describe('database configuration', () => {
   let result;
 
   beforeEach(() => {
     result = config([]);
   });
 
-  it('should contain storage settings', () => {
+  it('contains storage settings', () => {
     expect(result.storage).toEqual([]);
   });
 
-  it('should contain query engines', () => {
+  it('contains query engines', () => {
     expect(result.engines).toEqual({});
   });
 
-  it('should contain an extend object', () => {
+  it('contains an extend object', () => {
     expect(result.extend).toEqual({
       root: {},
       context: {},
     });
   });
 
-  it('should contain network settings', () => {
-    expect(result.network).toEqual({
-      clients: [],
-      servers: [],
-    });
+  it('contains network settings', () => {
+    expect(result.network).toBeA(ConnectionGroup);
   });
 
-  it('should contain a hooks object', () => {
+  it('contains a hooks object', () => {
     const hook = {
       read: {
         node: [],
@@ -49,12 +49,10 @@ describe('A database configuration object', () => {
   });
 
   describe('merge', () => {
-
-    it('should not add undefined items', () => {
+    it('does not add undefined items', () => {
       const { hooks, network, storage } = config([{}]);
       expect(storage.length).toBe(0);
-      expect(network.clients.length).toBe(0);
-      expect(network.servers.length).toBe(0);
+      expect([...network].length).toBe(0);
       expect(hooks.before.read.node.length).toBe(0);
       expect(hooks.before.read.field.length).toBe(0);
       expect(hooks.before.write.length).toBe(0);
@@ -62,7 +60,7 @@ describe('A database configuration object', () => {
       expect(hooks.before.update.length).toBe(0);
     });
 
-    it('should add extensions', () => {
+    it('adds extensions', () => {
       const noop = () => {};
       result = config([{
         extend: {
@@ -75,7 +73,7 @@ describe('A database configuration object', () => {
       expect(result.extend.context).toContain({ noop });
     });
 
-    it('should not mutate the base "extend"', () => {
+    it('does not mutate the base "extend"', () => {
       config([{
         extend: {
           root: { root: true },
@@ -87,7 +85,7 @@ describe('A database configuration object', () => {
       expect(base.extend.context).toEqual({});
     });
 
-    it('should add storage', () => {
+    it('adds storage', () => {
       const storage = { name: 'Storage driver' };
 
       const result = config([{
@@ -97,18 +95,7 @@ describe('A database configuration object', () => {
       expect(result.storage).toEqual([storage]);
     });
 
-    it('should add network client drivers', () => {
-      const client = { name: 'Network client' };
-      const network = {
-        clients: [client],
-      };
-
-      const result = config([{ network }]);
-      expect(result.network.clients).toEqual([client]);
-    });
-
-    it('should add query engines', () => {
-
+    it('adds query engines', () => {
       const engine = { version: 'potato9000' };
 
       const engines = {
@@ -124,17 +111,7 @@ describe('A database configuration object', () => {
       expect(base.engines).toEqual({});
     });
 
-    it('should add network server drivers', () => {
-      const server = { name: 'Network server' };
-      const network = {
-        servers: [server],
-      };
-      const result = config([{ network }]);
-
-      expect(result.network.servers).toEqual([server]);
-    });
-
-    it('should merge before hooks', () => {
+    it('merges before hooks', () => {
       const write = () => {};
       const hooks = {
         before: { write },
@@ -145,27 +122,7 @@ describe('A database configuration object', () => {
       expect(result.hooks.before.write).toEqual([write]);
     });
 
-    it('should add network drivers in the order they\'re defined', () => {
-      const first = () => {};
-      const second = () => {};
-
-      const result = config([{
-        network: {
-          clients: [first],
-          servers: [first],
-        },
-      }, {
-        network: {
-          clients: [second],
-          servers: [second],
-        },
-      }]);
-
-      expect(result.network.clients).toEqual([first, second]);
-      expect(result.network.servers).toEqual([first, second]);
-    });
-
-    it('should add storage drivers in the order they\'re defined', () => {
+    it('adds storage drivers in the order they\'re defined', () => {
       const first = () => {};
       const second = () => {};
 
@@ -178,7 +135,7 @@ describe('A database configuration object', () => {
       expect(result.storage).toEqual([first, second]);
     });
 
-    it('should add hooks in the order they\'re defined', () => {
+    it('adds hooks in the order they\'re defined', () => {
       const first = () => {};
       const second = () => {};
 
@@ -199,7 +156,7 @@ describe('A database configuration object', () => {
       expect(result.hooks.before.read.node).toEqual([first, second]);
     });
 
-    it('should prefer later-defined extensions when conflicts happen', () => {
+    it('prefers later-defined extensions when conflicts happen', () => {
       const first = () => {};
       const second = () => {};
 
@@ -218,7 +175,68 @@ describe('A database configuration object', () => {
       expect(result.extend.root.method).toBe(second);
       expect(result.extend.context.method).toBe(second);
     });
-
   });
 
+  describe('network merge', () => {
+    let group1, group2, conn;
+
+    class Connection {
+      type = 'test-connection';
+
+      constructor ({ id }) {
+        this.id = id;
+      }
+    }
+
+    beforeEach(() => {
+      group1 = new ConnectionGroup();
+      group2 = new ConnectionGroup();
+      conn = new Connection({ id: 'connection' });
+    });
+
+    it('includes every client', () => {
+      group1.add(conn);
+
+      const result = config([{ network: group1 }]);
+
+      expect([...result.network]).toContain(conn);
+    });
+
+    it('does not unnecessarily wrap groups', () => {
+      group1.add(conn);
+
+      const result = config([{ network: group1 }]);
+
+      expect(result.network).toBe(group1);
+    });
+
+    it('combines clients from every group', () => {
+      const conn2 = new Connection({ id: 'conn2' });
+      group1.add(conn);
+      group2.add(conn2);
+
+      const result = config([{
+        network: group1,
+      }, {
+        network: group2,
+      }]);
+
+      expect([...result.network]).toContain(conn);
+      expect([...result.network]).toContain(conn2);
+    });
+
+    it('converts single connections into connection groups', () => {
+      const conn2 = new Connection({ id: 'conn2' });
+
+      const result = config([{
+        network: conn,
+      }, {
+        network: conn2,
+      }]);
+
+      expect(result.network).toBeA(ConnectionGroup);
+      expect([...result.network]).toContain(conn);
+      expect([...result.network]).toContain(conn2);
+    });
+  });
 });

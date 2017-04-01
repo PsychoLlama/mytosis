@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import Database from '../../index';
 import expect, { spyOn } from 'expect';
-import { queryEngine } from './mocks';
+import { queryEngine } from '../../mocks';
 
 describe('A database query', () => {
 

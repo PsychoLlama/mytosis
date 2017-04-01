@@ -1,3 +1,5 @@
+import ConnectionGroup from '../connection-group/index';
+
 const hooks = {
   read: {
     node: [],
@@ -38,15 +40,6 @@ export const base = {
   extend: {
     root: {},
     context: {},
-  },
-
-  /**
-   * Network drivers.
-   * @type {Object}
-   */
-  network: {
-    clients: [],
-    servers: [],
   },
 
   /**
@@ -126,16 +119,28 @@ const merge = {
 
   /**
    * Merges two network configurations together.
-   * @param  {Object} base - The base network object to extend.
-   * @param  {Array} base.clients - A list of network clients.
-   * @param  {Array} base.servers - A list of network servers.
-   * @param  {Object} ext={} - Extensions to the base object.
-   * @return {Object} - The merged network object.
+   * @param  {ConnectionGroup} [base] - A connection or connection group.
+   * @param  {ConnectionGroup|Object} extension - A connection or group to add.
+   * @return {ConnectionGroup|Object} - The merged network object.
    */
-  network: ({ clients, servers }, ext = {}) => ({
-    clients: clients.concat(ext.clients || []),
-    servers: servers.concat(ext.servers || []),
-  }),
+  network: (base, extension) => {
+
+    // Support connections not inside a group.
+    if (base) {
+      base = ConnectionGroup.ensure(base);
+    }
+
+    if (extension) {
+      extension = ConnectionGroup.ensure(extension);
+    }
+
+    // Merge two connection groups together.
+    if (base && extension) {
+      return base.union(extension);
+    }
+
+    return extension;
+  },
 
   /**
    * Merges two storage arrays together.
@@ -165,8 +170,8 @@ const merge = {
    */
   plugins: (base, ext) => ({
     hooks: merge.hooks(base.hooks, ext.hooks),
-    storage: merge.storage(base.storage, ext.storage),
     extend: merge.extensions(base.extend, ext.extend),
+    storage: merge.storage(base.storage, ext.storage),
     network: merge.network(base.network, ext.network),
     engines: merge.engines(base.engines, ext.engines),
   }),
@@ -178,6 +183,12 @@ const merge = {
  * @param  {Object[]} plugins - A list of plugin objects.
  * @return {Object} - The merged plugin object.
  */
-export default (plugins) => (
-  plugins.reduce(merge.plugins, base)
-);
+export default (plugins) => {
+  const config = plugins.reduce(merge.plugins, base);
+
+  // Add a default (empty) network group.
+  return {
+    ...config,
+    network: config.network || new ConnectionGroup(),
+  };
+};

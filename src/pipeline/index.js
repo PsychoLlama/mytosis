@@ -7,22 +7,8 @@ import trigger from '../trigger-hooks';
  * @return {Object} - An options object with defaults set via the config.
  */
 export const defaults = (config, options = {}) => ({
-  ...options,
   storage: options.storage || config.storage,
-  clients: options.clients || config.network.clients,
-});
-
-/**
- * Adds default options for pipeline objects.
- * @param  {Object} config - The database configuration object.
- * @param  {Object} options - An action being passed through the pipeline.
- * @return {Object} - A new value with default options added (does not mutate).
- */
-const addDefaultProps = (config, options) => ({
-
-  // Provide default destinations.
-  network: config.network.clients,
-  storage: config.storage,
+  network: options.network || config.network,
 
   ...options,
 });
@@ -50,14 +36,12 @@ const createPipeline = (path, transform = identity) => (
    */
   (config, options) => trigger({
     hooks: path.reduce((hooks, type) => hooks[type], config.hooks),
-    initial: addDefaultProps(config, options),
+    initial: defaults(config, options),
     transform: transform,
   })
-
 );
 
 export const before = {
-
   read: {
     node: createPipeline(['before', 'read', 'node']),
     field: createPipeline(['before', 'read', 'field']),
@@ -66,17 +50,15 @@ export const before = {
   write: createPipeline(['before', 'write']),
   request: createPipeline(['before', 'request']),
   update: createPipeline(['before', 'update']),
-
 };
 
 export const after = {
-
   read: {
     node: createPipeline(['after', 'read', 'node']),
     field: createPipeline(['after', 'read', 'field']),
   },
+
   write: createPipeline(['after', 'write']),
   request: createPipeline(['after', 'request']),
   update: createPipeline(['after', 'update']),
-
 };

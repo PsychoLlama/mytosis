@@ -2,7 +2,7 @@
 import expect, { spyOn } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 import database from '../../index';
-import { Storage } from './mocks';
+import { Storage } from '../../mocks';
 
 describe('A storage plugin', () => {
   let db, storage;

@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import expect, { createSpy, spyOn } from 'expect';
 import database from '../../index';
-import { Storage } from './mocks';
+import { Storage } from '../../mocks';
 import { Graph } from 'graph-crdt';
 
 describe('Database hook', () => {
