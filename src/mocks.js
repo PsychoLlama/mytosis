@@ -39,6 +39,8 @@ export class Router {
   pull = createSpy().andReturn(Promise.resolve());
 }
 
+export const createRouter = createSpy().andCall(() => new Router());
+
 export const queryEngine = {
   executeQuery () {},
 };

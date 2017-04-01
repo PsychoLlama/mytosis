@@ -2,13 +2,13 @@
 import expect, { createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 
-import { Storage, Router } from '../../mocks';
+import { Storage, Router, createRouter } from '../../mocks';
 import Context from '../context';
 import database from '../root';
 
 describe('Database', () => {
-  let db;
   const settings = database.configuration;
+  let db;
 
   beforeEach(() => {
     db = database();
@@ -25,6 +25,17 @@ describe('Database', () => {
 
   it('creates a new graph', () => {
     expect(db).toBeA(Graph);
+  });
+
+  it('instantiates a new router', () => {
+    const db = database({
+      router: createRouter,
+    });
+
+    expect(db.router).toBeA(Router);
+
+    expect(createRouter).toHaveBeenCalled();
+    expect(createRouter).toHaveBeenCalledWith(db, db[settings]);
   });
 
   describe('read', () => {
@@ -63,7 +74,7 @@ describe('Database', () => {
 
         storage: [storage],
 
-        router: router,
+        router: createSpy().andReturn(router),
       });
     });
 

@@ -108,8 +108,8 @@ const merge = {
    * Adds a router to the config.
    * @throws {Error} If more than one router was given.
    * @param  {undefined} existing - Should never exist.
-   * @param  {Object} router - A router interface.
-   * @return {Object} - The router.
+   * @param  {Function} router - A router factory.
+   * @return {Function} - The router factory.
    */
   router: (existing, router) => {
     if (existing && router) {

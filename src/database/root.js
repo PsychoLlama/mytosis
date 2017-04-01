@@ -20,6 +20,14 @@ class Database extends Graph {
 
     this[settings] = config;
 
+    const createRouter = config.router;
+
+    const router = createRouter
+      ? createRouter(this, config)
+      : null;
+
+    Object.defineProperty(this, 'router', { value: router });
+
     const extensions = config.extend.root;
 
     /** Add API extensions from the config. */
@@ -76,10 +84,8 @@ class Database extends Graph {
     // Persist.
     const writes = config.storage.map((store) => store.write(config));
 
-    const { router } = this[settings];
-
-    if (router) {
-      await router.push(config);
+    if (this.router) {
+      await this.router.push(config);
     }
 
     // Wait for writes to finish.
