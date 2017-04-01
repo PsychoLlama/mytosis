@@ -39,9 +39,38 @@ describe('Database', () => {
   });
 
   describe('read', () => {
+    let router;
+
+    beforeEach(() => {
+      router = createRouter();
+
+      db = database({
+        router: createSpy().andReturn(router),
+      });
+    });
+
     it('returns null if nothing is found', async () => {
       const settings = await db.read('settings');
       expect(settings).toBe(null);
+    });
+
+    it('calls the router', async () => {
+      await db.read('lobby');
+
+      expect(router.pull).toHaveBeenCalled();
+      const [read] = router.pull.calls[0].arguments;
+
+      expect(read).toBeAn(Object);
+      expect(read.key).toBe('lobby');
+    });
+
+    it('resolves with the router response', async () => {
+      const data = Node.from({ response: 'router' }).toJSON();
+      router.pull.andReturn(data);
+
+      const result = await db.read('weather');
+      expect(result).toBeA(Context);
+      expect(result.value('response')).toBe('router');
     });
   });
 

@@ -148,12 +148,18 @@ class Database extends Graph {
 
     let node = this.value(params.key);
 
-    /** Not cached. */
+    // Not cached.
     if (node === null) {
 
-      /** Ask the storage plugins for it. */
-      for (const store of params.storage) {
-        const result = await store.read(params);
+      // Ask the storage plugins for it.
+      const reads = [...params.storage].map(store => store.read(params));
+
+      // Ask the network for it.
+      if (this.router) {
+        reads.push(this.router.pull(params));
+      }
+
+      for (const result of await Promise.all(reads)) {
         const update = Node.source(result);
 
         if (result) {
@@ -166,7 +172,6 @@ class Database extends Graph {
       if (node) {
         this.merge({ [params.key]: node });
       }
-
     }
 
     /** After-read hooks. */
