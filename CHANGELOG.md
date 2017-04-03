@@ -5,6 +5,14 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.10.1
+### Added
+- `ConnectionGroup` now passes the instigating connection as the second parameter.
+- `Stream` instances now support two parameters.
+
+### Fixed
+- The first read, if storage or network plugins were used, would return a different node reference than all subsequent reads.
+
 ## v1.10.0
 ### Added
 - Support for network plugins.
