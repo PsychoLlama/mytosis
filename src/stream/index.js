@@ -151,7 +151,7 @@ export default class Stream {
     }
 
     this[symbol.isClosed] = true;
-    this[symbol.callbacks] = null;
+    this[symbol.callbacks] = [];
     this[symbol.resolve]();
   }
 

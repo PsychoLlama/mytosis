@@ -137,6 +137,13 @@ describe('Stream', () => {
 
       expect(fail).toThrow(/(complete|close)/i);
     });
+
+    it('does not throw if dispose is called after completion', () => {
+      const stream = new Stream((push, complete) => complete());
+      const subscription = stream.forEach(() => {});
+
+      expect(() => subscription.dispose()).toNotThrow();
+    });
   });
 
   describe('forEach()', () => {
