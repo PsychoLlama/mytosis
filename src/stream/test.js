@@ -55,7 +55,7 @@ describe('Stream', () => {
       stream.forEach(each);
 
       expect(each).toHaveBeenCalled();
-      expect(each).toHaveBeenCalledWith(msg);
+      expect(each).toHaveBeenCalledWith(msg, undefined);
     });
 
     it('does not unnecessarily invoke the publisher', () => {
@@ -86,6 +86,13 @@ describe('Stream', () => {
 
       stream.forEach(() => {}).dispose();
       expect(open).toHaveBeenCalled();
+    });
+
+    it('allows two parameters', () => {
+      const stream = new Stream((push) => push(1, 2, 3));
+      stream.forEach(spy);
+
+      expect(spy).toHaveBeenCalledWith(1, 2);
     });
   });
 
@@ -150,10 +157,10 @@ describe('Stream', () => {
       expect(each).toNotHaveBeenCalled();
 
       push('hello');
-      expect(each).toHaveBeenCalledWith('hello');
+      expect(each).toHaveBeenCalledWith('hello', undefined);
 
       push('this is stream');
-      expect(each).toHaveBeenCalledWith('this is stream');
+      expect(each).toHaveBeenCalledWith('this is stream', undefined);
     });
 
     it('returns an object', () => {

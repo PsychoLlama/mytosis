@@ -227,7 +227,7 @@ describe('ConnectionGroup', () => {
       conn.push('hello');
 
       expect(spy).toHaveBeenCalled();
-      expect(spy).toHaveBeenCalledWith('hello');
+      expect(spy).toHaveBeenCalledWith('hello', conn);
     });
 
     it('reports messages from connections added later', () => {
@@ -237,7 +237,7 @@ describe('ConnectionGroup', () => {
       conn.push('message');
 
       expect(spy).toHaveBeenCalled();
-      expect(spy).toHaveBeenCalledWith('message');
+      expect(spy).toHaveBeenCalledWith('message', conn);
     });
 
     it('does not report messages from removed connections', () => {

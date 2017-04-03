@@ -125,15 +125,18 @@ export default class Stream {
    * Pushes a new message.
    * @private
    * @throws {Error} - If given a value after the stream is closed.
-   * @param  {any} msg - A message in the stream.
+   * @param  {any} message - A message in the stream.
+   * @param  {any} [sender] - The producer instance.
    * @return {undefined}
    */
-  [symbol.push] = (msg) => {
+  [symbol.push] = (message, sender) => {
     if (this[symbol.isClosed]) {
       throw new Error('Cannot emit values after stream is closed.');
     }
 
-    this[symbol.callbacks].forEach((callback) => callback(msg));
+    this[symbol.callbacks].forEach((callback) => {
+      callback(message, sender);
+    });
   }
 
   /**

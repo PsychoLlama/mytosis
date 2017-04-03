@@ -38,7 +38,10 @@ export default class ConnectionGroup extends Emitter {
 
     // Create a subscription.
     const subscribeToConnection = (connection) => {
-      const subscription = connection.messages.forEach(push);
+      const subscription = connection.messages.forEach((message) => {
+        push(message, connection);
+      });
+
       this[subscriptions][connection.id] = subscription;
     };
 
