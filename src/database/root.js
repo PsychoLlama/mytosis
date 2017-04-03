@@ -177,7 +177,7 @@ class Database extends Graph {
     /** After-read hooks. */
     const result = await pipeline.after.read.node(config, {
       ...params,
-      context: node,
+      context: this.value(params.key),
     });
 
     return result.context;

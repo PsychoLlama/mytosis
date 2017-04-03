@@ -1,10 +1,10 @@
 /* eslint-env mocha */
-import expect, { spyOn } from 'expect';
+import expect, { spyOn, createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 import database from '../../index';
 import { Storage } from '../../mocks';
 
-describe('A storage plugin', () => {
+describe('Storage plugin', () => {
   let db, storage;
 
   beforeEach(() => {
@@ -15,14 +15,14 @@ describe('A storage plugin', () => {
     });
   });
 
-  context('write', () => {
+  describe('write', () => {
     let write;
 
     beforeEach(() => {
       write = spyOn(storage, 'write').andCallThrough();
     });
 
-    it('should be given a graph', async () => {
+    it('is given a graph', async () => {
       await db.write('users', {});
 
       expect(write).toHaveBeenCalled();
@@ -30,7 +30,7 @@ describe('A storage plugin', () => {
       expect(graph).toBeA(Graph);
     });
 
-    it('should contain complete node state', async () => {
+    it('contains complete node state', async () => {
 
       // Write two partial updates.
       await db.write('state', { original: true });
@@ -48,7 +48,7 @@ describe('A storage plugin', () => {
       ]);
     });
 
-    it('should be passed node updates', async () => {
+    it('is passed node updates', async () => {
       const profile = await db.write('profile', {
         name: 'Bob Carlson VII',
       });
@@ -58,7 +58,7 @@ describe('A storage plugin', () => {
       expect(write.calls.length).toBe(2);
     });
 
-    it('should be passed the options object', async () => {
+    it('is passed the options object', async () => {
       await db.write('users', {}, {
         potatoes: true,
       });
@@ -69,7 +69,7 @@ describe('A storage plugin', () => {
       });
     });
 
-    it('should not be called if storage is disabled', async () => {
+    it('is not called if storage is disabled', async () => {
       await db.write('users', {}, {
         storage: [],
       });
@@ -78,7 +78,7 @@ describe('A storage plugin', () => {
 
   });
 
-  context('read', () => {
+  describe('read', () => {
     let read, graph, node;
 
     beforeEach(() => {
@@ -88,7 +88,7 @@ describe('A storage plugin', () => {
       node = new Node();
     });
 
-    it('should be used to retrieve state', async () => {
+    it('is used to retrieve state', async () => {
       node.merge({ from: 'storage' });
       graph.merge({ [node]: node });
 
@@ -103,13 +103,13 @@ describe('A storage plugin', () => {
       ]);
     });
 
-    it('should not be called if the value is cached', async () => {
+    it('is not called if the value is cached', async () => {
       await db.write('stuff', { value: 'probably' });
       await db.read('stuff');
       expect(read).toNotHaveBeenCalled();
     });
 
-    it('should cache read results', async () => {
+    it('caches read results', async () => {
       node.merge({ from: 'storage' });
       graph.merge({ [node]: node });
       await storage.write({ graph });
@@ -125,18 +125,28 @@ describe('A storage plugin', () => {
       expect(read.calls.length).toBe(1);
     });
 
-    it('should be passed the options object', async () => {
+    it('is passed the options object', async () => {
       await db.read('key', { potatoes: true });
       const [options] = read.calls[0].arguments;
       expect(options).toBeAn(Object);
       expect(options).toContain({ potatoes: true });
     });
 
-    it('should not be called if storage is disabled', async () => {
+    it('is not called if storage is disabled', async () => {
       await db.read('key', { storage: [] });
       expect(read).toNotHaveBeenCalled();
     });
 
-  });
+    it('gives the same context as if cached', async () => {
+      const node = Node.from({ data: true });
+      const storage = new Storage();
+      storage.read = createSpy();
+      storage.read.andReturn(node.toJSON());
 
+      const db = database({ storage: [storage] });
+      const { uid } = node.meta();
+
+      expect(await db.read(uid)).toBe(await db.read(uid));
+    });
+  });
 });
