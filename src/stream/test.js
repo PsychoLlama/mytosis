@@ -107,6 +107,29 @@ describe('Stream', () => {
       // Mocha should not time out.
       return stream.complete;
     });
+
+    it('throws if push is called after completion', () => {
+      const stream = new Stream((push, complete) => {
+        complete();
+        push('this should throw.');
+      });
+
+      const forEach = stream.forEach.bind(stream);
+      const fail = () => forEach(() => {});
+
+      expect(fail).toThrow(/closed/i);
+    });
+
+    it('throws if complete is called twice', () => {
+      const stream = new Stream((push, complete) => {
+        complete();
+        complete();
+      });
+
+      const fail = () => stream.forEach(() => {});
+
+      expect(fail).toThrow(/(complete|close)/i);
+    });
   });
 
   describe('forEach()', () => {
@@ -182,6 +205,18 @@ describe('Stream', () => {
 
       subscription.dispose();
       expect(emitter.listenerCount('message')).toBe(0);
+    });
+
+    it('works on DOM-style events', () => {
+      emitter.removeEventListener = emitter.removeListener;
+      emitter.addEventListener = emitter.on;
+      emitter.removeListener = undefined;
+      emitter.on = undefined;
+
+      const stream = Stream.fromEvent(emitter, 'disconnect');
+
+      const spy = createSpy();
+      stream.forEach(spy).dispose();
     });
   });
 });

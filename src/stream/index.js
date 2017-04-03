@@ -1,11 +1,12 @@
 const symbol = {
+  isClosed: Symbol('Whether the stream is closed'),
   isOpen: Symbol('Whether the stream is open'),
   callbacks: Symbol('Event callback list'),
   dispose: Symbol('Free stream resources'),
   observe: Symbol('Force the stream open'),
   resolve: Symbol('Completes the stream'),
   openStream: Symbol('Stream publisher'),
-  complete: Symbol('Closes the stream'),
+  complete: Symbol('Close the stream'),
   handler: Symbol('Stream callback'),
   push: Symbol('Publish a message'),
 };
@@ -74,12 +75,21 @@ export default class Stream {
    */
   static fromEvent (emitter, event) {
     return new Stream((push) => {
-      emitter.on(event, push);
+      const add = emitter.on || emitter.addEventListener;
+      add.call(emitter, event, push);
 
-      return () => emitter.removeListener(event, push);
+      return () => {
+        const remove = emitter.removeListener || emitter.removeEventListener;
+
+        remove.call(emitter, event, push);
+      };
     });
   }
 
+  /**
+   * Resolves when the stream closes.
+   * @type {Promise}
+   */
   complete = new Promise((res) => {
     this[symbol.resolve] = res;
   });
@@ -114,18 +124,31 @@ export default class Stream {
   /**
    * Pushes a new message.
    * @private
+   * @throws {Error} - If given a value after the stream is closed.
    * @param  {any} msg - A message in the stream.
    * @return {undefined}
    */
   [symbol.push] = (msg) => {
+    if (this[symbol.isClosed]) {
+      throw new Error('Cannot emit values after stream is closed.');
+    }
+
     this[symbol.callbacks].forEach((callback) => callback(msg));
   }
 
   /**
    * Terminates the stream permanently.
+   * @private
+   * @throws {Error} - If complete is called twice.
    * @return {undefined}
    */
   [symbol.complete] = () => {
+    if (this[symbol.isClosed]) {
+      throw new Error('Cannot close stream twice.');
+    }
+
+    this[symbol.isClosed] = true;
+    this[symbol.callbacks] = null;
     this[symbol.resolve]();
   }
 
