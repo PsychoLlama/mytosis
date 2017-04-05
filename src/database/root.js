@@ -81,23 +81,25 @@ class Database extends Graph {
       graph,
     });
 
+    // Merge in the update.
+    const deltas = this.merge(contexts);
+
+    const write = {
+      ...config,
+      ...deltas,
+    };
+
     // Persist.
-    const writes = config.storage.map((store) => store.write(config));
+    const writes = config.storage.map((store) => store.write(write));
 
     if (this.router) {
-      await this.router.push(config);
+      await this.router.push(write);
     }
 
     // Wait for writes to finish.
     await Promise.all(writes);
 
-    // Merge in the update.
-    const deltas = this.merge(contexts);
-
-    return await pipeline.after.write(this[settings], {
-      ...config,
-      ...deltas,
-    });
+    return await pipeline.after.write(this[settings], write);
   }
 
   /**

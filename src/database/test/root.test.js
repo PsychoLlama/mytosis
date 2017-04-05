@@ -181,6 +181,33 @@ describe('Database', () => {
       expect(storage.write).toNotHaveBeenCalled();
     });
 
+    it('passes the deltas to plugins', async () => {
+      await db.commit(graph);
+
+      const [push] = router.push.calls[0].arguments;
+      expect(push.history).toBeA(Graph);
+      expect(push.update).toBeA(Graph);
+
+      const [write] = storage.write.calls[0].arguments;
+      expect(write.history).toBeA(Graph);
+      expect(write.update).toBeA(Graph);
+    });
+
+    it('only sends the changes', async () => {
+      const weather = new Node({ uid: 'weather' });
+      weather.merge({ condition: 'sunny', temp: 65 });
+      db.merge({ [weather]: weather });
+
+      const changes = new Graph();
+      changes.merge(db);
+      changes.value(weather).merge({ temp: 70 });
+      await db.commit(changes);
+
+      const [push] = router.push.calls[0].arguments;
+      expect([...push.update].length).toBe(1);
+      expect([...push.update.value('weather')]).toEqual([['temp', 70]]);
+    });
+
     it('caches the value after pipeline validation', async () => {
       const node = Node.from({ updated: true });
       graph.merge({ [node]: node });
