@@ -5,6 +5,11 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.10.3
+### Added
+- Performance improvements.
+- Some support for offline updates.
+
 ## v1.10.2
 ### Fixed
 - `Subscription#dispose` call was throwing an error after stream completion.
