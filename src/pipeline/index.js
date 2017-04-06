@@ -1,3 +1,4 @@
+import ConnectionGroup from '../connection-group';
 import trigger from '../trigger-hooks';
 
 /**
@@ -6,12 +7,22 @@ import trigger from '../trigger-hooks';
  * @param  {Object} [options] - Options passed to read/write.
  * @return {Object} - An options object with defaults set via the config.
  */
-export const defaults = (config, options = {}) => ({
-  storage: options.storage || config.storage,
-  network: options.network || config.network,
+export const defaults = (config, options = {}) => {
+  const provided = {
+    storage: options.storage !== undefined,
+    network: options.network !== undefined,
+  };
 
-  ...options,
-});
+  const storage = provided.storage ? options.storage : config.storage;
+  const network = provided.network ? options.network : config.network;
+
+  return {
+    ...options,
+
+    storage: storage || [],
+    network: network || new ConnectionGroup(),
+  };
+};
 
 /**
  * Returns whatever it's passed.

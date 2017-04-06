@@ -24,7 +24,7 @@ describe('The pipeline\'s default option setter', () => {
     }]);
   });
 
-  it('should add storage and network fields', () => {
+  it('adds storage and network fields', () => {
     const options = pipeline.defaults(config, {});
 
     expect(options).toContain({
@@ -33,7 +33,7 @@ describe('The pipeline\'s default option setter', () => {
     });
   });
 
-  it('should use given storage options instead of the default', () => {
+  it('uses given storage options instead of the default', () => {
     const options = pipeline.defaults(config, {
       storage: [{ custom: true }],
     });
@@ -44,7 +44,7 @@ describe('The pipeline\'s default option setter', () => {
     });
   });
 
-  it('should use given network options instead of the default', () => {
+  it('uses given network options instead of the default', () => {
     const group = new ConnectionGroup();
 
     const options = pipeline.defaults(config, {
@@ -59,7 +59,7 @@ describe('The pipeline\'s default option setter', () => {
 });
 
 describe('The before.read.node pipeline', () => {
-  it('should allow hooks to replace the read options', async () => {
+  it('allows hooks to replace read options', async () => {
     const read = async () => ({ overridden: true });
     const config = hooks({
       before: {
@@ -109,7 +109,7 @@ describe('The pipeline', () => {
 
   methods.forEach((path) => {
     describe(`"${path.join('.')}" method`, async () => {
-      it('should allow hooks to override the arguments', async () => {
+      it('allows hooks to override the arguments', async () => {
         const options = { original: 'yep' };
         const hook = (initial) => ({ ...initial, added: true });
         const config = buildConfig(path, hook);
@@ -118,7 +118,7 @@ describe('The pipeline', () => {
         expect(result).toContain({ ...options, added: true });
       });
 
-      it('should add default settings', async () => {
+      it('adds default settings', async () => {
         const options = { setting: true };
         const config = hooks();
 
@@ -131,7 +131,7 @@ describe('The pipeline', () => {
         });
       });
 
-      it('should not force defaults if otherwise specified', async () => {
+      it('does not force defaults if otherwise specified', async () => {
         const options = {
           setting: true,
           storage: [{ storage: true }],
@@ -142,6 +142,32 @@ describe('The pipeline', () => {
         const result = await getPipeline(path)(config, options);
 
         expect(result).toEqual(options);
+      });
+
+      it('uses an empty storage list if null is given', async () => {
+        const options = { storage: null };
+        const config = mergeConfigs([{
+          storage: { name: 'storage driver' },
+        }]);
+
+        const result = await getPipeline(path)(config, options);
+
+        expect(result.storage).toEqual([]);
+      });
+
+      it('uses an empty network group if null is given', async () => {
+        const group = new ConnectionGroup();
+        const conn = new Connection({ id: 'connection 1' });
+        group.add(conn);
+
+        const config = mergeConfigs([{
+          network: group,
+        }]);
+
+        const result = await getPipeline(path)(config, { network: null });
+
+        expect(result.network).toBeA(ConnectionGroup);
+        expect([...result.network]).toEqual([]);
       });
     });
   });
