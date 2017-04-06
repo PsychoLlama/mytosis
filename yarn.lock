@@ -1426,9 +1426,9 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.4:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
 
-graph-crdt@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/graph-crdt/-/graph-crdt-0.3.1.tgz#10d06ef4b35cc06ae2798e393f054060f152f248"
+graph-crdt@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/graph-crdt/-/graph-crdt-0.4.0.tgz#56b782a5a126e09acabac14ee3ac0aa9c99a1472"
   dependencies:
     babel-runtime "^6.20.0"
     eventemitter3 "^2.0.1"
