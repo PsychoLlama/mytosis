@@ -99,6 +99,19 @@ describe('A config', () => {
       expect(result.storage).toEqual([storage]);
     });
 
+    it('merges unwrapped storage plugins', () => {
+      const store1 = { name: 'Storage driver #1' };
+      const store2 = { name: 'Storage driver #2' };
+
+      const result = config([{
+        storage: store1,
+      }, {
+        storage: store2,
+      }]);
+
+      expect(result.storage).toEqual([store1, store2]);
+    });
+
     it('adds query engines', () => {
       const engine = { version: 'potato9000' };
 
