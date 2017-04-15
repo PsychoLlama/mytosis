@@ -138,48 +138,50 @@ class Database extends Graph {
    * Read a context from the database.
    * @param  {String} key - The node's unique ID.
    * @param  {Object} [options] - Plugin-level options.
+   * @param  {ConnectionGroup|null} [options.network]
+   * Override the group of network connections.
+   * @param  {Object|null} [options.storage] - Storage plugins to use.
+   * @param  {Boolean} [options.force] - Ignore cache and force read.
    * @return {Context|null} - Resolves to the node.
    */
   async read (key, options = {}) {
-    const config = this[settings];
-
-    const params = await pipeline.before.read.node(config, {
+    const config = await pipeline.before.read.node(this[settings], {
       ...options,
       key,
     });
 
-    let node = this.value(params.key);
+    let node = this.value(config.key);
 
     // Not cached.
-    if (node === null) {
+    if (node === null || config.force) {
 
       // Ask the storage plugins for it.
-      const reads = [...params.storage].map(store => store.read(params));
+      const reads = [...config.storage].map(store => store.read(config));
 
       // Ask the network for it.
       if (this.router) {
-        reads.push(this.router.pull(params));
+        reads.push(this.router.pull(config));
       }
 
       for (const result of await Promise.all(reads)) {
         const update = Node.source(result);
 
         if (result) {
-          node = node || new Context(this, { uid: params.key });
+          node = node || new Context(this, { uid: config.key });
           node.merge(update);
         }
       }
 
       /** Cache the value. */
       if (node) {
-        this.merge({ [params.key]: node });
+        this.merge({ [config.key]: node });
       }
     }
 
     /** After-read hooks. */
-    const result = await pipeline.after.read.node(config, {
-      ...params,
-      context: this.value(params.key),
+    const result = await pipeline.after.read.node(this[settings], {
+      context: this.value(config.key),
+      ...config,
     });
 
     return result.context;

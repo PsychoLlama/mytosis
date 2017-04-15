@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## Unreleased
+### Added
+- `options.force` flag in `db.read` ignores the cache and reads from plugins.
+
 ## v1.10.3
 ### Added
 - Performance improvements.

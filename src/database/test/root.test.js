@@ -72,6 +72,16 @@ describe('Database', () => {
       expect(result).toBeA(Context);
       expect(result.value('response')).toBe('router');
     });
+
+    it('ignores the cache when a flag is set', async () => {
+      await db.write('game', { created: 1492219766210 });
+
+      await db.read('game');
+      expect(router.pull).toNotHaveBeenCalled();
+
+      await db.read('game', { force: true });
+      expect(router.pull).toHaveBeenCalled();
+    });
   });
 
   describe('commit', () => {
