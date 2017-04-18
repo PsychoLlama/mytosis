@@ -5,9 +5,11 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
-## Unreleased
+## v1.10.4
 ### Added
 - `options.force` flag in `db.read` ignores the cache and reads from plugins.
+- API documentation.
+- `ConnectionGroup` and `Stream` module exports.
 
 ## v1.10.3
 ### Added

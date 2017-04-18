@@ -1,6 +1,6 @@
-# mytosis
+# Mytosis
 
-*Distributed graph database*
+*A decentralized graph database*
 
 [![Travis build](https://img.shields.io/travis/PsychoLlama/mytosis/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/mytosis)
 [![downloads](https://img.shields.io/npm/dt/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
@@ -8,222 +8,339 @@
 
 `mytosis` is a work in progress, wrapping the work of the [`graph-crdt`](https://github.com/PsychoLlama/graph-crdt) data structure into a friendly, modular API.
 
+> **Versioning note:** `v1` is unstable. `v2` will be the first stable release.
+
+### Introduction
+Mytosis organizes data as one massive object which contains other objects. The root is called the graph, and its children are called nodes.
+
+```plain
+Graph {
+  node1
+  node2
+  node3
+  ...
+}
+```
+
+A key concept is that nodes cannot contain other nodes. To express relationships, Mytosis uses pointers, sometimes called "edges". Those edges are automatically resolved, allowing you to structure your data as a tree, as tables, as key-value pairs, or an interconnected mesh.
+
+```plain
+Graph {
+  book {
+    title: "Hitchhiker's Guide"
+    author: Pointer(author)
+  }
+
+  author {
+    name: "Douglas Adams"
+    authored: Pointer(books)
+  }
+
+  books {
+    book: Pointer(book)
+  }
+}
+```
+
+To mutate the graph, you declare all fields which changed along with their new values. Mytosis will generate a patch update and give it to your storage and network plugins.
+
+## Installing
+This package is available on npm.
+
+```sh
+# Install with npm
+npm install mytosis --save
+
+# Install with yarn
+yarn add mytosis
+```
+
+Now you can import it into your project.
+```js
+// Using ES Modules
+import database from 'mytosis'
+
+// Using CommonJS (pffft, nobody uses that)
+const database = require('mytosis').default
+```
+
 ## API
+The main API surface is intentionally small. It consists of only a few methods.
 
-So, yeah, it's currently listed as `v1`, but that was an accident. Whoops!
+> If you need more fine-grained control, you might find [the `graph-crdt` documentation](https://psychollama.github.io/graph-crdt/) useful.<br />
+  `Database` and `Context` inherit from `Graph` and `Node` (respectively).
 
-The API should be considered **unstable until `v2`**, then semver kicks in. Promise.
+### `database(...configs)`
+Creates a new database. It can be used with or without the `new` keyword.
 
-Until more comprehensive documentation is written, here's a code snippet to get you started:
+By default, the database operates as an in-memory cache, and can be extended by passing in plugins. There are tons of options, so we'll cover those [later](#config).
 
 ```js
-import database from 'mytosis'
-import plugin from './no/plugins/published/yet'
-
-// Every database accepts a bunch
-// of options, easily shared and
-// publishable.
-const config = {
-
-  // Save data to these storage plugins.
-  storage: [plugin],
-
-  // Event hooks. More info below.
-  hooks: {},
-
-  // Extend the API with methods/properties.
-  // Per-instance, not global. Great for
-  // adding utility methods.
-  extend: {
-
-    // Methods/properties added to the
-    // database root.
-    root: {
-
-      PROPERTY: 'hey world, wazzup',
-
-      async addUser (object) {
-        const db = this
-        // Do stuff.
-      },
-
-    },
-
-    // These methods/properties will be added
-    // to every node.
-    context: {
-
-      async addFriend (friend) {
-        const node = this
-        // Do other stuff.
-      },
-
-    },
-
-  },
-}
-
-// Async IIFE - makes Promises way easier.
-(async () => {
-
-  // Creates a new database instance.
-  // All configuration is optional.
-  const db = database(config)
-
-  // Writing data:
-  const alice = await db.write('alice', {
-    name: 'Alice',
-  })
-
-  const bob = await db.write('bob', {
-    name: 'Bob',
-  })
-
-  // Linking data:
-  await alice.write('friend', bob)
-  await bob.write('friend', alice)
-
-  // Reading data:
-  const name = await alice.read('name')
-
-  // Prints "Alice"
-  console.log(name)
-
-  // Traversing links:
-  let friend = alice
-
-  // Circular reference, we could do this all day!
-  friend = await friend.read('friend')
-  friend = await friend.read('friend')
-  friend = await friend.read('friend')
-  friend = await friend.read('friend')
-  friend = await friend.read('friend')
-
-  // Prints "Bob"
-  console.log(await friend.read('name'))
-
-  // ---------- //
-  // The `extend` methods/properties we added
-  // will show up on our instances.
-
-  // Root extensions:
-  typeof db.addUser // 'function'
-  db.PROPERTY // 'hey world, wazzup'
-
-  // Context extensions:
-  typeof alice.addFriend // 'function'
-
-})()
+const db = database()
 ```
+
+### `db.read(key)`
+Reads a `Node` from the database, resolved through a promise.
+
+> <dl>
+    <dt><code>Node</code></dt>
+    <dd>
+      An object containing only primitives.
+      Nested objects are represented as pointers.
+    </dd>
+  </dl>
+
+```js
+const stats = await db.read('stats')
+
+console.log('Stats:', stats)
+```
+
+If the node can't be found, `null` is returned.
+
+### `db.write(key, patch)`
+Updates properties on a node. If the node doesn't exist, it'll be created.
+
+```js
+db.write('preferences', {
+  notificationsDisabled: true,
+  theme: 'dark',
+})
+```
+
+Everything in Mytosis is a patch update. You only need to specify the properties you're changing.
+
+### Events
+Each mutation will emit an `"update"` event, passing a graph containing only the changes. There's also a `"history"` event when properties are overwritten. If you keep track of these deltas, you can roll time backwards and forwards.
+
+### `node.read(key)`
+Reads a primitive value from the node. If the value is a pointer to another node, Mytosis will automatically resolve it.
+
+```js
+const weather = await db.write('weather', {
+  temperature: 25,
+})
+
+const temperature = await weather.read('temperature')
+```
+
+### `node.write(key, value)`
+Writes a value to the node. The value can be any primitive.
+
+```js
+const company = await db.write('company', {})
+
+await company.write('phone', '456-123-8970')
+```
+
+To create a pointer to another node, you can write the reference.
+
+```js
+// Create two nodes...
+const dave = await db.write('user', { name: 'dave' })
+const company = await db.write('company', { name: 'Enterprise Inc.' })
+
+// Link one to the other.
+await dave.write('workplace', company)
+
+// Prints "Enterprise Inc."
+dave.read('company')
+  .then(company => company.read('name'))
+  .then(name => console.log('Name:', name))
+```
+
+### Events
+Each node inherits from an event emitter. Any mutation triggers `"update"`, passing the changes. This is useful for observing real-time data and reacting to changes.
+
+```js
+const usage = await db.read('usage-stats')
+
+usage.on('update', (changes) => {
+  console.log('Fields changed:', ...changes)
+})
+```
+
+### <a name="config">Config</a>
+Mytosis is designed to be highly extensible through plugins. You can use it with any storage backend, sync it over the network using any connection prototcol (such as websockets, http, webrtc, or a mix of all three), intercept and transform reads and writes, filter incoming reads or writes, and extend the core API.
+
+These plugins are all contained in the config, and must be defined when the database is instantiated.
+
+You can have more than one config though, as the `database` function accepts several and will merge them all together. This allows you to create presets, or groupings of plugins and share them as a single unit.
+
+```js
+const db = database(config1, config2, config3)
+```
+
+> **Note:** Currently, there are no published plugins.
 
 #### Hooks
+Used to intercept reads & writes. For example, you could use hooks to:
 
-I mentioned `hooks` in the snippet above. I didn't expand there since it's a lot to cover.
+- Reject writes of the wrong data type
+- Listen for write events and update a database visualization
+- Keep track of how often a value is read for an LRU policy
+- Transform values to a different format (like a `Date` object)
 
-Hooks are grouped into two categories:
-- Things to do `before` an event happens.
-- Things to do `after` an event happens.
-
-A hook is a function that gets called when an event happens. That hook can change how the event is handled.
-
-For example, you could register a hook that's fired before data is written.
+A hook is a function which takes a read or write action and returns the transformed action.
 
 ```js
-const config = {
+const writeHook = (action) => action
+```
+
+When you write a value, mytosis generates an action object which represents the write. It contains details like what network & storage plugins should be called, what the update graph is, what the state will look like when the write has finished, and any merge deltas after completion.
+
+Hooks can change every bit of it.
+
+For example, here's a hook which adds a prefix to every read.
+
+```js
+const readHook = (readAction) => ({
+  ...readAction,
+
+  key: `my-prefix/${readAction.key}`,
+})
+
+const db = database({
   hooks: {
     before: {
-      write (graph) {
-        // Called before a write happens.
+      read: {
+        node: readHook,
       },
     },
   },
+})
+```
+
+Hooks can be asynchronous. If a promise is returned, the entire pipeline is put on pause until it resolves.
+
+```js
+// Delay all writes by one second.
+const writeHook = async (writeAction) => {
+  await Promise.delay(1000)
+
+  return writeAction
 }
 ```
 
-Each event can have many hooks, and they're invoked sequentially. If one of them returns a `Promise`, Mytosis will wait until it resolves before continuing.
+As a best practice, never mutate the action. Return a new action instead.
 
-But hooks have a lot more power than just listening in, they're a core component of the plugin system.
-
-In our `before.write` hook above, if it returns a different graph, the replacement is written instead. Hooks can change values being written, fields being read, or any options being passed. That's where the real power comes in!
-
-Another example, a plugin that namespaces reads before they happen:
+These are all the hooks you can register:
 
 ```js
-const config = {
-  before: {
-    read: {
+const hook = (action) => action
 
-      // Prefixes node IDs
-      // before they're read.
-      node (uid) {
-        return `prefix/${uid}`
-      }
+database({
+  hooks: {
+    before: {
+      write: hook,
+      read: {
+        node: hook,
+        field: hook,
+      },
+    },
 
+    after: {
+      write: hook,
+      read: {
+        node: hook,
+        field: hook,
+      },
+    },
+  }
+})
+```
+
+> **Note:** You may be tempted to implement security using hooks. Don't. Do it in [the router](#router) instead.
+
+#### Storage
+Used to save data to a persistent cache and read it back later. If a plugin is provided, the first read will attempt to pull from storage, and its return value will be cached in memory.
+
+```js
+database({
+  storage: new StoragePlugin(),
+})
+```
+
+Writing a storage plugin will look a bit like this...
+
+```js
+class StoragePlugin {
+  async read (action) {} // Read a value
+  async write (action) {} // Write a set of values
+  async remove (action) {} // Delete a value
+}
+```
+
+> **Note:** Mytosis may require `.query()` and `.list()` methods in the future.
+
+#### Network
+Used to send updates and request data from remote sources.
+
+```js
+database({
+  network: new NetworkPlugin(),
+})
+```
+
+By default, Mytosis **will not** use your network plugins. Instead, it interfaces with another plugin type, called the [router](#router). The router is responsible for answering requests and sending out data.
+
+Network plugins are objects with a `.send()` method and a message event stream. Each connection declares its connection type and its unique identifier.
+
+Here's an example of a network plugin...
+
+```js
+import { Stream } from 'mytosis'
+
+class NetworkPlugin {
+  type = 'websocket'
+  id = uuid()
+
+  send (message) {}
+
+  messages = new Stream(emit => {
+    myNetworkInterface.on('message', emit)
+  })
+}
+```
+
+> Mytosis may specify `connection` and `disconnection` event streams in the future, as well as `offline` and `ephemeral` flags.
+
+#### <a name="router">Router</a>
+The router is responsible for sending read requests, pushing out updates, and handling requests from others.
+
+At its core, a router looks like this:
+
+```js
+const router = (db, config) => {
+  config.network.messages.forEach((message) => {
+    console.log('Incoming message:', message)
+  })
+
+  return {
+    async push ({ network, update }) {
+      network.send({ /* your update */ })
+    }
+
+    async pull ({ network, key }) {
+      network.send({ /* your request */ })
     }
   }
 }
 
-const db = database(config)
-
-// The before.read.node hook will
-// replace 'users' with 'prefix/users'
-db.read('users')
+database({ router })
 ```
 
-Now that you've got a taste of what hooks can do, here's the list of what's (currently) available:
+`push()` is invoked for writes, while `pull()` is called for reads. You're given a group of network connections and complete creative freedom. Whatever the `push`/`pull` resolve value is will be given to the user (after merging with whatever storage returns).
 
-- `before`
-  - `read`
-    - `node`
-    - `field`
-  - `write`
-- `after`
-  - `read`
-    - `node`
-    - `field`
-  - `write`
+##### Security
+Mytosis doesn't have a stance on read or write permissions. Your router is responsible for how you answer unauthorized requests. If a message comes in asking for data they're not authorized to read, `pull()` (or `push()`) should reject.
 
-### Installing
+Ultimately, the security mechanism is completely up to you.
 
-#### Using npm
-> If you're not familiar with node or npm, you can install them [here](https://docs.npmjs.com/getting-started/what-is-npm).
+> **Note:** Mytosis may publish a routing framework in the near future designed to address permissions and security.
 
-Using npm, run this:
-```sh
-$ npm install mytosis
-```
-
-Now from your project, you can import it:
-
-```js
-import database from 'mytosis'
-```
-
-#### Using git
-If you enjoy living on the edge, you can install the latest version of `mytosis` from GitHub.
-
-```sh
-$ git clone https://github.com/PsychoLlama/mytosis.git mytosis
-$ cd mytosis
-
-# Install the dependencies.
-$ npm install
-
-# Start the compiler.
-$ npm run dev
-```
-
-##### Running tests
-Travis-CI is only happy if both mocha and eslint are happy.
-
-Here's how you can try them locally:
-
-**Mocha**
-```js
-$ npm run test
-```
-
-**ESLint**
-```js
-$ npm run lint
-```
+### Roadmap
+- Better offline editing
+- Query support (plugin integration)
+- Ability to delete
+- Low-level streaming API
