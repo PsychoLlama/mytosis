@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## v1.11.0
+### Added
+- `Database#branch` method (useful for aggregating writes before a commit).
+
 ## v1.10.4
 ### Added
 - `options.force` flag in `db.read` ignores the cache and reads from plugins.

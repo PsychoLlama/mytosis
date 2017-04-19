@@ -2,7 +2,8 @@
 import expect, { createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 
-import { Storage, Router, createRouter } from '../../mocks';
+import { Storage, Connection, Router, createRouter } from '../../mocks';
+import ConnectionGroup from '../../connection-group';
 import Context from '../context';
 import database from '../root';
 
@@ -81,6 +82,93 @@ describe('Database', () => {
 
       await db.read('game', { force: true });
       expect(router.pull).toHaveBeenCalled();
+    });
+  });
+
+  describe('branch', () => {
+    it('returns a new database', () => {
+      const result = db.branch();
+
+      expect(result).toBeA(Graph);
+      expect(result).toNotBe(db);
+    });
+
+    it('contains a config', () => {
+      const branch = db.branch();
+      const config = branch[database.configuration];
+
+      expect(config).toBeAn(Object);
+    });
+
+    it('includes all hooks', () => {
+      const hooks = {
+        before: { write: createSpy() },
+        after: { write: createSpy() },
+      };
+
+      const db = database({ hooks });
+
+      const branch = db.branch();
+      const config = branch[database.configuration];
+
+      expect(config.hooks.before).toContain({ write: [hooks.before.write] });
+      expect(config.hooks.after).toContain({ write: [hooks.after.write] });
+    });
+
+    it('includes all api extensions', () => {
+      const extend = {
+        context: { method: createSpy() },
+        root: { method: createSpy() },
+      };
+
+      const db = database({ extend });
+
+      const branch = db.branch();
+      const config = branch[database.configuration];
+
+      expect(config.extend.root).toEqual(extend.root);
+      expect(config.extend.context).toEqual(extend.context);
+    });
+
+    it('does not contain storage plugins', () => {
+      const db = database({ storage: new Storage() });
+      const branch = db.branch();
+
+      const config = branch[database.configuration];
+
+      expect(config.storage).toEqual([]);
+    });
+
+    it('does not contain network plugins', () => {
+      const connection = new Connection();
+      const network = new ConnectionGroup();
+      network.add(connection);
+
+      const db = database({ network });
+      const branch = db.branch();
+
+      const config = branch[database.configuration];
+
+      // Empty - no connection.
+      expect(config.network).toBeA(ConnectionGroup);
+      expect([...config.network]).toEqual([]);
+    });
+
+    it('does not contain a router', () => {
+      const db = database({ router: Router.create });
+      const branch = db.branch();
+      const config = branch[database.configuration];
+
+      expect(config.router).toBe(null);
+    });
+
+    it('contains all the current data', async () => {
+      await db.write('user', { name: 'Bob' });
+      const branch = db.branch();
+      const node = branch.value('user');
+
+      expect(node).toBeA(Node);
+      expect([...node]).toEqual([['name', 'Bob']]);
     });
   });
 

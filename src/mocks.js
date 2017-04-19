@@ -35,6 +35,10 @@ export class Connection {
 }
 
 export class Router {
+  static create () {
+    return new Router();
+  }
+
   push = createSpy().andReturn(Promise.resolve());
   pull = createSpy().andReturn(Promise.resolve());
 }

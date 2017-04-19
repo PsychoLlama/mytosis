@@ -1,7 +1,8 @@
-import merge from '../merge-configs';
 import { Graph, Node } from 'graph-crdt';
-import Context from './context';
+
 import * as pipeline from '../pipeline';
+import merge from '../merge-configs';
+import Context from './context';
 
 const settings = Symbol('database configuration');
 
@@ -37,6 +38,22 @@ class Database extends Graph {
       /** Non-enumerable and immutable. */
       Object.defineProperty(this, key, { value });
     });
+  }
+
+  /**
+   * Creates an in-memory database to aggregate changes before committing.
+   * Storage and network plugins are excluded from the branch.
+   * @return {Database} - A new, ephemeral database instance.
+   */
+  branch () {
+    const { extend, hooks } = this[settings];
+
+    const config = merge([{ extend, hooks }]);
+    const branch = new Database(config);
+
+    branch.merge(this);
+
+    return branch;
   }
 
   /**

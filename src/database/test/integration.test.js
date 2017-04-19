@@ -9,7 +9,7 @@ describe('The database', () => {
     db = database();
   });
 
-  it('should allow document structures', async () => {
+  it('allows document structures', async () => {
 
     // Build some nodes.
     const users = await db.write('users', {});
@@ -35,7 +35,7 @@ describe('The database', () => {
     ]);
   });
 
-  it('should allow circular references', async () => {
+  it('allows circular references', async () => {
 
     // Write two users.
     const alice = await db.write('users/alice', {
@@ -59,4 +59,20 @@ describe('The database', () => {
     expect(await friend.read('name')).toBe('Bob');
   });
 
+  it('allows concurrent branching', async () => {
+    await db.write('users/jenn', { firstname: 'Jennifer' });
+    const branch = db.branch();
+
+    await branch.write('users/jenn', { lastname: 'Smith' });
+    await branch.write('settings/jenn', { notifications: 'ENABLED' });
+
+    // No mutations until commit.
+    expect(db.value('users/jenn').value('lastname')).toBe(undefined);
+    expect(db.value('settings/jenn')).toBe(null);
+
+    await db.commit(branch);
+
+    expect(db.value('users/jenn').value('lastname')).toBe('Smith');
+    expect(db.value('settings/jenn').value('notifications')).toBe('ENABLED');
+  });
 });
