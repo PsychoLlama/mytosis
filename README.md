@@ -6,8 +6,6 @@
 [![downloads](https://img.shields.io/npm/dt/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
 [![version](https://img.shields.io/npm/v/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
 
-`mytosis` is a work in progress, wrapping the work of the [`graph-crdt`](https://github.com/PsychoLlama/graph-crdt) data structure into a friendly, modular API.
-
 > **Versioning note:** `v1` is unstable. `v2` will be the first stable release.
 
 ### Introduction
@@ -79,7 +77,14 @@ By default, the database operates as an in-memory cache, and can be extended by 
 const db = database()
 ```
 
-### `db.read(key)`
+#### Options
+
+Most methods accept an `options` object as the last parameter, which supports the following:
+
+- `options.storage` - Overrides the storage defaults. Can be an array of plugins or `null`.
+- `options.network` - Overrides the network defaults. Can be a `ConnectionGroup` or `null`.
+
+### `db.read(key[, options])`
 Reads a `Node` from the database, resolved through a promise.
 
 > <dl>
@@ -98,7 +103,13 @@ console.log('Stats:', stats)
 
 If the node can't be found, `null` is returned.
 
-### `db.write(key, patch)`
+#### Options
+
+> **Note:** All standard options are supported.
+
+- `options.force` - Ignore the in-memory cache and force a read from the plugins. Expects a boolean value.
+
+### `db.write(key, patch[, options])`
 Updates properties on a node. If the node doesn't exist, it'll be created.
 
 ```js
@@ -108,12 +119,59 @@ db.write('preferences', {
 })
 ```
 
-Everything in Mytosis is a patch update. You only need to specify the properties you're changing.
+Everything in Mytosis is a patch update. You only need to declare the properties you're changing.
+
+### <a name="branch"><code>db.branch()</code></a>
+Clones the current database into a new in-memory store. Nothing you change will have an effect on the source database until you choose to [`commit()`](#commit) them.
+
+Hooks and API extensions are shared with branches, but storage and network plugins are ignored.
+
+Some use cases are:
+
+- Describing a collection of changes which should be applied simultaneously
+- Making edits which might be later cancelled
+
+```js
+const update = db.branch()
+
+// These writes won't affect `db`.
+await update.write('settings', {
+  bio: 'It all started when...',
+  theme: 'Monokai',
+})
+
+await update.write('contact', {
+  email: 'Bob@bob.bob',
+})
+
+// Write all the changes at once.
+await db.commit(update)
+```
+
+> **Note:** Changes to the source database will not affect branches.<br />
+  You may want to [`rebase()`](https://psychollama.github.io/graph-crdt/graph-crdt.module_Graph.html#rebase) your changes before calling [`commit()`](#commit).
+
+### <a name="commit"><code>db.commit(changes[, options])</code></a>
+Applies a collection of changes all at once, represented as a graph. Useful for committing changes pushed from other replicas or branched databases.
+
+It's used under the hood by `node.write` and `db.write`.
+
+```js
+import { Graph, Node } from 'mytosis'
+
+const graph = new Graph()
+const node = new Node({ uid: 'change' })
+
+node.merge({ changes: 'eh, probably' })
+graph.merge({ change: node })
+
+await db.commit(graph)
+```
 
 ### Events
 Each mutation will emit an `"update"` event, passing a graph containing only the changes. There's also a `"history"` event when properties are overwritten. If you keep track of these deltas, you can roll time backwards and forwards.
 
-### `node.read(key)`
+### `node.read(key[, options])`
 Reads a primitive value from the node. If the value is a pointer to another node, Mytosis will automatically resolve it.
 
 ```js
@@ -124,7 +182,7 @@ const weather = await db.write('weather', {
 const temperature = await weather.read('temperature')
 ```
 
-### `node.write(key, value)`
+### `node.write(key, value[, options])`
 Writes a value to the node. The value can be any primitive.
 
 ```js
