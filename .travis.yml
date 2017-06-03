@@ -10,5 +10,7 @@ before_script:
 - yarn lerna bootstrap
 
 script:
-- yarn lerna run test
+  # Forces colors in test output.
+  # Passes commands through lerna, then to npm, then to mocha.
+- yarn lerna run test -- -- -- --colors
 - yarn lerna run lint
