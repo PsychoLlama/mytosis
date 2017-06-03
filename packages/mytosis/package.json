@@ -1,0 +1,47 @@
+{
+  "name": "mytosis",
+  "version": "1.11.0",
+  "description": "Decentralized graph database",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src/ -d dist/",
+    "prepublish": "npm run build",
+    "lint": "eslint src/",
+    "fix-lint": "npm run lint -- --fix",
+    "dev": "npm run build -- --watch",
+    "test": "mocha 'src/**/*test.js' --opts mocha.opts",
+    "start": "node dist/index.js",
+    "watch": "npm test -- --watch --reporter min"
+  },
+  "keywords": [],
+  "author": "Jesse Gibson <jesse_gibson@me.com> (http://psychollama.io)",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.1",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-register": "^6.24.1",
+    "eslint": "^3.14.0",
+    "eslint-config-llama": "^3.0.0",
+    "eslint-plugin-babel": "^4.0.0",
+    "expect": "^1.20.2",
+    "lerna": "^2.0.0-rc.5",
+    "mocha": "^3.1.2"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.11.6",
+    "eventemitter3": "^2.0.2",
+    "graph-crdt": "^0.6.0",
+    "is-promise": "^2.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsychoLlama/mytosis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PsychoLlama/mytosis/issues"
+  },
+  "homepage": "https://github.com/PsychoLlama/mytosis#readme"
+}
