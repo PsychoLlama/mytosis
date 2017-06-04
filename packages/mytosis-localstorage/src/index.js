@@ -20,18 +20,32 @@ const validateBackend = (backend) => {
  * Creates a localStorage plugin for Mytosis
  * @class LocalStoragePlugin
  * @param {Object} [options] - Plugin settings.
+ * @param {String} [options.prefix=''] - Prefixes all reads and writes.
  * @param {Storage} [options.backend=localStorage]
  * Use a different localStorage interface (like sessionStorage).
  */
 module.exports = class LocalStoragePlugin {
-  constructor ({ backend = global.localStorage } = {}) {
+  constructor ({
+    backend = global.localStorage,
+      prefix = '',
+  } = {}) {
     validateBackend(backend);
 
     /**
      * The storage backend being used.
      * @type {Storage}
      */
-    this.backend = backend;
+    Object.defineProperty(this, 'backend', {
+      value: backend,
+    });
+
+    /**
+     * The prefix for all data.
+     * @type {String}
+     */
+    Object.defineProperty(this, 'prefix', {
+      value: prefix,
+    });
   }
 
   /**
@@ -43,7 +57,8 @@ module.exports = class LocalStoragePlugin {
   write ({ graph }) {
     for (const [field, node] of graph) {
       const data = JSON.stringify(node);
-      this.backend.setItem(field, data);
+      const index = `${this.prefix}${field}`;
+      this.backend.setItem(index, data);
     }
   }
 
@@ -54,7 +69,8 @@ module.exports = class LocalStoragePlugin {
    * @return {Object|null} - Whatever was in localStorage.
    */
   read ({ key }) {
-    const result = this.backend.getItem(key);
+    const index = `${this.prefix}${key}`;
+    const result = this.backend.getItem(index);
 
     if (result) {
       return JSON.parse(result);

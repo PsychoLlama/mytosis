@@ -55,8 +55,25 @@ describe('Mytosis LocalStorage', () => {
       graph.merge({ [other]: other });
       store.write({ graph });
 
-      expect(localStorage.setItem).toHaveBeenCalledWith(String(node), JSON.stringify(node));
-      expect(localStorage.setItem).toHaveBeenCalledWith(String(other), JSON.stringify(other));
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        String(node),
+        JSON.stringify(node)
+      );
+
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        String(other),
+        JSON.stringify(other)
+      );
+    });
+
+    it('uses the correct prefix', () => {
+      const store = new LocalStoragePlugin({ prefix: 'data-stuff/' });
+      store.write({ graph });
+
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        `data-stuff/${String(node)}`,
+        expect.any(String)
+      );
     });
   });
 
@@ -75,6 +92,13 @@ describe('Mytosis LocalStorage', () => {
 
       expect(localStorage.getItem).toHaveBeenCalledWith(uid);
       expect(result).toEqual(node.toJSON());
+    });
+
+    it('uses the correct prefix', () => {
+      const store = new LocalStoragePlugin({ prefix: 'cache-things/' });
+      store.read({ key: 'name' });
+
+      expect(localStorage.getItem).toHaveBeenCalledWith(`cache-things/name`);
     });
   });
 });
