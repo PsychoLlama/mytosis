@@ -1,0 +1,45 @@
+{
+  "name": "mytosis-localstorage",
+  "version": "0.1.0",
+  "description": "Browser LocalStorage plugin for Mytosis DB",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "npm test -- --watch",
+    "build": "babel src/ -d dist/ --ignore __tests__",
+    "prepublish": "npm run build",
+    "lint": "eslint src/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsychoLlama/mytosis.git"
+  },
+  "keywords": [
+    "localstorage",
+    "mytosis",
+    "cache"
+  ],
+  "author": "Jesse Gibson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PsychoLlama/mytosis/issues"
+  },
+  "homepage": "https://github.com/PsychoLlama/mytosis#readme",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-jest": "^20.0.3",
+    "babel-preset-es2015": "^6.24.1",
+    "eslint": "^3.19.0",
+    "eslint-config-llama": "^3.0.0",
+    "eslint-plugin-babel": "^4.1.1",
+    "graph-crdt": "^0.7.0",
+    "jest": "^20.0.4",
+    "regenerator-runtime": "^0.10.5"
+  },
+  "jest": {
+    "setupFiles": [
+      "./src/mock-localstorage.js"
+    ]
+  }
+}
