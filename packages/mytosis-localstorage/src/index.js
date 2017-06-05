@@ -78,4 +78,14 @@ module.exports = class LocalStoragePlugin {
 
     return null;
   }
+
+  /**
+   * Removes a node from localStorage.
+   * @param  {String} id - The unique node id.
+   * @return {undefined}
+   */
+  remove (id) {
+    const index = `${this.prefix}${id}`;
+    this.backend.removeItem(index);
+  }
 }

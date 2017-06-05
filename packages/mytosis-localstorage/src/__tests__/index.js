@@ -101,4 +101,23 @@ describe('Mytosis LocalStorage', () => {
       expect(localStorage.getItem).toHaveBeenCalledWith(`cache-things/name`);
     });
   });
+
+  describe('remove()', () => {
+    it('removes the node', () => {
+      const { uid } = node.meta();
+
+      store.remove(uid);
+
+      expect(localStorage.removeItem).toHaveBeenCalledWith(uid);
+    });
+
+    it('respects the prefix', () => {
+      const store = new LocalStoragePlugin({ prefix: 'potatoes/' });
+      const { uid } = node.meta();
+
+      store.remove(uid);
+
+      expect(localStorage.removeItem).toHaveBeenCalledWith(`potatoes/${node}`);
+    });
+  });
 });
