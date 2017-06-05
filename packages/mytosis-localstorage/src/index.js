@@ -19,12 +19,15 @@ const validateBackend = (backend) => {
 /**
  * Creates a localStorage plugin for Mytosis
  * @class LocalStoragePlugin
- * @param {Object} [options] - Plugin settings.
- * @param {String} [options.prefix=''] - Prefixes all reads and writes.
- * @param {Storage} [options.backend=localStorage]
- * Use a different localStorage interface (like sessionStorage).
  */
 module.exports = class LocalStoragePlugin {
+
+  /**
+   * @param {Object} [options] - Plugin settings.
+   * @param {String} [options.prefix=''] - Prefixes all reads and writes.
+   * @param {Storage} [options.backend=localStorage]
+   * Use a different localStorage interface (like sessionStorage).
+   */
   constructor ({
     backend = global.localStorage,
       prefix = '',
@@ -88,4 +91,4 @@ module.exports = class LocalStoragePlugin {
     const index = `${this.prefix}${id}`;
     this.backend.removeItem(index);
   }
-}
+};

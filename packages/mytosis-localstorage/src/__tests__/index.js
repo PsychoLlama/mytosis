@@ -1,12 +1,14 @@
+/* global localStorage */
+/* eslint-env jest */
 import { Graph, Node } from 'graph-crdt';
 
 import LocalStoragePlugin from '../index';
 
 const createFakeStore = () => ({
-  removeItem() {},
-  setItem() {},
-  getItem() {},
-  clear() {},
+  removeItem () {},
+  setItem () {},
+  getItem () {},
+  clear () {},
 });
 
 describe('Mytosis LocalStorage', () => {
@@ -98,7 +100,7 @@ describe('Mytosis LocalStorage', () => {
       const store = new LocalStoragePlugin({ prefix: 'cache-things/' });
       store.read({ key: 'name' });
 
-      expect(localStorage.getItem).toHaveBeenCalledWith(`cache-things/name`);
+      expect(localStorage.getItem).toHaveBeenCalledWith('cache-things/name');
     });
   });
 
