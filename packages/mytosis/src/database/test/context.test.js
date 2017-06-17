@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import expect, { spyOn } from 'expect';
 import database from '../root';
 import Context from '../context';

@@ -1,5 +1,4 @@
 /* eslint-disable require-jsdoc */
-/* eslint-env mocha */
 import config, { base } from './index';
 import expect from 'expect';
 

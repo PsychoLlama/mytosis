@@ -1,5 +1,4 @@
 /* eslint-disable require-jsdoc */
-/* eslint-env mocha */
 import expect, { createSpy } from 'expect';
 
 import { Connection } from '../mocks';

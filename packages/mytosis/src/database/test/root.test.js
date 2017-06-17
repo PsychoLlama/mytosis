@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import expect, { createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 
