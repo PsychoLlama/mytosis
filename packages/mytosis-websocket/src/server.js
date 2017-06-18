@@ -3,18 +3,9 @@ import { ConnectionGroup, Stream } from 'mytosis';
 import { Server } from 'uws';
 import uuid from 'uuid/v4';
 
-/**
- * Asserts an expression is truthy.
- * @param  {Mixed} expr - Any expression.
- * @param  {String} msg - Descriptive error message.
- * @throws {Error} - If the expression is falsy.
- * @return {undefined}
- */
-const assert = (expr, msg) => {
-  if (!expr) {
-    throw new Error(`Mytosis SocketServer: ${msg}`);
-  }
-};
+import { asserter } from './utils';
+
+const assert = asserter('Mytosis SocketServer');
 
 /**
  * Interface over a websocket connection.
