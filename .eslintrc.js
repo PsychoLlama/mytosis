@@ -5,8 +5,10 @@ const eslint = exports;
 // What environments the code runs in.
 eslint.env = {
   'shared-node-browser': true,
-  es6: true,
   commonjs: true,
+  mocha: true,
+  jest: true,
+  es6: true,
 };
 
 // Default configs plus my personal fav.

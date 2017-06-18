@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import database from '../../index';
 import expect from 'expect';
 

@@ -1,4 +1,3 @@
-/* eslint-env mocha*/
 import trigger from './index';
 import expect, { createSpy } from 'expect';
 

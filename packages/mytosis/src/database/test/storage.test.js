@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import expect, { spyOn, createSpy } from 'expect';
 import { Graph, Node } from 'graph-crdt';
 import database from '../../index';

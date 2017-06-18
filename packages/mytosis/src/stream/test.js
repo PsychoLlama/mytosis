@@ -1,4 +1,3 @@
-/* eslint-env mocha */
 import expect, { createSpy } from 'expect';
 import Emitter from 'events';
 

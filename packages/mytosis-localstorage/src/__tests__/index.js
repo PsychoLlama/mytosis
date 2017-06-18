@@ -1,5 +1,4 @@
 /* global localStorage */
-/* eslint-env jest */
 import { Graph, Node } from 'graph-crdt';
 
 import LocalStoragePlugin from '../index';
