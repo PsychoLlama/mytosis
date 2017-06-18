@@ -1,0 +1,1 @@
+global.Blob = jest.fn();

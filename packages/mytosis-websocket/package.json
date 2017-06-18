@@ -26,6 +26,9 @@
     "url": "https://github.com/PsychoLlama/mytosis/issues"
   },
   "homepage": "https://github.com/PsychoLlama/mytosis#readme",
+  "jest": {
+    "setupFiles": ["./mock-blob"]
+  },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.3",

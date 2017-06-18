@@ -1,7 +1,7 @@
 import WebSocket from 'reconnecting-websocket';
 import { Stream } from 'mytosis';
 
-import { asserter } from './utils';
+import { asserter, isBinary } from './utils';
 
 const assert = asserter('Mytosis WebSocket');
 
@@ -23,7 +23,7 @@ export default class Socket {
     this.type = 'websocket';
     this.offline = true;
 
-    const socket = new WebSocket(url, protocols, options);
+    const socket = this._websocket = new WebSocket(url, protocols, options);
 
     // Handle incoming messages.
     this.messages = new Stream((push) => {
@@ -48,5 +48,16 @@ export default class Socket {
     socket.addEventListener('close', () => {
       this.offline = true;
     });
+  }
+
+  /**
+   * Sends a message to the connected client.
+   * @param  {Mixed} message - JSON or a binary interface.
+   * @return {undefined}
+   */
+  send (message) {
+    const payload = isBinary(message) ? message : JSON.stringify(message);
+
+    this._websocket.send(payload);
   }
 }

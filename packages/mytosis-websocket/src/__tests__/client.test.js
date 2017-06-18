@@ -16,6 +16,7 @@ describe('Mytosis websocket client', () => {
     fakeSocket = new Emitter();
     fakeSocket.addEventListener = fakeSocket.on;
     fakeSocket.removeEventListener = fakeSocket.removeListener;
+    fakeSocket.send = jest.fn();
 
     ReconnectionSocket.mockReset();
     ReconnectionSocket.mockImplementation(() => fakeSocket);
@@ -86,5 +87,20 @@ describe('Mytosis websocket client', () => {
     fakeSocket.emit('close');
 
     expect(socket.offline).toBe(true);
+  });
+
+  it('sends objects as JSON', () => {
+    const data = ['hold', 'still', 'and', 'nobody', 'explodes'];
+    socket.send(data);
+
+    expect(fakeSocket.send).toHaveBeenCalledWith(JSON.stringify(data));
+  });
+
+  it('does not stringify buffers', () => {
+    const data = Buffer.from('a string');
+
+    socket.send(data);
+
+    expect(fakeSocket.send).toHaveBeenCalledWith(data);
   });
 });
