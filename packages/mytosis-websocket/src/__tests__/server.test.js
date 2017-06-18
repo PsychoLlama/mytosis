@@ -147,4 +147,13 @@ describe('Mytosis websocket server', () => {
       expect.any(Function)
     );
   });
+
+  it('adds a type to the socket', () => {
+    const socket = new Emitter();
+    wss.emit('connection', socket);
+
+    const websockets = server.type('websocket');
+
+    expect([...websockets].length).toBe(1);
+  });
 });

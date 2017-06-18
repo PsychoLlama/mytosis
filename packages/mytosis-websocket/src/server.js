@@ -27,6 +27,8 @@ class Connection {
    */
   constructor (socket) {
     this.id = uuid();
+    this.type = 'websocket';
+
     this._socket = socket;
 
     this.messages = new Stream((push) => {
