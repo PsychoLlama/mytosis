@@ -1,0 +1,43 @@
+{
+  "name": "mytosis-leveldb",
+  "main": "index.js",
+  "description": "Mytosis backend using LevelDB and its ecosystem",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "npm run test -- --watch",
+    "lint": "eslint src/",
+    "build": "babel src/ -d dist/ --ignore __tests__",
+    "build:watch": "npm run build -- --watch",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "mytosis",
+    "plugin",
+    "leveldb",
+    "storage"
+  ],
+  "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-jest": "^20.0.3",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "eslint": "^4.0.0",
+    "eslint-config-llama": "^3.0.0",
+    "eslint-plugin-babel": "^4.1.1",
+    "graph-crdt": "^0.7.0",
+    "jest": "^20.0.4"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsychoLlama/mytosis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PsychoLlama/mytosis/issues"
+  },
+  "homepage": "https://github.com/PsychoLlama/mytosis#readme"
+}
