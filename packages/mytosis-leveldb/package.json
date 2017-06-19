@@ -1,6 +1,6 @@
 {
   "name": "mytosis-leveldb",
-  "main": "dist/index.js",
+  "main": "index.js",
   "description": "Mytosis backend using LevelDB and its ecosystem",
   "version": "0.1.0",
   "scripts": {
