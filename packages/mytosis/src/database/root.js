@@ -171,6 +171,7 @@ class Database extends Graph {
    */
   async read (key, options = {}) {
     const config = await pipeline.before.read.node(this[settings], {
+      offline: this[settings].network.filter(isOffline),
       ...options,
       key,
     });
