@@ -10,10 +10,14 @@
     "fix-lint": "npm run lint -- --fix",
     "dev": "npm run build -- --watch",
     "test": "mocha 'src/**/*test.js' --opts mocha.opts",
-    "start": "node dist/index.js",
-    "watch": "npm test -- --watch --reporter min"
+    "test:watch": "npm test -- --watch --reporter min",
+    "start": "node dist/index.js"
   },
-  "keywords": [],
+  "keywords": [
+    "database",
+    "real-time",
+    "decentralized"
+  ],
   "author": "Jesse Gibson <jesse_gibson@me.com> (http://psychollama.io)",
   "license": "MIT",
   "devDependencies": {
