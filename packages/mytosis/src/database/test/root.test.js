@@ -82,6 +82,34 @@ describe('Database', () => {
       await db.read('game', { force: true });
       expect(router.pull).toHaveBeenCalled();
     });
+
+    describe('offline group', () => {
+      it('is a connection group', async () => {
+        await db.read('potato');
+
+        expect(router.pull).toHaveBeenCalled();
+        const [config] = router.pull.calls[0].arguments;
+
+        expect(config.offline).toBeA(ConnectionGroup);
+        expect([...config.offline]).toEqual([]);
+      });
+
+      it('contains every offline item', async () => {
+        const conn1 = new Connection({ id: 'conn1' });
+        const conn2 = new Connection({ id: 'conn2' });
+
+        conn1.offline = true;
+        conn2.offline = false;
+
+        db[database.configuration].network.add(conn1);
+        db[database.configuration].network.add(conn2);
+
+        await db.read('things');
+
+        const [config] = router.pull.calls[0].arguments;
+        expect([...config.offline]).toEqual([conn1]);
+      });
+    });
   });
 
   describe('branch', () => {
@@ -238,6 +266,33 @@ describe('Database', () => {
 
       expect(config).toBeAn(Object);
       expect(config.update).toBeA(Graph);
+    });
+
+    describe('offline group', () => {
+      it('is a ConnectionGroup', async () => {
+        await db.commit(graph);
+
+        expect(router.push).toHaveBeenCalled();
+        const [config] = router.push.calls[0].arguments;
+
+        expect(config.offline).toBeA(ConnectionGroup);
+      });
+
+      it('it contains every offline connection', async () => {
+        const conn1 = new Connection({ id: 'conn1' });
+        const conn2 = new Connection({ id: 'conn2' });
+
+        conn1.offline = true;
+        conn2.offline = false;
+
+        db[database.configuration].network.add(conn1);
+        db[database.configuration].network.add(conn2);
+
+        await db.commit(graph);
+
+        const [config] = router.push.calls[0].arguments;
+        expect([...config.offline]).toEqual([conn1]);
+      });
     });
 
     it('passes the full state of each node to storage', async () => {

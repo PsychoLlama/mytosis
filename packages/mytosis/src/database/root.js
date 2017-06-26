@@ -7,6 +7,13 @@ import Context from './context';
 const settings = Symbol('database configuration');
 
 /**
+ * Determines whether a connection is offline.
+ * @param  {Connection} connection - Valid member of a connection group.
+ * @return {Boolean} - Whether the connection is offline.
+ */
+const isOffline = (connection) => Boolean(connection.offline);
+
+/**
  * Plugin manager for graph-crdt.
  * @class Database
  */
@@ -93,6 +100,7 @@ class Database extends Graph {
     graph.merge(update);
 
     const config = await pipeline.before.write(this[settings], {
+      offline: this[settings].network.filter(isOffline),
       ...options,
       update,
       graph,
@@ -163,6 +171,7 @@ class Database extends Graph {
    */
   async read (key, options = {}) {
     const config = await pipeline.before.read.node(this[settings], {
+      offline: this[settings].network.filter(isOffline),
       ...options,
       key,
     });
@@ -189,13 +198,13 @@ class Database extends Graph {
         }
       }
 
-      /** Cache the value. */
+      // Cache the value.
       if (node) {
         this.merge({ [config.key]: node });
       }
     }
 
-    /** After-read hooks. */
+    // After-read hooks.
     const result = await pipeline.after.read.node(this[settings], {
       context: this.value(config.key),
       ...config,
