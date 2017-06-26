@@ -1,6 +1,6 @@
 {
   "name": "mytosis-websocket",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Mytosis WebSocket plugin",
   "main": "client.js",
   "scripts": {
