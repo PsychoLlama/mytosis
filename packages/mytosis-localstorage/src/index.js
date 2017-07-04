@@ -30,7 +30,7 @@ module.exports = class LocalStoragePlugin {
    */
   constructor ({
     backend = global.localStorage,
-      prefix = '',
+    prefix = '',
   } = {}) {
     validateBackend(backend);
 

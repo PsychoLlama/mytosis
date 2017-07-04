@@ -2,7 +2,7 @@
 import config, { base } from './index';
 import expect from 'expect';
 
-import ConnectionGroup from '../connection-group/index';
+import ConnectionGroup from '../connection-group/';
 
 describe('A config', () => {
   let result;
@@ -49,6 +49,23 @@ describe('A config', () => {
       after: hook,
       catch: hook,
     });
+  });
+
+  it('merges read.field hooks', () => {
+    const field = (action) => action;
+    const node = (action) => action;
+
+    const { hooks } = config([{
+      hooks: {
+        before: { read: { node } },
+      },
+    }, {
+      hooks: {
+        before: { read: { field } },
+      },
+    }]);
+
+    expect(hooks.before.read.field).toEqual([field]);
   });
 
   describe('merge', () => {

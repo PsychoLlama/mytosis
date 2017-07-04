@@ -27,7 +27,9 @@
   },
   "homepage": "https://github.com/PsychoLlama/mytosis#readme",
   "jest": {
-    "setupFiles": ["./mock-blob"]
+    "setupFiles": [
+      "./mock-blob"
+    ]
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -35,16 +37,16 @@
     "babel-jest": "^20.0.3",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
-    "eslint": "^4.0.0",
+    "eslint": "^4.1.1",
     "eslint-config-llama": "^3.0.0",
     "eslint-plugin-babel": "^4.1.1",
     "jest": "^20.0.4",
     "mytosis": "^1.11.0"
   },
   "dependencies": {
-    "reconnecting-websocket": "^3.0.5",
+    "reconnecting-websocket": "^3.0.7",
     "uuid": "^3.1.0",
-    "uws": "^0.14.5"
+    "uws": "^8.14.0"
   },
   "peerDependencies": {
     "mytosis": "^1.11.0"

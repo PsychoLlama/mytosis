@@ -59,12 +59,9 @@ const merge = {
    * @param  {Object} target - Read-related hooks to add.
    * @return {Object} - The merged read hooks.
    */
-  read: ({
-    node,
-    field,
-  }, target = {}) => ({
+  read: ({ field, node }, target = {}) => ({
+    field: field.concat(target.field || []),
     node: node.concat(target.node || []),
-    field: node.concat(target.field || []),
   }),
 
   /**
