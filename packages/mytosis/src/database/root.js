@@ -216,15 +216,25 @@ class Database extends Graph {
       keys,
     });
 
-    const getReadContext = (key) => this.value(key);
+    // Load nodes from the cache and resolve with the value.
+    const getFinalValue = (action) => {
+      const nodes = config.keys.map((key) => this.value(key));
+
+      return pipeline.after.read.node(this[settings], {
+        ...action,
+        nodes,
+      });
+    };
 
     // Find all the keys that aren't cached.
-    const absentFromCache = keys.filter((key) => !this.value(key));
+    const absentFromCache = config.keys.filter((key) => !this.value(key));
     const reads = [];
 
     // Terminate early if everything is already cached.
     if (!absentFromCache.length) {
-      return keys.map(getReadContext);
+      const result = await getFinalValue(config);
+
+      return result.nodes;
     }
 
     // Only request missing data.
@@ -253,8 +263,11 @@ class Database extends Graph {
       contexts.forEach(cacheContext(this));
     });
 
+    // Run the results through the pipeline.
+    const result = await getFinalValue(readAction);
+
     // Map each key to it's context equivalent.
-    return keys.map(getReadContext);
+    return result.nodes;
   }
 
   /**

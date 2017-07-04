@@ -316,6 +316,81 @@ describe('Database', () => {
       const [read] = db.router.pull.calls[0].arguments;
       expect([...read.network]).toEqual([...network]);
     });
+
+    it('invokes the pre-read pipeline', async () => {
+      const hook = createSpy().andCall((action) => ({
+        ...action,
+        keys: action.keys.map((key) => `replaced/${key}`),
+      }));
+
+      const db = database({
+        storage,
+        hooks: {
+          before: { read: { node: hook } },
+        },
+      });
+
+      await db.nodes(['stuff']);
+
+      const [action] = storage.read.calls[0].arguments;
+      expect(action.keys).toEqual(['replaced/stuff']);
+    });
+
+    it('invokes the post-read pipeline', async () => {
+      const hook = createSpy().andCall((action) => action);
+      storage.read.andCall(() => [
+        new Node({ uid: 'things' }),
+      ]);
+
+      const db = database({
+        storage,
+        hooks: {
+          after: { read: { node: hook } },
+        },
+      });
+
+      const nodes = await db.nodes(['things']);
+
+      expect(hook).toHaveBeenCalled();
+      const [action] = hook.calls[0].arguments;
+
+      expect(action.nodes).toEqual(nodes);
+    });
+
+    it('allows hooks to override the node values', async () => {
+      const hook = createSpy().andCall((action) => ({
+        ...action,
+        nodes: ['ha!'],
+      }));
+
+      const db = database({
+        hooks: {
+          after: { read: { node: hook } },
+        },
+      });
+
+      const nodes = await db.nodes(['something']);
+
+      expect(nodes).toEqual(['ha!']);
+    });
+
+    it('calls the post-read hooks for cached values', async () => {
+      const hook = createSpy().andCall((action) => ({
+        ...action,
+        nodes: ['replaced'],
+      }));
+
+      const db = database({
+        hooks: {
+          after: { read: { node: hook } },
+        },
+      });
+
+      await db.write('things', {});
+      const nodes = await db.nodes(['things']);
+
+      expect(nodes).toEqual(['replaced']);
+    });
   });
 
   describe('branch()', () => {
