@@ -18,8 +18,8 @@ describe('The pipeline\'s default option setter', () => {
     group.add(conn);
 
     config = mergeConfigs([{
-      storage: [storage],
       network: group,
+      storage,
     }]);
   });
 
@@ -27,18 +27,18 @@ describe('The pipeline\'s default option setter', () => {
     const options = pipeline.defaults(config, {});
 
     expect(options).toContain({
-      storage: [storage],
       network: group,
+      storage,
     });
   });
 
   it('uses given storage options instead of the default', () => {
     const options = pipeline.defaults(config, {
-      storage: [{ custom: true }],
+      storage: { custom: true },
     });
 
     expect(options).toContain({
-      storage: [{ custom: true }],
+      storage: { custom: true },
       network: group,
     });
   });
@@ -51,8 +51,8 @@ describe('The pipeline\'s default option setter', () => {
     });
 
     expect(options).toContain({
-      storage: [storage],
       network: group,
+      storage,
     });
   });
 });
@@ -126,15 +126,15 @@ describe('The pipeline', () => {
         expect(result).toEqual({
           network: new ConnectionGroup(),
           setting: true,
-          storage: [],
+          storage: null,
         });
       });
 
       it('does not force defaults if otherwise specified', async () => {
         const options = {
-          setting: true,
-          storage: [{ storage: true }],
           network: [{ network: true }],
+          storage: { storage: true },
+          setting: true,
         };
 
         const config = hooks();
@@ -151,7 +151,7 @@ describe('The pipeline', () => {
 
         const result = await getPipeline(path)(config, options);
 
-        expect(result.storage).toEqual([]);
+        expect(result.storage).toEqual(null);
       });
 
       it('uses an empty network group if null is given', async () => {

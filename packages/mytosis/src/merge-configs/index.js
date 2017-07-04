@@ -169,11 +169,7 @@ const merge = {
       throw new Error('Only one storage plugin allowed per database.');
     }
 
-    if (plugin && plugin.constructor === Object) {
-      return plugin;
-    }
-
-    return current;
+    return plugin || current;
   },
 
   /**

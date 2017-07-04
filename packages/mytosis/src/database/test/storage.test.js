@@ -9,9 +9,7 @@ describe('Storage plugin', () => {
   beforeEach(() => {
     storage = new Storage();
 
-    db = database({
-      storage: [storage],
-    });
+    db = database({ storage });
   });
 
   describe('write', () => {
@@ -70,8 +68,9 @@ describe('Storage plugin', () => {
 
     it('is not called if storage is disabled', async () => {
       await db.write('users', {}, {
-        storage: [],
+        storage: null,
       });
+
       expect(write).toNotHaveBeenCalled();
     });
 
@@ -132,7 +131,7 @@ describe('Storage plugin', () => {
     });
 
     it('is not called if storage is disabled', async () => {
-      await db.read('key', { storage: [] });
+      await db.read('key', { storage: null });
       expect(read).toNotHaveBeenCalled();
     });
 
@@ -142,7 +141,7 @@ describe('Storage plugin', () => {
       storage.read = createSpy();
       storage.read.andReturn(node.toJSON());
 
-      const db = database({ storage: [storage] });
+      const db = database({ storage });
       const { uid } = node.meta();
 
       expect(await db.read(uid)).toBe(await db.read(uid));

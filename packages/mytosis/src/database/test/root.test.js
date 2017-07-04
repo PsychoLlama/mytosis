@@ -226,7 +226,7 @@ describe('Database', () => {
           },
         },
 
-        storage: [storage],
+        storage,
 
         router: createSpy().andReturn(router),
       });
@@ -328,7 +328,7 @@ describe('Database', () => {
     });
 
     it('uses the storage options if given', async () => {
-      await db.commit(graph, { storage: [] });
+      await db.commit(graph, { storage: null });
 
       expect(storage.write).toNotHaveBeenCalled();
     });
