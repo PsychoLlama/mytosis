@@ -213,6 +213,7 @@ class Database extends Graph {
   async nodes (keys, options = {}) {
     const config = await pipeline.before.read.node(this[settings], {
       ...options,
+      offline: this[settings].network.filter(isOffline),
       keys,
     });
 
@@ -222,7 +223,7 @@ class Database extends Graph {
 
       return pipeline.after.read.node(this[settings], {
         ...action,
-        nodes,
+        contexts: nodes,
       });
     };
 
@@ -234,7 +235,7 @@ class Database extends Graph {
     if (!absentFromCache.length && !config.force) {
       const result = await getFinalValue(config);
 
-      return result.nodes;
+      return result.contexts;
     }
 
     // Only request missing data.
@@ -267,7 +268,7 @@ class Database extends Graph {
     const result = await getFinalValue(readAction);
 
     // Map each key to it's context equivalent.
-    return result.nodes;
+    return result.contexts;
   }
 
   /**
@@ -281,51 +282,8 @@ class Database extends Graph {
    * @return {Context|null} - Resolves to the node.
    */
   async read (key, options = {}) {
-    const config = await pipeline.before.read.node(this[settings], {
-      offline: this[settings].network.filter(isOffline),
-      ...options,
-      key,
-    });
-
-    let node = this.value(config.key);
-
-    // Not cached.
-    if (node === null || config.force) {
-
-      const reads = [];
-
-      // Ask the storage plugins for it.
-      if (config.storage) {
-        reads.push(config.storage.read(config));
-      }
-
-      // Ask the network for it.
-      if (this.router) {
-        reads.push(this.router.pull(config));
-      }
-
-      for (const result of await Promise.all(reads)) {
-        const update = Node.source(result);
-
-        if (result) {
-          node = node || new Context(this, { uid: config.key });
-          node.merge(update);
-        }
-      }
-
-      // Cache the value.
-      if (node) {
-        this.merge({ [config.key]: node });
-      }
-    }
-
-    // After-read hooks.
-    const result = await pipeline.after.read.node(this[settings], {
-      context: this.value(config.key),
-      ...config,
-    });
-
-    return result.context;
+    const [node] = await this.nodes([key], options);
+    return node;
   }
 
   /**

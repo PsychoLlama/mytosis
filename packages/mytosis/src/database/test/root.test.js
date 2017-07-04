@@ -61,12 +61,16 @@ describe('Database', () => {
       const [read] = router.pull.calls[0].arguments;
 
       expect(read).toBeAn(Object);
-      expect(read.key).toBe('lobby');
+      expect(read.keys).toEqual(['lobby']);
     });
 
     it('resolves with the router response', async () => {
-      const data = Node.from({ response: 'router' }).toJSON();
-      router.pull.andReturn(data);
+      router.pull.andCall(() => {
+        const node = new Node({ uid: 'weather' });
+        node.merge({ response: 'router' });
+
+        return [node.toJSON()];
+      });
 
       const result = await db.read('weather');
       expect(result).toBeA(Context);
@@ -354,13 +358,13 @@ describe('Database', () => {
       expect(hook).toHaveBeenCalled();
       const [action] = hook.calls[0].arguments;
 
-      expect(action.nodes).toEqual(nodes);
+      expect(action.contexts).toEqual(nodes);
     });
 
     it('allows hooks to override the node values', async () => {
       const hook = createSpy().andCall((action) => ({
         ...action,
-        nodes: ['ha!'],
+        contexts: ['ha!'],
       }));
 
       const db = database({
@@ -377,7 +381,7 @@ describe('Database', () => {
     it('calls the post-read hooks for cached values', async () => {
       const hook = createSpy().andCall((action) => ({
         ...action,
-        nodes: ['replaced'],
+        contexts: ['replaced'],
       }));
 
       const db = database({

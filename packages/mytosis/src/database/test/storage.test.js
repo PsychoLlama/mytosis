@@ -139,7 +139,7 @@ describe('Storage plugin', () => {
       const node = Node.from({ data: true });
       const storage = new Storage();
       storage.read = createSpy();
-      storage.read.andReturn(node.toJSON());
+      storage.read.andReturn([node.toJSON()]);
 
       const db = database({ storage });
       const { uid } = node.meta();

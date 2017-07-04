@@ -13,10 +13,12 @@ export class Storage {
     }
   }
 
-  async read ({ key }) {
-    const value = this.cache[key];
+  async read ({ keys }) {
+    const saved = keys.map((key) => this.cache[key]).filter(Boolean);
 
-    return value && JSON.parse(value);
+    return saved.map((value) => (
+      JSON.parse(value)
+    ));
   }
 }
 

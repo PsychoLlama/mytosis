@@ -74,4 +74,24 @@ describe('The database', () => {
     expect(db.value('users/jenn').value('lastname')).toBe('Smith');
     expect(db.value('settings/jenn').value('notifications')).toBe('ENABLED');
   });
+
+  it('allows bulk reads', async () => {
+    await db.write('users/moss', {});
+    await db.write('users/trenneman', {});
+
+    const addNames = db.branch();
+    const [moss, roy] = await addNames.nodes(['users/moss', 'users/trenneman']);
+
+    await moss.write('name', 'Maurice');
+    await roy.write('name', 'Roy');
+    await db.commit(addNames);
+
+    expect((await db.read('users/moss')).snapshot()).toEqual({
+      name: 'Maurice',
+    });
+
+    expect((await db.read('users/trenneman')).snapshot()).toEqual({
+      name: 'Roy',
+    });
+  });
 });
