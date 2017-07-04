@@ -118,7 +118,10 @@ describe('Database', () => {
     beforeEach(() => {
       storage = new Storage();
       storage.read = createSpy();
-      db = database({ storage });
+
+      db = database({ storage, router: createRouter });
+
+      db.router.pull = createSpy();
     });
 
     it('is a function', () => {
@@ -266,6 +269,52 @@ describe('Database', () => {
       await db.nodes(['first', 'second']);
 
       expect(storage.read.calls.length).toBe(1);
+    });
+
+    it('reads from the network', async () => {
+      const keys = ['key1', 'key2'];
+      await db.nodes(keys);
+
+      expect(db.router.pull).toHaveBeenCalled();
+      const [action] = db.router.pull.calls[0].arguments;
+
+      expect(action).toBeAn(Object);
+      expect(action.keys).toEqual(keys);
+    });
+
+    it('uses the resolve value from the router', async () => {
+      db.router.pull.andCall(async () => {
+        const node = new Node({ uid: 'router' });
+        node.merge({ routed: true });
+
+        return [node];
+      });
+
+      const [node] = await db.nodes(['router']);
+
+      expect(node).toBeA(Context);
+      expect(node.snapshot()).toEqual({ routed: true });
+    });
+
+    it('does not consult the router if everything is cached', async () => {
+      db.router.pull.andCall(() => [
+        new Node({ uid: 'result' }),
+      ]);
+
+      await db.nodes(['result']);
+      await db.nodes(['result']);
+
+      // Cached the first time.
+      expect(db.router.pull.calls.length).toBe(1);
+    });
+
+    it('can override the network group', async () => {
+      const network = ConnectionGroup.ensure(new Connection());
+
+      await db.nodes(['stuff'], { network });
+
+      const [read] = db.router.pull.calls[0].arguments;
+      expect([...read.network]).toEqual([...network]);
     });
   });
 

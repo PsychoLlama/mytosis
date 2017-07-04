@@ -216,23 +216,45 @@ class Database extends Graph {
       keys,
     });
 
+    const getReadContext = (key) => this.value(key);
+
     // Find all the keys that aren't cached.
     const absentFromCache = keys.filter((key) => !this.value(key));
+    const reads = [];
 
-    if (absentFromCache.length && config.storage) {
-
-      // Only load missing data.
-      const nodes = await config.storage.read({
-        ...config,
-        keys: absentFromCache,
-      });
-
-      const contexts = nodes ? nodes.map(createContextFromNode(this)) : [];
-      contexts.forEach(cacheContext(this));
+    // Terminate early if everything is already cached.
+    if (!absentFromCache.length) {
+      return keys.map(getReadContext);
     }
 
+    // Only request missing data.
+    const readAction = {
+      ...config,
+      keys: absentFromCache,
+    };
+
+    // Storage
+    if (config.storage) {
+      const read = config.storage.read(readAction);
+      reads.push(read);
+    }
+
+    // Network
+    if (this.router) {
+      const read = this.router.pull(readAction);
+      reads.push(read);
+    }
+
+    const results = await Promise.all(reads);
+
+    // Process each node.
+    results.forEach((nodes = []) => {
+      const contexts = nodes.map(createContextFromNode(this));
+      contexts.forEach(cacheContext(this));
+    });
+
     // Map each key to it's context equivalent.
-    return keys.map((key) => this.value(key));
+    return keys.map(getReadContext);
   }
 
   /**
