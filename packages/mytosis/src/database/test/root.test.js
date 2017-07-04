@@ -163,7 +163,7 @@ describe('Database', () => {
 
       const config = branch[database.configuration];
 
-      expect(config.storage).toEqual([]);
+      expect(config.storage).toEqual(null);
     });
 
     it('does not contain network plugins', () => {
@@ -226,7 +226,7 @@ describe('Database', () => {
           },
         },
 
-        storage: [storage],
+        storage,
 
         router: createSpy().andReturn(router),
       });
@@ -328,7 +328,7 @@ describe('Database', () => {
     });
 
     it('uses the storage options if given', async () => {
-      await db.commit(graph, { storage: [] });
+      await db.commit(graph, { storage: null });
 
       expect(storage.write).toNotHaveBeenCalled();
     });

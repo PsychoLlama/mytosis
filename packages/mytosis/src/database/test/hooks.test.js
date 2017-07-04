@@ -17,7 +17,7 @@ describe('Database hook', () => {
     beforeEach(() => {
       write = spyOn(storage, 'write').andCallThrough();
       db = database({
-        storage: [storage],
+        storage,
         hooks: {
           before: { write: hook },
         },
@@ -94,7 +94,7 @@ describe('Database hook', () => {
       read = spyOn(storage, 'read');
       hook = createSpy().andCall((read) => read);
       db = database({
-        storage: [storage],
+        storage,
         hooks: {
           before: {
             read: { node: hook },
@@ -191,7 +191,7 @@ describe('Database hook', () => {
     beforeEach(async () => {
       hook = createSpy().andCall((read) => read);
       db = database({
-        storage: [storage],
+        storage,
         hooks: {
           before: {
             read: { field: hook },

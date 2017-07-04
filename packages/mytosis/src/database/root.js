@@ -115,10 +115,14 @@ class Database extends Graph {
     };
 
     // Persist.
-    const writes = config.storage.map((store) => store.write(write));
+    const writes = [];
+
+    if (config.storage) {
+      writes.push(config.storage.write(write));
+    }
 
     if (this.router) {
-      await this.router.push(write);
+      this.router.push(write);
     }
 
     // Wait for writes to finish.
@@ -181,8 +185,12 @@ class Database extends Graph {
     // Not cached.
     if (node === null || config.force) {
 
+      const reads = [];
+
       // Ask the storage plugins for it.
-      const reads = [...config.storage].map(store => store.read(config));
+      if (config.storage) {
+        reads.push(config.storage.read(config));
+      }
 
       // Ask the network for it.
       if (this.router) {

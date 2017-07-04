@@ -2,7 +2,7 @@
 import config, { base } from './index';
 import expect from 'expect';
 
-import ConnectionGroup from '../connection-group/';
+import ConnectionGroup from '../connection-group/index';
 
 describe('A config', () => {
   let result;
@@ -12,7 +12,7 @@ describe('A config', () => {
   });
 
   it('contains storage settings', () => {
-    expect(result.storage).toEqual([]);
+    expect(result.storage).toEqual(null);
   });
 
   it('contains query engines', () => {
@@ -51,27 +51,10 @@ describe('A config', () => {
     });
   });
 
-  it('merges read.field hooks', () => {
-    const field = (action) => action;
-    const node = (action) => action;
-
-    const { hooks } = config([{
-      hooks: {
-        before: { read: { node } },
-      },
-    }, {
-      hooks: {
-        before: { read: { field } },
-      },
-    }]);
-
-    expect(hooks.before.read.field).toEqual([field]);
-  });
-
   describe('merge', () => {
     it('does not add undefined items', () => {
       const { hooks, network, storage } = config([{}]);
-      expect(storage.length).toBe(0);
+      expect(storage).toBe(null);
       expect([...network].length).toBe(0);
       expect(hooks.before.read.node.length).toBe(0);
       expect(hooks.before.read.field.length).toBe(0);
@@ -108,24 +91,22 @@ describe('A config', () => {
     it('adds storage', () => {
       const storage = { name: 'Storage driver' };
 
-      const result = config([{
-        storage: [storage],
-      }]);
+      const result = config([{ storage }]);
 
-      expect(result.storage).toEqual([storage]);
+      expect(result.storage).toEqual(storage);
     });
 
-    it('merges unwrapped storage plugins', () => {
+    it('throws if several storage providers are given', () => {
       const store1 = { name: 'Storage driver #1' };
       const store2 = { name: 'Storage driver #2' };
 
-      const result = config([{
+      const fail = () => config([{
         storage: store1,
       }, {
         storage: store2,
       }]);
 
-      expect(result.storage).toEqual([store1, store2]);
+      expect(fail).toThrow(/storage/);
     });
 
     it('adds query engines', () => {
@@ -153,19 +134,6 @@ describe('A config', () => {
       const result = config([{ hooks }]);
 
       expect(result.hooks.before.write).toEqual([write]);
-    });
-
-    it('adds storage drivers in the order they\'re defined', () => {
-      const first = () => {};
-      const second = () => {};
-
-      const result = config([{
-        storage: [first],
-      }, {
-        storage: [second],
-      }]);
-
-      expect(result.storage).toEqual([first, second]);
     });
 
     it('adds hooks in the order they\'re defined', () => {

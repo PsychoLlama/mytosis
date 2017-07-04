@@ -19,7 +19,7 @@ export const defaults = (config, options = {}) => {
   return {
     ...options,
 
-    storage: storage || [],
+    storage: storage || null,
     network: network || new ConnectionGroup(),
   };
 };
