@@ -391,6 +391,13 @@ describe('Database', () => {
 
       expect(nodes).toEqual(['replaced']);
     });
+
+    it('reads anyway if the read is forced', async () => {
+      await db.write('node', {});
+      await db.nodes(['node'], { force: true });
+
+      expect(storage.read).toHaveBeenCalled();
+    });
   });
 
   describe('branch()', () => {

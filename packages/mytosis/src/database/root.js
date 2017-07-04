@@ -231,7 +231,7 @@ class Database extends Graph {
     const reads = [];
 
     // Terminate early if everything is already cached.
-    if (!absentFromCache.length) {
+    if (!absentFromCache.length && !config.force) {
       const result = await getFinalValue(config);
 
       return result.nodes;
