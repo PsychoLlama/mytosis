@@ -163,7 +163,7 @@ describe('Database', () => {
 
       const config = branch[database.configuration];
 
-      expect(config.storage).toEqual([]);
+      expect(config.storage).toEqual(null);
     });
 
     it('does not contain network plugins', () => {

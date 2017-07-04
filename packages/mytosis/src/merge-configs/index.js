@@ -28,10 +28,10 @@ export const base = {
   },
 
   /**
-   * A list of storage drivers.
-   * @type {Array}
+   * The given storage plugin.
+   * @type {Array|null}
    */
-  storage: [],
+  storage: null,
 
   /**
    * API extensions.
@@ -158,12 +158,23 @@ const merge = {
   },
 
   /**
-   * Merges two storage arrays together.
-   * @param  {Array} base - A list of storage interfaces.
-   * @param  {Array} ext=[] - A list of storage interfaces.
-   * @return {Array} - The merged list.
+   * Sets the storage context.
+   * @param  {Object} [current] - Current storage plugin.
+   * @param  {Object} [plugin] - A storage plugin.
+   * @throws {Error} - If two storage plugins are defined.
+   * @return {Object} - The storage plugin.
    */
-  storage: (base, ext = []) => base.concat(ext),
+  storage: (current, plugin) => {
+    if (current && plugin) {
+      throw new Error('Only one storage plugin allowed per database.');
+    }
+
+    if (plugin && plugin.constructor === Object) {
+      return plugin;
+    }
+
+    return current;
+  },
 
   /**
    * Merges two engine objects together.
