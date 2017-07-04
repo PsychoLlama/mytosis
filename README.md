@@ -87,13 +87,13 @@ Most methods accept an `options` object as the last parameter, which supports th
 ### `db.read(key[, options])`
 Reads a `Node` from the database, resolved through a promise.
 
-> <dl>
-    <dt><code>Node</code></dt>
-    <dd>
-      An object containing only primitives.
-      Nested objects are represented as pointers.
-    </dd>
-  </dl>
+<dl>
+  <dt><code>Node</code></dt>
+  <dd>
+    An object containing only primitives.
+    Nested objects are represented as pointers.
+  </dd>
+</dl>
 
 ```js
 const stats = await db.read('stats')
