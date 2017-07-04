@@ -14,6 +14,45 @@ const settings = Symbol('database configuration');
 const isOffline = (connection) => Boolean(connection.offline);
 
 /**
+ * Turns a node into a context.
+ * @param  {Database} database - The current graph context.
+ * @param  {Object|Node} data - Any data that can be transformed to a node.
+ * @return {Context} - A new database context.
+ */
+const createContextFromNode = (database) => (data) => {
+
+  // No data was found.
+  if (!data) {
+    return null;
+  }
+
+  // Ensure the data is a node.
+  const node = data instanceof Node ? data : Node.source(data);
+
+  // Create a context from it.
+  const { uid } = node.meta();
+  const context = new Context(database, { uid });
+  context.merge(node);
+
+  return context;
+};
+
+/**
+ * Caches a node context in the database.
+ * @param  {Database} graph - A database.
+ * @param  {Node|Context} [node] - The data to cache.
+ * @return {void}
+ */
+const cacheContext = (graph) => (context) => {
+  if (!context) {
+    return;
+  }
+
+  const { uid } = context.meta();
+  graph.merge({ [uid]: context });
+};
+
+/**
  * Plugin manager for graph-crdt.
  * @class Database
  */
@@ -161,6 +200,39 @@ class Database extends Graph {
     await this.commit(update, options);
 
     return this.value(uid);
+  }
+
+  /**
+   * Reads a list of nodes.
+   * @param  {String[]} keys - Keys to read.
+   * @param  {Object} [options] - Read-level settings.
+   * @return {Promise<Array<Context|null>>} - All the nodes it found.
+   * @example
+   * const [timeline, profile] = await db.nodes(['timeline', 'profile'])
+   */
+  async nodes (keys, options = {}) {
+    const config = await pipeline.before.read.node(this[settings], {
+      ...options,
+      keys,
+    });
+
+    // Find all the keys that aren't cached.
+    const absentFromCache = keys.filter((key) => !this.value(key));
+
+    if (absentFromCache.length && config.storage) {
+
+      // Only load missing data.
+      const nodes = await config.storage.read({
+        ...config,
+        keys: absentFromCache,
+      });
+
+      const contexts = nodes ? nodes.map(createContextFromNode(this)) : [];
+      contexts.forEach(cacheContext(this));
+    }
+
+    // Map each key to it's context equivalent.
+    return keys.map((key) => this.value(key));
   }
 
   /**

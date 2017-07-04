@@ -38,7 +38,7 @@ describe('Database', () => {
     expect(createRouter).toHaveBeenCalledWith(db, db[settings]);
   });
 
-  describe('read', () => {
+  describe('read()', () => {
     let router;
 
     beforeEach(() => {
@@ -112,7 +112,164 @@ describe('Database', () => {
     });
   });
 
-  describe('branch', () => {
+  describe('nodes()', () => {
+    let storage;
+
+    beforeEach(() => {
+      storage = new Storage();
+      storage.read = createSpy();
+      db = database({ storage });
+    });
+
+    it('is a function', () => {
+      expect(db.nodes).toBeA(Function);
+    });
+
+    it('returns a promise', () => {
+      const value = db.nodes(['stuff']);
+
+      expect(value).toBeA(Promise);
+    });
+
+    it('resolves with an array', async () => {
+      const value = await db.nodes([]);
+
+      expect(value).toEqual([]);
+    });
+
+    it('ignores storage if the option is disabled', async () => {
+      await db.nodes(['potato'], { storage: null });
+
+      expect(storage.read).toNotHaveBeenCalled();
+    });
+
+    it('creates a read action', async () => {
+      const keys = ['key1', 'key2'];
+      await db.nodes(keys);
+
+      expect(storage.read).toHaveBeenCalled();
+      const [action] = storage.read.calls[0].arguments;
+
+      expect(action.keys).toEqual(keys);
+    });
+
+    it('returns the nodes given by storage', async () => {
+      storage.read.andCall(async () => {
+        const node = new Node({ uid: 'a-node' });
+        node.merge({ read: true });
+
+        return [node];
+      });
+
+      const nodes = await db.nodes(['a-node']);
+      const [value] = nodes;
+
+      expect(nodes.length).toBe(1);
+      expect(value).toBeA(Context);
+      expect(value.snapshot()).toEqual({ read: true });
+    });
+
+    it('uses the correct context ID for resolved nodes', async () => {
+      const uid = 'result';
+
+      storage.read.andCall(async () => {
+        const node = new Node({ uid });
+        node.merge({ resolved: true });
+
+        return [node.toJSON()];
+      });
+
+      const [result] = await db.nodes([uid]);
+
+      expect(result.meta().uid).toBe(uid);
+    });
+
+    it('returns `null` if no value is given', async () => {
+      storage.read.andCall(async () => [undefined]);
+      const nodes = await db.nodes(['stuff']);
+
+      expect(nodes).toEqual([null]);
+    });
+
+    it('supports node resolve values', async () => {
+      storage.read.andCall(() => {
+        const node = new Node({ uid: 'result' });
+        node.merge({ resolved: true });
+
+        return [node];
+      });
+
+      const [node] = await db.nodes(['result']);
+
+      expect(node).toBeA(Context);
+      expect(node.meta().uid).toEqual('result');
+      expect(node.snapshot()).toEqual({ resolved: true });
+    });
+
+    it('caches the value', async () => {
+      storage.read.andCall(() => {
+        const node = new Node({ uid: 'stuff' });
+        node.merge({ stuff: true });
+
+        return [node];
+      });
+
+      const [node] = await db.nodes(['stuff']);
+
+      expect(node).toBe(await db.read('stuff'), 'Node was not cached.');
+    });
+
+    it('returns the nodes in the order you requested', async () => {
+      storage.read.andCall(() => {
+        const nodes = [
+          new Node({ uid: 'second' }),
+          new Node({ uid: 'first' }),
+        ];
+
+        nodes.forEach((node) => node.merge({ [node.meta().uid]: true }));
+
+        return nodes;
+      });
+
+      const [first, second] = await db.nodes(['first', 'second']);
+
+      expect(first.meta().uid).toBe('first');
+      expect(second.meta().uid).toBe('second');
+    });
+
+    it('does not attempt to read the same nodes twice', async () => {
+      storage.read.andCall(() => {
+        const node = new Node({ uid: 'first' });
+        node.merge({ first: true });
+
+        return [node];
+      });
+
+      await db.nodes(['first', 'second']);
+      await db.nodes(['first', 'second']);
+
+      expect(storage.read.calls.length).toBe(2);
+      const [action1] = storage.read.calls[0].arguments;
+      const [action2] = storage.read.calls[1].arguments;
+
+      expect(action1.keys).toEqual(['first', 'second']);
+      expect(action2.keys).toEqual(['second']);
+    });
+
+    it('does not read from storage if everything is cached', async () => {
+      storage.read.andCall(() => [
+        new Node({ uid: 'first' }),
+        new Node({ uid: 'second' }),
+      ]);
+
+      await db.nodes(['first', 'second']);
+      await db.nodes(['first', 'second']);
+
+      expect(storage.read.calls.length).toBe(1);
+    });
+  });
+
+  describe('branch()', () => {
     it('returns a new database', () => {
       const result = db.branch();
 
@@ -199,7 +356,7 @@ describe('Database', () => {
     });
   });
 
-  describe('commit', () => {
+  describe('commit()', () => {
     let graph, node, beforeWrite, afterWrite, storage, router;
     const Identity = (value) => value;
 
@@ -398,7 +555,7 @@ describe('Database', () => {
     });
   });
 
-  describe('write', () => {
+  describe('write()', () => {
     it('saves to the graph', async () => {
       await db.write('user', { name: 'Jesse' });
 
