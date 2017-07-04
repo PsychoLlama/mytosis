@@ -5,6 +5,10 @@
 > Due to a versioning mistake, the official stable API will be defined in v2.0.0.
 **All `v1.x.x` versions should be considered unstable.**
 
+## Unreleased
+### Fixed
+- The config `hooks.[before/after].read.field` was being improperly concatenated with node read hooks.
+
 ## v1.11.0
 ### Added
 - `Database#branch` method (useful for aggregating writes before a commit).
