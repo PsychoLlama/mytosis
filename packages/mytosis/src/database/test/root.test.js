@@ -402,6 +402,17 @@ describe('Database', () => {
 
       expect(storage.read).toHaveBeenCalled();
     });
+
+    it('ignores nodes it did not ask for', async () => {
+      storage.read.andCall(async () => [
+        new Node({ uid: 'ignore-me' }),
+      ]);
+
+      const [node] = await db.nodes(['something-else']);
+
+      expect(node).toNotExist();
+      expect(db.value('ignore-me')).toBe(null);
+    });
   });
 
   describe('branch()', () => {

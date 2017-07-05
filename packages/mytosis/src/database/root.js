@@ -21,11 +21,6 @@ const isOffline = (connection) => Boolean(connection.offline);
  */
 const createContextFromNode = (database) => (data) => {
 
-  // No data was found.
-  if (!data) {
-    return null;
-  }
-
   // Ensure the data is a node.
   const node = data instanceof Node ? data : Node.source(data);
 
@@ -258,11 +253,24 @@ class Database extends Graph {
 
     const results = await Promise.all(reads);
 
+    const requestedKeys = absentFromCache.reduce((keys, key) => {
+      keys[key] = true;
+      return keys;
+    }, {});
+
+    // Ignore nodes we didn't request.
+    const isRelevantContext = (context) => {
+      const { uid } = context.meta();
+      return requestedKeys.hasOwnProperty(uid);
+    };
+
     // Process each node.
-    results.forEach((nodes = []) => {
-      const contexts = nodes.map(createContextFromNode(this));
-      contexts.forEach(cacheContext(this));
-    });
+    results.forEach((nodes = []) => nodes
+      .filter(Boolean)
+      .map(createContextFromNode(this))
+      .filter(isRelevantContext)
+      .forEach(cacheContext(this))
+    );
 
     // Run the results through the pipeline.
     const result = await getFinalValue(readAction);
