@@ -80,16 +80,18 @@ describe('Mytosis LocalStorage', () => {
 
   describe('read()', () => {
     it('returns null if nothing exists', () => {
-      const result = store.read(node.meta().uid);
+      const result = store.read({
+        keys: [node.meta().uid],
+      });
 
-      expect(result).toBe(null);
+      expect(result).toEqual([null]);
     });
 
     it('returns the written item when it exists', () => {
       localStorage.getItem.mockReturnValue(JSON.stringify(node));
       const { uid } = node.meta();
 
-      const result = store.read({ key: uid });
+      const [result] = store.read({ keys: [uid] });
 
       expect(localStorage.getItem).toHaveBeenCalledWith(uid);
       expect(result).toEqual(node.toJSON());
@@ -97,7 +99,7 @@ describe('Mytosis LocalStorage', () => {
 
     it('uses the correct prefix', () => {
       const store = new LocalStoragePlugin({ prefix: 'cache-things/' });
-      store.read({ key: 'name' });
+      store.read({ keys: ['name'] });
 
       expect(localStorage.getItem).toHaveBeenCalledWith('cache-things/name');
     });

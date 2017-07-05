@@ -37,7 +37,7 @@ describe('A config', () => {
   it('contains a hooks object', () => {
     const hook = {
       read: {
-        node: [],
+        nodes: [],
         field: [],
       },
       write: [],
@@ -56,7 +56,7 @@ describe('A config', () => {
       const { hooks, network, storage } = config([{}]);
       expect(storage).toBe(null);
       expect([...network].length).toBe(0);
-      expect(hooks.before.read.node.length).toBe(0);
+      expect(hooks.before.read.nodes.length).toBe(0);
       expect(hooks.before.read.field.length).toBe(0);
       expect(hooks.before.write.length).toBe(0);
       expect(hooks.before.request.length).toBe(0);
@@ -143,18 +143,18 @@ describe('A config', () => {
       const result = config([{
         hooks: {
           before: {
-            read: { node: first },
+            read: { nodes: first },
           },
         },
       }, {
         hooks: {
           before: {
-            read: { node: second },
+            read: { nodes: second },
           },
         },
       }]);
 
-      expect(result.hooks.before.read.node).toEqual([first, second]);
+      expect(result.hooks.before.read.nodes).toEqual([first, second]);
     });
 
     it('prefers later-defined extensions when conflicts happen', () => {

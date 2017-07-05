@@ -57,16 +57,16 @@ describe('The pipeline\'s default option setter', () => {
   });
 });
 
-describe('The before.read.node pipeline', () => {
+describe('The before.read.nodes pipeline', () => {
   it('allows hooks to replace read options', async () => {
     const read = async () => ({ overridden: true });
     const config = hooks({
       before: {
-        read: { node: read },
+        read: { nodes: read },
       },
     });
 
-    const options = await pipeline.before.read.node(config, {
+    const options = await pipeline.before.read.nodes(config, {
       string: 'sup',
     });
 
@@ -76,13 +76,13 @@ describe('The before.read.node pipeline', () => {
 
 describe('The pipeline', () => {
   const methods = [
-    ['before', 'read', 'node'],
+    ['before', 'read', 'nodes'],
     ['before', 'read', 'field'],
     ['before', 'write'],
     ['before', 'request'],
     ['before', 'update'],
 
-    ['after', 'read', 'node'],
+    ['after', 'read', 'nodes'],
     ['after', 'read', 'field'],
     ['after', 'write'],
     ['after', 'request'],

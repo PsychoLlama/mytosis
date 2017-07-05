@@ -14,6 +14,40 @@ const settings = Symbol('database configuration');
 const isOffline = (connection) => Boolean(connection.offline);
 
 /**
+ * Turns a node into a context.
+ * @param  {Database} database - The current graph context.
+ * @param  {Object|Node} data - Any data that can be transformed to a node.
+ * @return {Context} - A new database context.
+ */
+const createContextFromNode = (database) => (data) => {
+
+  // Ensure the data is a node.
+  const node = data instanceof Node ? data : Node.source(data);
+
+  // Create a context from it.
+  const { uid } = node.meta();
+  const context = new Context(database, { uid });
+  context.merge(node);
+
+  return context;
+};
+
+/**
+ * Caches a node context in the database.
+ * @param  {Database} graph - A database.
+ * @param  {Node|Context} [node] - The data to cache.
+ * @return {void}
+ */
+const cacheContext = (graph) => (context) => {
+  if (!context) {
+    return;
+  }
+
+  const { uid } = context.meta();
+  graph.merge({ [uid]: context });
+};
+
+/**
  * Plugin manager for graph-crdt.
  * @class Database
  */
@@ -164,6 +198,88 @@ class Database extends Graph {
   }
 
   /**
+   * Reads a list of nodes.
+   * @param  {String[]} keys - Keys to read.
+   * @param  {Object} [options] - Read-level settings.
+   * @return {Promise<Array<Context|null>>} - All the nodes it found.
+   * @example
+   * const [timeline, profile] = await db.nodes(['timeline', 'profile'])
+   */
+  async nodes (keys, options = {}) {
+    const config = await pipeline.before.read.nodes(this[settings], {
+      ...options,
+      offline: this[settings].network.filter(isOffline),
+      keys,
+    });
+
+    // Load nodes from the cache and resolve with the value.
+    const getFinalValue = (action) => {
+      const nodes = config.keys.map((key) => this.value(key));
+
+      return pipeline.after.read.nodes(this[settings], {
+        ...action,
+        contexts: nodes,
+      });
+    };
+
+    // Find all the keys that aren't cached.
+    const absentFromCache = config.keys.filter((key) => !this.value(key));
+    const reads = [];
+
+    // Terminate early if everything is already cached.
+    if (!absentFromCache.length && !config.force) {
+      const result = await getFinalValue(config);
+
+      return result.contexts;
+    }
+
+    // Only request missing data.
+    const readAction = {
+      ...config,
+      keys: absentFromCache,
+    };
+
+    // Storage
+    if (config.storage) {
+      const read = config.storage.read(readAction);
+      reads.push(read);
+    }
+
+    // Network
+    if (this.router) {
+      const read = this.router.pull(readAction);
+      reads.push(read);
+    }
+
+    const results = await Promise.all(reads);
+
+    const requestedKeys = absentFromCache.reduce((keys, key) => {
+      keys[key] = true;
+      return keys;
+    }, {});
+
+    // Ignore nodes we didn't request.
+    const isRelevantContext = (context) => {
+      const { uid } = context.meta();
+      return requestedKeys.hasOwnProperty(uid);
+    };
+
+    // Process each node.
+    results.forEach((nodes = []) => nodes
+      .filter(Boolean)
+      .map(createContextFromNode(this))
+      .filter(isRelevantContext)
+      .forEach(cacheContext(this))
+    );
+
+    // Run the results through the pipeline.
+    const result = await getFinalValue(readAction);
+
+    // Map each key to it's context equivalent.
+    return result.contexts;
+  }
+
+  /**
    * Read a context from the database.
    * @param  {String} key - The node's unique ID.
    * @param  {Object} [options] - Plugin-level options.
@@ -174,51 +290,8 @@ class Database extends Graph {
    * @return {Context|null} - Resolves to the node.
    */
   async read (key, options = {}) {
-    const config = await pipeline.before.read.node(this[settings], {
-      offline: this[settings].network.filter(isOffline),
-      ...options,
-      key,
-    });
-
-    let node = this.value(config.key);
-
-    // Not cached.
-    if (node === null || config.force) {
-
-      const reads = [];
-
-      // Ask the storage plugins for it.
-      if (config.storage) {
-        reads.push(config.storage.read(config));
-      }
-
-      // Ask the network for it.
-      if (this.router) {
-        reads.push(this.router.pull(config));
-      }
-
-      for (const result of await Promise.all(reads)) {
-        const update = Node.source(result);
-
-        if (result) {
-          node = node || new Context(this, { uid: config.key });
-          node.merge(update);
-        }
-      }
-
-      // Cache the value.
-      if (node) {
-        this.merge({ [config.key]: node });
-      }
-    }
-
-    // After-read hooks.
-    const result = await pipeline.after.read.node(this[settings], {
-      context: this.value(config.key),
-      ...config,
-    });
-
-    return result.context;
+    const [node] = await this.nodes([key], options);
+    return node;
   }
 
   /**

@@ -54,7 +54,7 @@ const createPipeline = (path, transform = identity) => (
 
 export const before = {
   read: {
-    node: createPipeline(['before', 'read', 'node']),
+    nodes: createPipeline(['before', 'read', 'nodes']),
     field: createPipeline(['before', 'read', 'field']),
   },
 
@@ -65,7 +65,7 @@ export const before = {
 
 export const after = {
   read: {
-    node: createPipeline(['after', 'read', 'node']),
+    nodes: createPipeline(['after', 'read', 'nodes']),
     field: createPipeline(['after', 'read', 'field']),
   },
 

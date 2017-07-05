@@ -56,11 +56,9 @@ describe('Database hook', () => {
       expect(write).toNotHaveBeenCalled();
       expect(await db.read('user')).toBe(null);
     });
-
   });
 
   describe('"after.write"', () => {
-
     beforeEach(() => {
       db = database({
         hooks: {
@@ -84,10 +82,9 @@ describe('Database hook', () => {
         cool: true,
       });
     });
-
   });
 
-  describe('"before.read.node"', () => {
+  describe('"before.read.nodes"', () => {
     let read, hook;
 
     beforeEach(() => {
@@ -97,7 +94,7 @@ describe('Database hook', () => {
         storage,
         hooks: {
           before: {
-            read: { node: hook },
+            read: { nodes: hook },
           },
         },
       });
@@ -113,14 +110,14 @@ describe('Database hook', () => {
       const options = { 'engage hyperdrive': true };
       await db.read('key name', options);
       const [read] = hook.calls[0].arguments;
-      expect(read.key).toBe('key name');
+      expect(read.keys).toEqual(['key name']);
       expect(read).toContain(options);
     });
 
     it('should allow overriding the key', async () => {
       hook.andCall((read) => ({
         ...read,
-        key: `prefix/${read.key}`,
+        key: `prefix/${read.keys[0]}`,
       }));
       await db.read('stuff');
       const [{ key }] = read.calls[0].arguments;
@@ -140,7 +137,6 @@ describe('Database hook', () => {
         original: true,
       });
     });
-
   });
 
   describe('"after.read.node"', () => {
@@ -151,7 +147,7 @@ describe('Database hook', () => {
       db = database({
         hooks: {
           after: {
-            read: { node: hook },
+            read: { nodes: hook },
           },
         },
       });
@@ -170,19 +166,18 @@ describe('Database hook', () => {
       const data = await db.read('data', { cool: 'totally' });
       const [read] = hook.calls[0].arguments;
 
-      expect(read.context).toBe(data);
+      expect(read.contexts).toEqual([data]);
       expect(read).toContain({ cool: 'totally' });
     });
 
     it('should allow override of the return node', async () => {
       hook.andCall((read) => ({
         ...read,
-        context: 'haha, replaced!',
+        contexts: ['haha, replaced!'],
       }));
       const value = await db.read('data');
       expect(value).toBe('haha, replaced!');
     });
-
   });
 
   describe('"before.read.field"', () => {
@@ -238,7 +233,6 @@ describe('Database hook', () => {
       const [options] = read.calls[0].arguments;
       expect(options).toContain({ overridden: true });
     });
-
   });
 
   describe('"after.read.field"', () => {
@@ -298,7 +292,5 @@ describe('Database hook', () => {
       const value = await node.read('edge');
       expect(value).toBe('replaced value');
     });
-
   });
-
 });

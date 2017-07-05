@@ -2,12 +2,15 @@
 
 > This changelog adopts the [keep-a-changelog style](http://keepachangelog.com/en/0.3.0/).
 
-> Due to a versioning mistake, the official stable API will be defined in v2.0.0.
-**All `v1.x.x` versions should be considered unstable.**
+> Due to a rocky versioning history, the first stable release will be `v2.0.0`.
+**All `v1.x.x` versions are unstable.**
 
 ## Unreleased
 ### Fixed
 - The config `hooks.[before/after].read.field` was being improperly concatenated with node read hooks.
+
+### Changed
+- Storage plugins now get a list of keys to read, not just one. Reduces round-trip network requests and improves read performance for databases which support bulk reads.
 
 ## v1.11.0
 ### Added

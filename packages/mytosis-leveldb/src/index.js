@@ -13,6 +13,24 @@ const mapToWriteOp = ([key, node]) => ({
 });
 
 /**
+ * Reads a key from LevelDB returning a promise.
+ * @param  {LevelUP} level - LevelDB instance.
+ * @param  {String} key - Key to read.
+ * @return {Promise<Object>} - The node json data.
+ */
+const readAsPromise = (level) => (key) => new Promise((resolve, reject) => {
+  level.get(key, (error, result) => {
+
+    // Represent "not found" errors as "undefined".
+    if (error && error.type !== NOT_FOUND_ERROR) {
+      return reject(error);
+    }
+
+    return resolve(result);
+  });
+});
+
+/**
  * Asserts an expression is true.
  * @param  {Mixed} expr - Any expression.
  * @param  {String} msg - An error message.
@@ -44,7 +62,8 @@ export default class LevelDB {
       'Invalid "config.backend". A LevelDB interface is required.',
     );
 
-    this._level = config.backend;
+    const level = this._level = config.backend;
+    this._readKey = readAsPromise(level);
   }
 
   /**
@@ -54,17 +73,9 @@ export default class LevelDB {
    * @return {Promise} - Resolves with the data (if no errors occur).
    */
   read (action) {
-    return new Promise((resolve, reject) => {
-      this._level.get(action.key, (error, result) => {
+    const reads = action.keys.map(this._readKey);
 
-        // Represent "not found" errors as "undefined".
-        if (error && error.type !== NOT_FOUND_ERROR) {
-          return reject(error);
-        }
-
-        return resolve(result);
-      });
-    });
+    return Promise.all(reads);
   }
 
   /**
