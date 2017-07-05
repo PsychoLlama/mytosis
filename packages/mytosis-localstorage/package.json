@@ -1,6 +1,6 @@
 {
   "name": "mytosis-localstorage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser LocalStorage plugin for Mytosis DB",
   "main": "dist/index.js",
   "scripts": {

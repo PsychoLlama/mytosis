@@ -2,7 +2,7 @@
   "name": "mytosis-leveldb",
   "main": "index.js",
   "description": "Mytosis backend using LevelDB and its ecosystem",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "test": "jest",
     "test:watch": "npm run test -- --watch",

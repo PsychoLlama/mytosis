@@ -5,7 +5,7 @@
 > Due to a rocky versioning history, the first stable release will be `v2.0.0`.
 **All `v1.x.x` versions are unstable.**
 
-## Unreleased
+## v1.12.0
 ### Fixed
 - The config `hooks.[before/after].read.field` was being improperly concatenated with node read hooks.
 

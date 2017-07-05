@@ -2,7 +2,7 @@
 
 > This changelog adopts the [keep-a-changelog style](http://keepachangelog.com/en/0.3.0/) and adheres to [semver](http://semver.org/).
 
-## Unreleased
+## v0.2.0
 ### Changed
 - Each read is now a bulk read from level, reflecting the Mytosis plugin api change.
 
