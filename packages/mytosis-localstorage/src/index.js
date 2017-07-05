@@ -71,15 +71,17 @@ module.exports = class LocalStoragePlugin {
    * @param  {String} write.key - Node index.
    * @return {Object|null} - Whatever was in localStorage.
    */
-  read ({ key }) {
-    const index = `${this.prefix}${key}`;
-    const result = this.backend.getItem(index);
+  read ({ keys }) {
+    return keys.map((key) => {
+      const index = `${this.prefix}${key}`;
+      const result = this.backend.getItem(index);
 
-    if (result) {
-      return JSON.parse(result);
-    }
+      if (result) {
+        return JSON.parse(result);
+      }
 
-    return null;
+      return null;
+    });
   }
 
   /**
