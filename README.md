@@ -55,10 +55,10 @@ yarn add mytosis
 
 Now you can import it into your project.
 ```js
-// Using ES Modules
+// ES Modules
 import database from 'mytosis'
 
-// Using CommonJS (pffft, nobody uses that)
+// CommonJS
 const database = require('mytosis').default
 ```
 
@@ -81,7 +81,7 @@ const db = database()
 
 Most methods accept an `options` object as the last parameter, which supports the following:
 
-- `options.storage` - Overrides the storage defaults. Can be an array of plugins or `null`.
+- `options.storage` - Overrides the storage defaults. Can be a storage plugin or `null`.
 - `options.network` - Overrides the network defaults. Can be a `ConnectionGroup` or `null`.
 
 ### `db.read(key[, options])`
@@ -104,13 +104,29 @@ console.log('Stats:', stats)
 If the node can't be found, `null` is returned.
 
 #### Options
+Same options as [`db.nodes()`](#dbwritekey-patch-options).
 
-> **Note:** All standard options are supported.
+### `db.nodes([...keys][, options])`
+Reads many keys simultaneously, resolving with an array of nodes.
+
+> **Note:** This isn't just `Promise.all`. It's more performant than `db.read`, especially if you're querying the network.
+
+```js
+// Reads both `timeline` and `profile/<userid>`.
+const [timeline, profile] = await db.nodes(['timeline', `profile/${userId}`])
+
+console.log('Profile:', profile.snapshot())
+```
+
+If a node can't be found, it's value is `null`.
+
+#### Options
+All standard options are supported. In addition...
 
 - `options.force` - Ignore the in-memory cache and force a read from the plugins. Expects a boolean value.
 
 ### `db.write(key, patch[, options])`
-Updates properties on a node. If the node doesn't exist, it'll be created.
+Updates properties on a node. If the node doesn't exist, it's created.
 
 ```js
 db.write('preferences', {
