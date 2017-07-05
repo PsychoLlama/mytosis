@@ -206,7 +206,7 @@ class Database extends Graph {
    * const [timeline, profile] = await db.nodes(['timeline', 'profile'])
    */
   async nodes (keys, options = {}) {
-    const config = await pipeline.before.read.node(this[settings], {
+    const config = await pipeline.before.read.nodes(this[settings], {
       ...options,
       offline: this[settings].network.filter(isOffline),
       keys,
@@ -216,7 +216,7 @@ class Database extends Graph {
     const getFinalValue = (action) => {
       const nodes = config.keys.map((key) => this.value(key));
 
-      return pipeline.after.read.node(this[settings], {
+      return pipeline.after.read.nodes(this[settings], {
         ...action,
         contexts: nodes,
       });

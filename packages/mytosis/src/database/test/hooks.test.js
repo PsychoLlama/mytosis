@@ -84,7 +84,7 @@ describe('Database hook', () => {
     });
   });
 
-  describe('"before.read.node"', () => {
+  describe('"before.read.nodes"', () => {
     let read, hook;
 
     beforeEach(() => {
@@ -94,7 +94,7 @@ describe('Database hook', () => {
         storage,
         hooks: {
           before: {
-            read: { node: hook },
+            read: { nodes: hook },
           },
         },
       });
@@ -147,7 +147,7 @@ describe('Database hook', () => {
       db = database({
         hooks: {
           after: {
-            read: { node: hook },
+            read: { nodes: hook },
           },
         },
       });

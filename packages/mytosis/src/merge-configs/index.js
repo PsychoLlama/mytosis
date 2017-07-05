@@ -2,7 +2,7 @@ import ConnectionGroup from '../connection-group/index';
 
 const hooks = {
   read: {
-    node: [],
+    nodes: [],
     field: [],
   },
   write: [],
@@ -54,14 +54,14 @@ const merge = {
   /**
    * Merges read hooks together.
    * @param  {Object} hooks - Read hooks.
-   * @param  {Function[]} hooks.node - Node-related read events.
+   * @param  {Function[]} hooks.nodes - Node-related read events.
    * @param  {Function[]} hooks.field - Field-related read events.
    * @param  {Object} target - Read-related hooks to add.
    * @return {Object} - The merged read hooks.
    */
-  read: ({ field, node }, target = {}) => ({
+  read: ({ field, nodes }, target = {}) => ({
     field: field.concat(target.field || []),
-    node: node.concat(target.node || []),
+    nodes: nodes.concat(target.nodes || []),
   }),
 
   /**

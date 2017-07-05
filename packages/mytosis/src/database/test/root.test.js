@@ -330,7 +330,7 @@ describe('Database', () => {
       const db = database({
         storage,
         hooks: {
-          before: { read: { node: hook } },
+          before: { read: { nodes: hook } },
         },
       });
 
@@ -349,7 +349,7 @@ describe('Database', () => {
       const db = database({
         storage,
         hooks: {
-          after: { read: { node: hook } },
+          after: { read: { nodes: hook } },
         },
       });
 
@@ -369,7 +369,7 @@ describe('Database', () => {
 
       const db = database({
         hooks: {
-          after: { read: { node: hook } },
+          after: { read: { nodes: hook } },
         },
       });
 
@@ -386,7 +386,7 @@ describe('Database', () => {
 
       const db = database({
         hooks: {
-          after: { read: { node: hook } },
+          after: { read: { nodes: hook } },
         },
       });
 

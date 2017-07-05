@@ -271,14 +271,14 @@ For example, here's a hook which adds a prefix to every read.
 const readHook = (readAction) => ({
   ...readAction,
 
-  key: `my-prefix/${readAction.key}`,
+  keys: readAction.keys.map((key) => `my-prefix/${key}`),
 })
 
 const db = database({
   hooks: {
     before: {
       read: {
-        node: readHook,
+        nodes: readHook,
       },
     },
   },
@@ -308,7 +308,7 @@ database({
     before: {
       write: hook,
       read: {
-        node: hook,
+        nodes: hook,
         field: hook,
       },
     },
