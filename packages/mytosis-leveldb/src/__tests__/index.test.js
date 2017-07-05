@@ -36,7 +36,7 @@ describe('Mytosis LevelDB', () => {
     const data = { something: 'not really' };
     fakeLevel.get.mockImplementation((key, fn) => fn(null, data));
 
-    const value = await level.read({ key: 'key' });
+    const [value] = await level.read({ keys: ['key'] });
 
     expect(value).toEqual(data);
     expect(fakeLevel.get).toHaveBeenCalledWith('key', expect.any(Function));
@@ -47,9 +47,10 @@ describe('Mytosis LevelDB', () => {
     fakeLevel.get.mockImplementation((key, fn) => fn(err));
 
     const spy = jest.fn();
-    level.read({ key: 'dave' }).catch(spy);
+    level.read({ keys: ['dave'] }).catch(spy);
 
     // Wait for one promise tick.
+    await Promise.resolve();
     await Promise.resolve();
     expect(spy).toHaveBeenCalledWith(err);
   });
@@ -59,7 +60,7 @@ describe('Mytosis LevelDB', () => {
     error.type = 'NotFoundError';
 
     fakeLevel.get.mockImplementation((key, fn) => fn(error));
-    const value = await level.read({ key: 'potatoes' });
+    const [value] = await level.read({ keys: ['potatoes'] });
     expect(value).toBeUndefined();
   });
 
