@@ -699,6 +699,15 @@ describe('Database', () => {
       const { uid } = node.meta();
       expect(db.value(uid)).toBeA(Context);
     });
+
+    it('turns node values into pointers', async () => {
+      const user = await db.write('user', {});
+      await db.write('users', { [user]: user });
+
+      expect(db.value('users').value(user)).toEqual({
+        edge: String(user),
+      });
+    });
   });
 
   describe('write()', () => {

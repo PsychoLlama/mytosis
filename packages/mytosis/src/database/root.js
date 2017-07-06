@@ -109,8 +109,7 @@ class Database extends Graph {
     const graph = new Graph();
     const contexts = this.new();
 
-    for (const [id] of update) {
-      const node = update.value(id);
+    for (const [id, node] of update) {
 
       if (node instanceof Context) {
         contexts.merge({ [id]: node });
@@ -178,13 +177,20 @@ class Database extends Graph {
     const context = new Context(this, { uid });
     const current = this.value(uid);
 
-    // Ensure object updates increment state.
-    if (current && value) {
-      for (const field in value) {
-        if (value.hasOwnProperty(field)) {
-          context.merge({ [field]: current.value(field) });
-          context.meta(field).state = current.state(field);
-        }
+    for (const field in value) {
+      if (!value.hasOwnProperty(field)) {
+        continue;
+      }
+
+      // Turn nested nodes into edges.
+      if (value[field] instanceof Node) {
+        value[field] = { edge: String(value[field]) };
+      }
+
+      // Ensure object updates increment state.
+      if (current) {
+        context.merge({ [field]: current.value(field) });
+        context.meta(field).state = current.state(field);
       }
     }
 
