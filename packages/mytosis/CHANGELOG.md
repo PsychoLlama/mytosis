@@ -5,6 +5,10 @@
 > Due to a rocky versioning history, the first stable release will be `v2.0.0`.
 **All `v1.x.x` versions are unstable.**
 
+## v1.13.0
+### Fixed
+- Root-level writes which contain nodes are resolved into pointers before writing.
+
 ## v1.12.0
 ### Fixed
 - The config `hooks.[before/after].read.field` was being improperly concatenated with node read hooks.
