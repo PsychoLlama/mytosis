@@ -28,8 +28,44 @@ describe('A context', () => {
     expect(uid).toBe('potatoes');
   });
 
-  describe('read', () => {
+  describe('fields()', () => {
+    it('returns a promise', () => {
+      const result = node.fields([]);
 
+      expect(result).toBeA(Promise);
+    });
+
+    it('resolves with an array', async () => {
+      const result = await node.fields([]);
+
+      expect(result).toBeAn(Array);
+    });
+
+    it('contains all the primitive fields', async () => {
+      node.merge({ one: true, two: 'also true' });
+      const result = await node.fields(['two', 'one']);
+
+      expect(result).toEqual(['also true', true]);
+    });
+
+    it('resolves pointers', async () => {
+      await node.write('self', node);
+      const fields = await node.fields(['self']);
+
+      expect(fields).toEqual([node]);
+    });
+
+    it('keeps nodes and primitives in the correct order', async () => {
+      node.merge({ primitive: true, another: 'yep' });
+      await node.write('self', node);
+
+      const result = await node.fields(['primitive', 'self', 'another']);
+
+      expect(result).toEqual([true, node, 'yep']);
+    });
+  });
+
+  describe('read()', () => {
     it('should return undefined if not found', async () => {
       const result = await node.read('nothing here');
       expect(result).toBe(undefined);
@@ -55,11 +91,9 @@ describe('A context', () => {
 
       read.restore();
     });
-
   });
 
-  describe('write', () => {
-
+  describe('write()', () => {
     it('should write as an edge when given a context', async () => {
       const settings = new Context(root, { uid: 'settings' });
       await node.write('settings', settings);
@@ -80,11 +114,9 @@ describe('A context', () => {
 
       expect(node.state('count')).toBe(3);
     });
-
   });
 
-  describe('"new" call', () => {
-
+  describe('new()', () => {
     it('should return a new context', () => {
       const copy = node.new();
       expect(copy).toBeA(Context);
@@ -113,7 +145,6 @@ describe('A context', () => {
       const copy = ctx.new();
       expect(copy.hello).toBe('coder');
     });
-
   });
 
   describe('API extension', () => {
@@ -146,7 +177,5 @@ describe('A context', () => {
         ctx.hey = 'change!';
       }).toThrow(Error);
     });
-
   });
-
 });

@@ -30,13 +30,57 @@ export default class Context extends Node {
   }
 
   /**
+   * Reads a list of fields. Pointers are resolved efficiently using `db.nodes`.
+   * @param  {String[]} fields - The fields to read.
+   * @param  {Object} [options] - Read options.
+   * @return {Promise<Array<*>>} - All the corresponding fields.
+   */
+  async fields (fields) {
+
+    // Find all the pointers.
+    const edges = fields.reduce((nodes, field) => {
+      const value = this.value(field);
+
+      if (value && typeof value === 'object') {
+        nodes[field] = value;
+      }
+
+      return nodes;
+    }, {});
+
+    // Get the corresponding field names of each pointer.
+    const edgeFields = Object.keys(edges);
+
+    // Associative array of node pointers.
+    const pointers = edgeFields.map((field) => edges[field].edge);
+
+    // Resolve all the pointers at once, unless there aren't any.
+    const results = pointers.length
+      ? await this.root.nodes(pointers) : [];
+
+    // Reassemble them into their key/value pairs.
+    const nodes = {};
+    edgeFields.forEach((field, index) => {
+      nodes[field] = results[index];
+    });
+
+    // Give the fields back in the order they were requested.
+    return fields.map((field) => {
+      if (edges[field]) {
+        return nodes[field];
+      }
+
+      return this.value(field);
+    });
+  }
+
+  /**
    * Reads a value from the node.
    * @param  {String} field - The field to read.
    * @param  {String} [options] - Plugin-level options.
    * @return {Promise} - Resolves to the value or undefined.
    */
   async read (field, options) {
-
     const config = this.root[database.configuration];
     const params = await pipeline.before.read.field(config, {
       ...options,
