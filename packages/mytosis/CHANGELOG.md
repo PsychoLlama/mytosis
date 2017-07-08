@@ -5,7 +5,7 @@
 > Due to a rocky versioning history, the first stable release will be `v2.0.0`.
 **All `v1.x.x` versions are unstable.**
 
-## Unreleased
+## v1.14.0
 ### Changed
 - `(before|after).read.field` hooks no longer get a single field. Instead they're passed an `action.fields` array.
 
