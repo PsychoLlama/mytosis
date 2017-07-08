@@ -17,6 +17,16 @@ const validateBackend = (backend) => {
 };
 
 /**
+ * Determine if a key belongs to a prefix.
+ * @param  {String} prefix - Key prefix.
+ * @param  {String} key - A localStorage key.
+ * @return {Boolean} - Whether the key is correctly prefixed.
+ */
+const matchesPrefix = (prefix) => (key) => (
+  key.slice(0, prefix.length) === prefix
+);
+
+/**
  * Creates a localStorage plugin for Mytosis
  * @class LocalStoragePlugin
  */
@@ -92,5 +102,21 @@ module.exports = class LocalStoragePlugin {
   remove (id) {
     const index = `${this.prefix}${id}`;
     this.backend.removeItem(index);
+  }
+
+  /**
+   * Streams all the nodes from storage.
+   * @return {AsyncIterator<Node>} - Every node in localStorage.
+   */
+  async * [Symbol.asyncIterator] () {
+    const { backend, prefix } = this;
+    const isPrefixed = matchesPrefix(prefix);
+
+    for (const key in backend) {
+      if (backend.hasOwnProperty(key) && isPrefixed(key)) {
+        const string = backend.getItem(key);
+        yield JSON.parse(string);
+      }
+    }
   }
 };
