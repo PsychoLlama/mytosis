@@ -63,6 +63,18 @@ describe('A context', () => {
 
       expect(result).toEqual([true, node, 'yep']);
     });
+
+    it('passes options to `nodes()`', async () => {
+      spyOn(root, 'nodes').andCallThrough();
+
+      await node.write('self', node);
+      await node.fields(['self'], { storage: null });
+
+      expect(root.nodes).toHaveBeenCalled();
+      const options = root.nodes.calls[0].arguments[1];
+      expect(options).toExist();
+      expect(options.storage).toBe(null);
+    });
   });
 
   describe('read()', () => {
@@ -88,8 +100,6 @@ describe('A context', () => {
 
       const result = await node.read('settings');
       expect(result).toBe(settings);
-
-      read.restore();
     });
   });
 

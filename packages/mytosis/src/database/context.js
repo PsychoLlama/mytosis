@@ -63,7 +63,7 @@ export default class Context extends Node {
 
     // Resolve all the pointers at once, unless there aren't any.
     const results = pointers.length
-      ? await this.root.nodes(pointers) : [];
+      ? await this.root.nodes(pointers, config) : [];
 
     // Reassemble them into their key/value pairs.
     const nodes = {};
