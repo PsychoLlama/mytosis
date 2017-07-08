@@ -783,4 +783,55 @@ describe('Database', () => {
       }).toThrow(Error);
     });
   });
+
+  // ESLint bug: it thinks there's a missing comma on all for-await loops.
+  // Source: https://github.com/babel/babel-eslint/issues/415
+  describe('stream', () => {
+    let db, storage;
+
+    beforeEach(() => {
+      storage = {
+        async * [Symbol.asyncIterator] () {
+          yield new Node({ uid: 'key' });
+        },
+      };
+
+      db = database({ storage });
+    });
+
+    it('throws if the storage plugin has no support', async () => {
+      const db = database({ storage: {} });
+
+      try {
+        for await (const node of db) {} // eslint-disable-line
+        throw new Error('Previous line should have thrown.');
+      } catch (error) {
+        expect(error.message).toMatch(/storage/i);
+      }
+    });
+
+    it('yields every value from storage', async () => {
+      let run = false;
+
+      for await (const pair of db) { // eslint-disable-line
+        run = true;
+        expect(pair).toEqual(new Node({ uid: 'key' }));
+      }
+
+      expect(run).toBe(true);
+    });
+
+    it('ensures the values are nodes', async () => {
+      storage[Symbol.asyncIterator] = async function * () {
+        const node = new Node({ uid: 'a-node' });
+        node.merge({ data: true });
+        yield node.toJSON();
+      };
+
+      for await (const node of db) { // eslint-disable-line
+        expect(node).toBeA(Node);
+        expect(String(node)).toBe('a-node');
+      }
+    });
+  });
 });
