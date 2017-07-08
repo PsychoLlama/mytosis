@@ -83,8 +83,8 @@ describe('A context', () => {
       const settings = new Context(root, { uid: 'settings' });
       await node.write('settings', settings);
 
-      const read = spyOn(root, 'read');
-      read.andReturn(Promise.resolve(settings));
+      const read = spyOn(root, 'nodes');
+      read.andReturn(Promise.resolve([settings]));
 
       const result = await node.read('settings');
       expect(result).toBe(settings);

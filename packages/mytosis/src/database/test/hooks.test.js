@@ -26,12 +26,12 @@ describe('Database hook', () => {
 
     afterEach(() => write.restore());
 
-    it('should be called before writes', async () => {
+    it('is called before writes', async () => {
       await db.write('users', {});
       expect(hook).toHaveBeenCalled();
     });
 
-    it('should be able to override the graph', async () => {
+    it('is able to override the graph', async () => {
       const graph = new Graph();
       hook.andCall((write) => ({ ...write, graph }));
 
@@ -41,7 +41,7 @@ describe('Database hook', () => {
       expect(state).toBe(graph);
     });
 
-    it('should be able to prevent writes', async () => {
+    it('is able to prevent writes', async () => {
       const testError = new Error('Testing prevented writes');
       hook.andCall();
       hook.andThrow(testError);
@@ -67,12 +67,12 @@ describe('Database hook', () => {
       });
     });
 
-    it('should be called after writes', async () => {
+    it('is called after writes', async () => {
       await db.write('users', {});
       expect(hook).toHaveBeenCalled();
     });
 
-    it('should be passed the options', async () => {
+    it('is passed the options', async () => {
       await db.write('beans', {}, {
         cool: true,
       });
@@ -100,13 +100,13 @@ describe('Database hook', () => {
       });
     });
 
-    it('should call the hook before reads', async () => {
+    it('calls the hook before reads', async () => {
       expect(hook).toNotHaveBeenCalled();
       await db.read('users');
       expect(hook).toHaveBeenCalled();
     });
 
-    it('should pass the key and options', async () => {
+    it('passes the key and options', async () => {
       const options = { 'engage hyperdrive': true };
       await db.read('key name', options);
       const [read] = hook.calls[0].arguments;
@@ -114,7 +114,7 @@ describe('Database hook', () => {
       expect(read).toContain(options);
     });
 
-    it('should allow overriding the key', async () => {
+    it('can override the key', async () => {
       hook.andCall((read) => ({
         ...read,
         key: `prefix/${read.keys[0]}`,
@@ -124,7 +124,7 @@ describe('Database hook', () => {
       expect(key).toBe('prefix/stuff');
     });
 
-    it('should allow overriding the options', async () => {
+    it('can override the options', async () => {
       hook.andCall((read) => ({
         ...read,
         overridden: true,
@@ -157,12 +157,12 @@ describe('Database hook', () => {
       });
     });
 
-    it('should be called after reads', async () => {
+    it('is called after reads', async () => {
       await db.read('data');
       expect(hook).toHaveBeenCalled();
     });
 
-    it('should be passed the read value and options', async () => {
+    it('is passed the read value and options', async () => {
       const data = await db.read('data', { cool: 'totally' });
       const [read] = hook.calls[0].arguments;
 
@@ -170,7 +170,7 @@ describe('Database hook', () => {
       expect(read).toContain({ cool: 'totally' });
     });
 
-    it('should allow override of the return node', async () => {
+    it('can override the return node', async () => {
       hook.andCall((read) => ({
         ...read,
         contexts: ['haha, replaced!'],
@@ -180,7 +180,7 @@ describe('Database hook', () => {
     });
   });
 
-  describe('"before.read.field"', () => {
+  describe('"before.read.fields"', () => {
     let hook, node, read;
 
     beforeEach(async () => {
@@ -189,7 +189,7 @@ describe('Database hook', () => {
         storage,
         hooks: {
           before: {
-            read: { field: hook },
+            read: { fields: hook },
           },
         },
       });
@@ -198,44 +198,30 @@ describe('Database hook', () => {
       read = spyOn(storage, 'read').andCallThrough();
     });
 
-    it('should be passed the field, node, and options', async () => {
+    it('is passed the fields, node, and options', async () => {
       await node.read('name', { passed: true });
       expect(hook).toHaveBeenCalled();
 
       const [read] = hook.calls[0].arguments;
 
       expect(read.node).toBe(node);
-      expect(read.field).toBe('name');
+      expect(read.fields).toEqual(['name']);
       expect(read).toContain({ passed: true });
     });
 
-    it('should allow override of the field', async () => {
+    it('can override the fields', async () => {
       await node.write('replaced', 'resolved');
       hook.andCall((read) => ({
         ...read,
-        field: 'replaced',
+        fields: ['replaced'],
       }));
 
       const value = await node.read('nothing here');
       expect(value).toBe('resolved');
     });
-
-    it('should allow override of the options', async () => {
-      await node.write('edge', { edge: 'potatoes' });
-
-      hook.andCall((read) => ({
-        ...read,
-        overridden: true,
-      }));
-
-      await node.read('edge');
-
-      const [options] = read.calls[0].arguments;
-      expect(options).toContain({ overridden: true });
-    });
   });
 
-  describe('"after.read.field"', () => {
+  describe('"after.read.fields"', () => {
     let hook, node;
 
     beforeEach(async () => {
@@ -243,15 +229,15 @@ describe('Database hook', () => {
       db = database({
         hooks: {
           after: {
-            read: { field: hook },
+            read: { fields: hook },
           },
         },
       });
 
-      node = await db.write('after.read.field tests', {});
+      node = await db.write('after.read.fields tests', {});
     });
 
-    it('should be given the field, value, & options', async () => {
+    it('is given the fields, value, and options', async () => {
       await node.write('level', 5);
       await node.read('level', { opts: true });
       expect(hook).toHaveBeenCalled();
@@ -259,16 +245,15 @@ describe('Database hook', () => {
       const [read] = hook.calls[0].arguments;
 
       expect(read).toContain({
-        field: 'level',
+        fields: [5],
         opts: true,
-        value: 5,
       });
     });
 
-    it('should allow overriding the value', async () => {
+    it('can override the value', async () => {
       hook.andCall((read) => ({
         ...read,
-        value: 'replaced',
+        fields: ['replaced'],
       }));
 
       const value = await node.read('whatever');
@@ -276,16 +261,16 @@ describe('Database hook', () => {
       expect(value).toBe('replaced');
     });
 
-    it('should be called after resolving edges', async () => {
+    it('is called after resolving edges', async () => {
       const edge = await db.write('edge', {});
       await node.write('edge', edge);
 
       hook.andCall((read) => {
-        expect(read.value).toBe(edge);
+        expect(read.fields[0]).toBe(edge);
 
         return {
           ...read,
-          value: 'replaced value',
+          fields: ['replaced value'],
         };
       });
 

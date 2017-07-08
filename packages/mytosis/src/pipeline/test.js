@@ -77,13 +77,13 @@ describe('The before.read.nodes pipeline', () => {
 describe('The pipeline', () => {
   const methods = [
     ['before', 'read', 'nodes'],
-    ['before', 'read', 'field'],
+    ['before', 'read', 'fields'],
     ['before', 'write'],
     ['before', 'request'],
     ['before', 'update'],
 
     ['after', 'read', 'nodes'],
-    ['after', 'read', 'field'],
+    ['after', 'read', 'fields'],
     ['after', 'write'],
     ['after', 'request'],
     ['after', 'update'],
