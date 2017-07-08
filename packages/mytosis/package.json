@@ -1,7 +1,7 @@
 {
   "name": "mytosis",
-  "version": "1.13.0",
-  "description": "Decentralized graph database",
+  "version": "1.14.0",
+  "description": "Peer-replicated graph database",
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src/ -d dist/",
