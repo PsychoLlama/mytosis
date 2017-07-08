@@ -181,7 +181,7 @@ describe('Database hook', () => {
   });
 
   describe('"before.read.fields"', () => {
-    let hook, node, read;
+    let hook, node;
 
     beforeEach(async () => {
       hook = createSpy().andCall((read) => read);
@@ -195,7 +195,7 @@ describe('Database hook', () => {
       });
 
       node = await db.write('context hook test', {});
-      read = spyOn(storage, 'read').andCallThrough();
+      spyOn(storage, 'read').andCallThrough();
     });
 
     it('is passed the fields, node, and options', async () => {
