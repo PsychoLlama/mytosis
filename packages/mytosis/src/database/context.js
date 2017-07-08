@@ -2,6 +2,7 @@ import * as pipeline from '../pipeline';
 import { Graph, Node } from 'graph-crdt';
 import database from './root';
 
+
 /**
  * Asynchronous node interface.
  * @class
@@ -30,34 +31,73 @@ export default class Context extends Node {
   }
 
   /**
+   * Reads a list of fields. Pointers are resolved efficiently using `db.nodes`.
+   * @param  {String[]} fieldNames - The fields to read.
+   * @param  {Object} [options] - Read options.
+   * @return {Promise<Array<*>>} - All the corresponding fields.
+   */
+  async fields (fieldNames, options = {}) {
+    const settings = this.root[database.configuration];
+    const config = await pipeline.before.read.fields(settings, {
+      ...options,
+      fields: fieldNames,
+      node: this,
+    });
+
+    // Find all the pointers.
+    const edges = config.fields.reduce((nodes, field) => {
+      const value = this.value(field);
+
+      if (value && typeof value === 'object') {
+        nodes[field] = value;
+      }
+
+      return nodes;
+    }, {});
+
+    // Get the corresponding field names of each pointer.
+    const edgeFields = Object.keys(edges);
+
+    // Associative array of node pointers.
+    const pointers = edgeFields.map((field) => edges[field].edge);
+
+    // Resolve all the pointers at once, unless there aren't any.
+    const results = pointers.length
+      ? await this.root.nodes(pointers, config) : [];
+
+    // Reassemble them into their key/value pairs.
+    const nodes = {};
+    edgeFields.forEach((field, index) => {
+      nodes[field] = results[index];
+    });
+
+    // Give the fields back in the order they were requested.
+    const fields = config.fields.map((field) => {
+      if (edges[field]) {
+        return nodes[field];
+      }
+
+      return this.value(field);
+    });
+
+    const result = await pipeline.after.read.fields(settings, {
+      ...config,
+      fields,
+    });
+
+    return result.fields;
+  }
+
+  /**
    * Reads a value from the node.
    * @param  {String} field - The field to read.
    * @param  {String} [options] - Plugin-level options.
    * @return {Promise} - Resolves to the value or undefined.
    */
   async read (field, options) {
+    const [result] = await this.fields([field], options);
 
-    const config = this.root[database.configuration];
-    const params = await pipeline.before.read.field(config, {
-      ...options,
-      node: this,
-      field,
-    });
-
-    /** Read from the node. */
-    let result = this.value(params.field);
-
-    /** Detect and resolve pointers. */
-    if (result instanceof Object) {
-      result = await this.root.read(result.edge, params);
-    }
-
-    const { value } = await pipeline.after.read.field(config, {
-      ...params,
-      value: result,
-    });
-
-    return value;
+    return result;
   }
 
   /**

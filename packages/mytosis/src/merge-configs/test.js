@@ -38,7 +38,7 @@ describe('A config', () => {
     const hook = {
       read: {
         nodes: [],
-        field: [],
+        fields: [],
       },
       write: [],
       request: [],
@@ -56,8 +56,8 @@ describe('A config', () => {
       const { hooks, network, storage } = config([{}]);
       expect(storage).toBe(null);
       expect([...network].length).toBe(0);
+      expect(hooks.before.read.fields.length).toBe(0);
       expect(hooks.before.read.nodes.length).toBe(0);
-      expect(hooks.before.read.field.length).toBe(0);
       expect(hooks.before.write.length).toBe(0);
       expect(hooks.before.request.length).toBe(0);
       expect(hooks.before.update.length).toBe(0);
