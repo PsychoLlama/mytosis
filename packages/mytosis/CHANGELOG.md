@@ -5,13 +5,17 @@
 > Due to a rocky versioning history, the first stable release will be `v2.0.0`.
 **All `v1.x.x` versions are unstable.**
 
+## Unreleased
+### Changed
+- `(before|after).read.field` hooks no longer get a single field. Instead they're passed an `action.fields` array.
+
 ## v1.13.0
 ### Fixed
 - Root-level writes which contain nodes are resolved into pointers before writing.
 
 ## v1.12.0
 ### Fixed
-- The config `hooks.[before/after].read.field` was being improperly concatenated with node read hooks.
+- The config `(before|after).read.field` was being improperly concatenated with node read hooks.
 
 ### Changed
 - Storage plugins now get a list of keys to read, not just one. Reduces round-trip network requests and improves read performance for databases which support bulk reads.

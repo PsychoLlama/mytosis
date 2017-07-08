@@ -198,6 +198,15 @@ const weather = await db.write('weather', {
 const temperature = await weather.read('temperature')
 ```
 
+### `node.fields([...keys][, options])`
+Read a list of fields in a single request. Pointers are resolved using `db.nodes` for efficient read batching.
+
+```js
+const [name, friends] = await user.fields(['name', 'friends'])
+```
+
+Standard options are accepted.
+
 ### `node.write(key, value[, options])`
 Writes a value to the node. The value can be any primitive.
 
