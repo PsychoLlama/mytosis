@@ -1,7 +1,11 @@
+// babel-eslint freaks out about async generators and semicolons.
+/* eslint-disable semi */
 import { Graph, Node } from 'graph-crdt';
 import { Readable } from 'stream';
 
 import LevelDB from '../index';
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150;
 
 const createFakeStream = (values) => {
   const stream = new Readable({ objectMode: true });
@@ -14,7 +18,9 @@ const createFakeStream = (values) => {
     if (next instanceof Error) {
       stream.emit('error', next);
     } else {
-      stream.push(next);
+
+      // Real life isn't synchronous.
+      setTimeout(() => stream.push(next), 20);
     }
   });
 
@@ -114,8 +120,6 @@ describe('Mytosis LevelDB', () => {
     expect(spy).toHaveBeenCalledWith(error);
   });
 
-  // babel-eslint freaks out about async generators. Oodles of
-  // lines disabling eslint. Hide your eyes!
   describe('async iterator', () => {
     it('is defined', () => {
       expect(Symbol.asyncIterator).toBeTruthy();

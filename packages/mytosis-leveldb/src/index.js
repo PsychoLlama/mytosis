@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition, no-use-before-define, require-jsdoc */
 const NOT_FOUND_ERROR = 'NotFoundError';
 
 /**
@@ -31,31 +32,45 @@ const readAsPromise = (level) => (key) => new Promise((resolve, reject) => {
 });
 
 /**
- * Pulls the next value from a readable stream as a promise.
- * @param  {Stream.Readable} stream - A value stream from levelup.
- * @return {Promise<Object, Error>} - Resolves with each node.
+ * Create a $q.defer style promise.
+ * @return {Promise} - A deferred promise.
  */
-const getNextValueAsPromise = (stream) => new Promise((resolve, reject) => {
-  const done = (data) => {
-    stream.removeAllListeners('data');
-    stream.removeAllListeners('error');
-    stream.removeAllListeners('end');
+const defer = () => {
+  let res, rej;
 
-    resolve(data);
-  };
+  const promise = new Promise((resolve, reject) => {
+    res = resolve;
+    rej = reject;
+  });
 
-  const fail = (error) => {
-    reject(error);
+  promise.resolve = res;
+  promise.reject = rej;
 
-    // Burn everything and evacuate.
+  return promise;
+};
+
+/**
+ * Reads values from a object mode readable stream as an async iterator.
+ * @param  {Stream.Readable} stream - A value stream from levelup.
+ * @return {Promise<Object>} - Resolves with each node.
+ */
+async function * streamToGenerator (stream) {
+  let promise;
+
+  stream.on('data', (data) => promise.resolve(data));
+  stream.once('end', () => promise.resolve(null));
+
+  stream.on('error', (error) => {
     stream.removeAllListeners();
-  };
+    promise.reject(error);
+  });
 
-  stream.on('end', done);
-  stream.on('data', done);
-  stream.on('error', fail);
-  stream.read();
-});
+  while (true) {
+    promise = defer();
+
+    yield promise;
+  }
+}
 
 /**
  * Asserts an expression is true.
@@ -131,14 +146,13 @@ export default class LevelDB {
    * @return {AsyncIterator<Object>} - Yields every node.
    */
   async * [Symbol.asyncIterator] () {
-    const stream = this._level.createValueStream();
 
     // Don't flush all at once - read one value at a time.
-    stream.pause();
+    const stream = this._level.createValueStream({ highWaterMark: 1 });
 
-    while (true) { // eslint-disable-line
-      const value = await getNextValueAsPromise(stream);
+    for await (const value of streamToGenerator(stream)) { // eslint-disable-line
 
+      // `null` marks a terminated stream.
       if (!value) {
         return;
       }
