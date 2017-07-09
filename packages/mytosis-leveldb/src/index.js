@@ -31,6 +31,33 @@ const readAsPromise = (level) => (key) => new Promise((resolve, reject) => {
 });
 
 /**
+ * Pulls the next value from a readable stream as a promise.
+ * @param  {Stream.Readable} stream - A value stream from levelup.
+ * @return {Promise<Object, Error>} - Resolves with each node.
+ */
+const getNextValueAsPromise = (stream) => new Promise((resolve, reject) => {
+  const done = (data) => {
+    stream.removeAllListeners('data');
+    stream.removeAllListeners('error');
+    stream.removeAllListeners('end');
+
+    resolve(data);
+  };
+
+  const fail = (error) => {
+    reject(error);
+
+    // Burn everything and evacuate.
+    stream.removeAllListeners();
+  };
+
+  stream.on('end', done);
+  stream.on('data', done);
+  stream.on('error', fail);
+  stream.read();
+});
+
+/**
  * Asserts an expression is true.
  * @param  {Mixed} expr - Any expression.
  * @param  {String} msg - An error message.
@@ -97,5 +124,26 @@ export default class LevelDB {
         return resolve();
       });
     });
+  }
+
+  /**
+   * Streams every node from the database.
+   * @return {AsyncIterator<Object>} - Yields every node.
+   */
+  async * [Symbol.asyncIterator] () {
+    const stream = this._level.createValueStream();
+
+    // Don't flush all at once - read one value at a time.
+    stream.pause();
+
+    while (true) { // eslint-disable-line
+      const value = await getNextValueAsPromise(stream);
+
+      if (!value) {
+        return;
+      }
+
+      yield value;
+    }
   }
 }

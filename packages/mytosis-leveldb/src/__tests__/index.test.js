@@ -1,23 +1,39 @@
 import { Graph, Node } from 'graph-crdt';
+import { Readable } from 'stream';
 
 import LevelDB from '../index';
 
-describe('Mytosis LevelDB', () => {
-  const fakeLevel = {
-    batch: jest.fn(),
-    get: jest.fn(),
-  };
+const createFakeStream = (values) => {
+  const stream = new Readable({ objectMode: true });
+  stream.removeAllListeners = jest.fn(stream.removeAllListeners);
 
-  let level;
+  stream._read = jest.fn(() => { // eslint-disable-line
+    const [next = null] = values;
+    values = values.slice(1);
+
+    if (next instanceof Error) {
+      stream.emit('error', next);
+    } else {
+      stream.push(next);
+    }
+  });
+
+  return stream;
+};
+
+describe('Mytosis LevelDB', () => {
+  let level, backend;
 
   beforeEach(() => {
-    fakeLevel.get.mockReset();
-    fakeLevel.batch.mockReset();
-    fakeLevel.batch.mockImplementation((ops, fn) => fn());
+    const stream = createFakeStream([new Node()]);
 
-    level = new LevelDB({
-      backend: fakeLevel,
-    });
+    backend = {
+      createValueStream: jest.fn().mockReturnValue(stream),
+      batch: jest.fn((ops, fn) => fn()),
+      get: jest.fn(),
+    };
+
+    level = new LevelDB({ backend });
   });
 
   it('throws if the config is omitted', () => {
@@ -34,22 +50,22 @@ describe('Mytosis LevelDB', () => {
 
   it('reads values from levelDB', async () => {
     const data = { something: 'not really' };
-    fakeLevel.get.mockImplementation((key, fn) => fn(null, data));
+    backend.get.mockImplementation((key, fn) => fn(null, data));
 
     const [value] = await level.read({ keys: ['key'] });
 
     expect(value).toEqual(data);
-    expect(fakeLevel.get).toHaveBeenCalledWith('key', expect.any(Function));
+    expect(backend.get).toHaveBeenCalledWith('key', expect.any(Function));
   });
 
   it('rejects if an error is given', async () => {
     const err = new Error('oh no, something failed');
-    fakeLevel.get.mockImplementation((key, fn) => fn(err));
+    backend.get.mockImplementation((key, fn) => fn(err));
 
     const spy = jest.fn();
     level.read({ keys: ['dave'] }).catch(spy);
 
-    // Wait for one promise tick.
+    // Wait a few promise ticks.
     await Promise.resolve();
     await Promise.resolve();
     expect(spy).toHaveBeenCalledWith(err);
@@ -59,7 +75,7 @@ describe('Mytosis LevelDB', () => {
     const error = new Error('Something something Not Found');
     error.type = 'NotFoundError';
 
-    fakeLevel.get.mockImplementation((key, fn) => fn(error));
+    backend.get.mockImplementation((key, fn) => fn(error));
     const [value] = await level.read({ keys: ['potatoes'] });
     expect(value).toBeUndefined();
   });
@@ -73,12 +89,12 @@ describe('Mytosis LevelDB', () => {
 
     await level.write({ graph });
 
-    expect(fakeLevel.batch).toHaveBeenCalledWith(
+    expect(backend.batch).toHaveBeenCalledWith(
       expect.any(Array),
       expect.any(Function),
     );
 
-    const [update] = fakeLevel.batch.mock.calls[0];
+    const [update] = backend.batch.mock.calls[0];
     expect(update.length).toBe(2);
   });
 
@@ -90,11 +106,73 @@ describe('Mytosis LevelDB', () => {
     graph.merge({ [node]: node });
 
     const error = new Error('Something happened');
-    fakeLevel.batch.mockImplementation((ops, fn) => fn(error));
+    backend.batch.mockImplementation((ops, fn) => fn(error));
 
     const spy = jest.fn();
     await level.write({ graph }).catch(spy);
 
     expect(spy).toHaveBeenCalledWith(error);
+  });
+
+  // babel-eslint freaks out about async generators. Oodles of
+  // lines disabling eslint. Hide your eyes!
+  describe('async iterator', () => {
+    it('is defined', () => {
+      expect(Symbol.asyncIterator).toBeTruthy();
+      expect(level[Symbol.asyncIterator]).toEqual(expect.any(Function));
+    });
+
+    it('creates a value stream', async () => {
+      for await (const value of level) {} // eslint-disable-line
+      expect(backend.createValueStream).toHaveBeenCalled();
+    });
+
+    it('yields every value in the stream', async () => {
+      const stream = createFakeStream([new Node(), new Node()]);
+      backend.createValueStream.mockReturnValue(stream);
+      let run = 0;
+
+      for await (const value of level) { // eslint-disable-line
+        run += 1;
+      }
+
+      expect(run).toBe(2);
+    });
+
+    it('forwards errors', async () => {
+      const stream = createFakeStream([new Error('oh no!')]);
+      backend.createValueStream.mockReturnValue(stream);
+
+      try {
+        for await (const value of level) {} // eslint-disable-line
+        throw new Error('Should have thrown an error prior.');
+      } catch (error) {
+        expect(error.message).toMatch(/oh no/);
+        expect(error.message).not.toMatch(/uncaught/i);
+      }
+    });
+
+    it('destroys the stream after an error', async () => {
+      const stream = createFakeStream([new Error('failure!')]);
+      backend.createValueStream.mockReturnValue(stream);
+
+      try {
+        for await (const value of level) {} // eslint-disable-line
+      } catch (error) {
+        // Meh.
+      }
+
+      expect(stream.removeAllListeners).toHaveBeenCalledWith();
+    });
+
+    it('survives streams of empty databases', async () => {
+      const stream = createFakeStream([]);
+      backend.createValueStream.mockReturnValue(stream);
+
+      // Pray this doesn't time out.
+      for await (const value of level) { // eslint-disable-line
+        throw new Error('Should not have been called.');
+      }
+    });
   });
 });
