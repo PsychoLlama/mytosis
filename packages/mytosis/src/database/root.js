@@ -307,7 +307,6 @@ class Database extends Graph {
    * @return {undefined}
    */
   query (query, options) {
-
     const config = this[settings];
     const engines = config.engines;
     const engine = options.engine;
@@ -319,6 +318,33 @@ class Database extends Graph {
 
     const queryEngine = engines[engine];
     return queryEngine.executeQuery(query, this);
+  }
+
+  /**
+   * Streams every node from supported storage plugins.
+   * @private
+   * @throws {Error} - If the storage plugin doesn't support streaming.
+   * @return {Iterator<Promise<Array>>}
+   * Async iterator, yields every value in the database.
+   * @example
+   * for await (const node of db) {
+   *   console.log('Found:', node)
+   * }
+   */
+  async * [Symbol.asyncIterator] () {
+    const storage = this[settings].storage || {};
+    const supported = Boolean(storage[Symbol.asyncIterator]);
+
+    if (!supported) {
+      throw new Error('Storage plugin does not support streaming.');
+    }
+
+    // Start the database stream!
+    for await (const node of storage) { // eslint-disable-line
+
+      // Make sure each value is a node.
+      yield node instanceof Node ? node : Node.source(node);
+    }
   }
 }
 

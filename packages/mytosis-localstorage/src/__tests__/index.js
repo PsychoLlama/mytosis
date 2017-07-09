@@ -20,10 +20,7 @@ describe('Mytosis LocalStorage', () => {
     graph.merge({ [node]: node });
 
     const localStorage = global.localStorage;
-    localStorage.removeItem.mockReset();
-    localStorage.setItem.mockReset();
-    localStorage.getItem.mockReset();
-    localStorage.clear.mockReset();
+    localStorage.mockReset();
 
     store = new LocalStoragePlugin();
   });
@@ -121,6 +118,45 @@ describe('Mytosis LocalStorage', () => {
       store.remove(uid);
 
       expect(localStorage.removeItem).toHaveBeenCalledWith(`potatoes/${node}`);
+    });
+  });
+
+  // Fun babel-eslint bug causes the "semi" rule to trigger on for-await loops.
+  // Source: https://github.com/babel/babel-eslint/issues/415
+  describe('async iterator', () => {
+    let node;
+
+    beforeEach(() => {
+      node = new Node({ uid: 'some-node' });
+      localStorage[node] = JSON.stringify(node);
+      localStorage.getItem.mockImplementation((key) => localStorage[key]);
+    });
+
+    it('is defined', () => {
+      expect(store[Symbol.asyncIterator]).toEqual(expect.any(Function));
+    });
+
+    it('yields every node in localStorage', async () => {
+      let run = false;
+
+      for await (const value of store) { // eslint-disable-line
+        run = true;
+        expect(value).toEqual(node.toJSON());
+      }
+
+      expect(run).toBe(true);
+      expect(localStorage.getItem).toHaveBeenCalledWith(String(node));
+    });
+
+    it('only looks at nodes with the correct prefix', async () => {
+      const store = new LocalStoragePlugin({ prefix: 'pre/' });
+      const prefixed = new Node({ uid: 'pre/node' });
+      localStorage[prefixed] = JSON.stringify(prefixed);
+
+      for await (const value of store) { // eslint-disable-line
+        expect(value).toEqual(prefixed.toJSON());
+        expect(value).not.toEqual(node.toJSON());
+      }
     });
   });
 });

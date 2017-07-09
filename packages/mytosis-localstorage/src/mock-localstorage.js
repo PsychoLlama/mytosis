@@ -1,7 +1,11 @@
-global.localStorage = {
-  toString: jest.fn(() => '[object Storage]'),
-  removeItem: jest.fn(),
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  clear: jest.fn(),
-};
+function mockLocalStorage () { // eslint-disable-line require-jsdoc
+  global.localStorage = Object.defineProperties({}, {
+    mockReset: { value: mockLocalStorage },
+    removeItem: { value: jest.fn() },
+    getItem: { value: jest.fn() },
+    setItem: { value: jest.fn() },
+    clear: { value: jest.fn() },
+  });
+}
+
+mockLocalStorage();

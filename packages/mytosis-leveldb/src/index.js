@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition, no-use-before-define, require-jsdoc */
 const NOT_FOUND_ERROR = 'NotFoundError';
 
 /**
@@ -29,6 +30,47 @@ const readAsPromise = (level) => (key) => new Promise((resolve, reject) => {
     return resolve(result);
   });
 });
+
+/**
+ * Create a $q.defer style promise.
+ * @return {Promise} - A deferred promise.
+ */
+const defer = () => {
+  let res, rej;
+
+  const promise = new Promise((resolve, reject) => {
+    res = resolve;
+    rej = reject;
+  });
+
+  promise.resolve = res;
+  promise.reject = rej;
+
+  return promise;
+};
+
+/**
+ * Reads values from a object mode readable stream as an async iterator.
+ * @param  {Stream.Readable} stream - A value stream from levelup.
+ * @return {Promise<Object>} - Resolves with each node.
+ */
+async function * streamToGenerator (stream) {
+  let promise;
+
+  stream.on('data', (data) => promise.resolve(data));
+  stream.once('end', () => promise.resolve(null));
+
+  stream.on('error', (error) => {
+    stream.removeAllListeners();
+    promise.reject(error);
+  });
+
+  while (true) {
+    promise = defer();
+
+    yield promise;
+  }
+}
 
 /**
  * Asserts an expression is true.
@@ -97,5 +139,25 @@ export default class LevelDB {
         return resolve();
       });
     });
+  }
+
+  /**
+   * Streams every node from the database.
+   * @return {AsyncIterator<Object>} - Yields every node.
+   */
+  async * [Symbol.asyncIterator] () {
+
+    // Don't flush all at once - read one value at a time.
+    const stream = this._level.createValueStream({ highWaterMark: 1 });
+
+    for await (const value of streamToGenerator(stream)) { // eslint-disable-line
+
+      // `null` marks a terminated stream.
+      if (!value) {
+        return;
+      }
+
+      yield value;
+    }
   }
 }
