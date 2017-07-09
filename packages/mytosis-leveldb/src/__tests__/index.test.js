@@ -1,3 +1,4 @@
+/* global jasmine */
 // babel-eslint freaks out about async generators and semicolons.
 /* eslint-disable semi */
 import { Graph, Node } from 'graph-crdt';

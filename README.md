@@ -184,6 +184,17 @@ graph.merge({ change: node })
 await db.commit(graph)
 ```
 
+### Streaming
+You can read everything in the database as a stream of nodes. Streams use JavaScript [async iteration](https://github.com/tc39/proposal-async-iteration).
+
+```js
+for await (const node of db) {
+  console.log('Node ID:', String(node))
+}
+```
+
+Naturally those queries can be quite expensive, so by default they're only be run on the requesting machine. There's no network integration.
+
 ### Events
 Each mutation will emit an `"update"` event, passing a graph containing only the changes. There's also a `"history"` event when properties are overwritten. If you keep track of these deltas, you can roll time backwards and forwards.
 
