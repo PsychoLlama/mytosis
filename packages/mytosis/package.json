@@ -1,6 +1,6 @@
 {
   "name": "mytosis",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "description": "Peer-replicated graph database",
   "main": "dist/index.js",
   "scripts": {
