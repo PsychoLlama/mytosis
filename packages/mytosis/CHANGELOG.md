@@ -5,6 +5,10 @@
 > Due to a rocky versioning history, the first stable release will be `v2.0.0`.
 **All `v1.x.x` versions are unstable.**
 
+## Unreleased
+### Fixed
+- Writes in branches were affecting the source database (issue #40).
+
 ## v1.15.0
 ### Added
 - New API to stream every node from the database (uses `for-await` loops).

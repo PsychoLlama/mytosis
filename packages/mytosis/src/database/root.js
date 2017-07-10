@@ -94,6 +94,11 @@ class Database extends Graph {
 
     branch.merge(this);
 
+    // Set the correct graph root for each context.
+    for (const [, context] of branch) {
+      context.root = branch;
+    }
+
     return branch;
   }
 
