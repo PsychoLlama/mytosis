@@ -500,6 +500,31 @@ describe('Database', () => {
       expect(node).toBeA(Node);
       expect([...node]).toEqual([['name', 'Bob']]);
     });
+
+    it('sets the correct graph root', async () => {
+      await db.write('node', {});
+      const branch = db.branch();
+      const node = await branch.read('node');
+
+      expect(node.root).toBe(branch, 'Context has incorrect root reference');
+    });
+
+    it('does not mutate other branch context roots', async () => {
+      const original = await db.write('node', {});
+      const branch = db.branch();
+      const node = await branch.read('node');
+
+      expect(original.root).toNotBe(node.root);
+    });
+
+    it('does not affect other nodes with writes', async () => {
+      const original = await db.write('node', {});
+      const branch = db.branch();
+      const node = await branch.read('node');
+      await node.write('value', true);
+
+      expect(original.snapshot()).toEqual({});
+    });
   });
 
   describe('commit()', () => {
