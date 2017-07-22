@@ -34,7 +34,13 @@ class NetworkInterface {
    * @param  {Object} write - A write action.
    * @return {Promise} - Resolves when the write succeeds.
    */
-  push () {}
+  async push ({ online, update }) {
+    const rid = uuid();
+    const type = messageTypes.WRITE;
+    online.send({ update, rid, type });
+
+    await this._waitForRidResponse(rid);
+  }
 
   /**
    * Sends a request for a list of nodes.
@@ -43,11 +49,12 @@ class NetworkInterface {
    */
   async pull ({ online, nodes }) {
     const rid = uuid();
-
     const type = messageTypes.READ;
     online.send({ type, nodes, rid });
 
-    return this._waitForRidResponse(rid);
+    const response = await this._waitForRidResponse(rid);
+
+    return response.nodes;
   }
 
   /**
@@ -58,7 +65,14 @@ class NetworkInterface {
    */
   _waitForRidResponse (rid) {
     return new Promise((resolve, reject) => {
-      this._requests[rid] = { resolve, reject };
+      this._requests[rid] = (response) => {
+        if (response.error) {
+          reject(new Error(response.error));
+          return;
+        }
+
+        resolve(response);
+      };
     });
   }
 
@@ -69,14 +83,8 @@ class NetworkInterface {
    */
   _handleIncomingMessage = (message) => {
     if (message.type === messageTypes.ACK) {
-      const { resolve, reject } = this._requests[message.rid];
-
-      if (message.error) {
-        reject(new Error(message.error));
-        return;
-      }
-
-      resolve(message.nodes);
+      const done = this._requests[message.rid];
+      done(message);
     }
   }
 }

@@ -1,6 +1,7 @@
 import database, {
   ConnectionGroup,
   Stream,
+  Graph,
   Node,
 } from 'mytosis';
 
@@ -94,6 +95,59 @@ describe('Mytosis router', () => {
       await promise.catch(spy);
 
       expect(spy).toHaveBeenCalledWith(new Error('Failed to potato'));
+    });
+  });
+
+  describe('network push() method', () => {
+    let write;
+    const createAction = (merge = {}) => ({
+      network: new ConnectionGroup(),
+      offline: new ConnectionGroup(),
+      online: new ConnectionGroup(),
+      update: new Graph(),
+      ...merge,
+    });
+
+    beforeEach(() => {
+      write = createAction();
+      write.online.send = jest.fn();
+    });
+
+    it('returns a promise', () => {
+      const result = network.push(write);
+
+      expect(result).toEqual(expect.any(Promise));
+    });
+
+    it('sends a message', () => {
+      network.push(write);
+
+      expect(write.online.send).toHaveBeenCalledWith({
+        type: messageTypes.WRITE,
+        rid: expect.any(String),
+        update: write.update,
+      });
+    });
+
+    it('rejects if an error is returned', async () => {
+      const spy = jest.fn();
+      const promise = network.push(write).catch(spy);
+      const [{ rid }] = write.online.send.mock.calls[0];
+      messages.push({ type: messageTypes.ACK, rid, error: 'Failed' });
+      await promise;
+
+      expect(spy).toHaveBeenCalledWith(new Error('Failed'));
+    });
+
+    it('resolves when a positive response is received', async () => {
+      const promise = network.push(write);
+      const [{ rid }] = write.online.send.mock.calls[0];
+      messages.push({ type: messageTypes.ACK, rid });
+
+      const result = await promise;
+
+      // No news is good news.
+      expect(result).toBeUndefined();
     });
   });
 });
