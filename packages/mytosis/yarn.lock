@@ -801,11 +801,7 @@ babel-types@^6.19.0, babel-types@^6.23.0, babel-types@^6.24.1:
     lodash "^4.2.0"
     to-fast-properties "^1.0.1"
 
-babylon@^6.11.0, babylon@^6.15.0:
-  version "6.16.1"
-  resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.16.1.tgz#30c5a22f481978a9e7f8cdfdf496b11d94b404d3"
-
-babylon@^6.17.0:
+babylon@^6.11.0, babylon@^6.15.0, babylon@^6.17.0:
   version "6.17.4"
   resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.17.4.tgz#3e8b7402b88d22c3423e137a1577883b15ff869a"
 
@@ -1362,10 +1358,6 @@ escape-string-regexp@1.0.5, escape-string-regexp@^1.0.2, escape-string-regexp@^1
 eslint-config-llama@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/eslint-config-llama/-/eslint-config-llama-3.0.0.tgz#0eb5b4a18c0b77505ecbc6cbb4f833f1576b7f1f"
-
-eslint-plugin-babel@^4.0.0:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-babel/-/eslint-plugin-babel-4.1.1.tgz#ef285c87039b67beb3bbd227f5b0eed4fb376b87"
 
 eslint-scope@^3.7.1:
   version "3.7.1"
