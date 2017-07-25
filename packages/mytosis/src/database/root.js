@@ -340,8 +340,6 @@ class Database extends Graph {
 
     // Start the database stream!
     for await (const node of storage) {
-      // eslint-disable-line
-
       // Make sure each value is a node.
       yield node instanceof Node ? node : Node.source(node);
     }

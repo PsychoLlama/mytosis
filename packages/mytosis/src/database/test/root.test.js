@@ -834,7 +834,6 @@ describe('Database', () => {
       let run = false;
 
       for await (const pair of db) {
-        // eslint-disable-line
         run = true;
         expect(pair).toEqual(new Node({ uid: 'key' }));
       }
@@ -850,7 +849,6 @@ describe('Database', () => {
       };
 
       for await (const node of db) {
-        // eslint-disable-line
         expect(node).toBeA(Node);
         expect(String(node)).toBe('a-node');
       }

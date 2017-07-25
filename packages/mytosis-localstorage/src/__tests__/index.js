@@ -152,7 +152,6 @@ describe('Mytosis LocalStorage', () => {
       localStorage[prefixed] = JSON.stringify(prefixed);
 
       for await (const value of store) {
-        // eslint-disable-line
         expect(value).toEqual(prefixed.toJSON());
         expect(value).not.toEqual(node.toJSON());
       }

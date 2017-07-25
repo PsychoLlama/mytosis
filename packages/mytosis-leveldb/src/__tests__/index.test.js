@@ -13,7 +13,6 @@ const createFakeStream = values => {
   stream.removeAllListeners = jest.fn(stream.removeAllListeners);
 
   stream._read = jest.fn(() => {
-    // eslint-disable-line
     const [next = null] = values;
     values = values.slice(1);
 

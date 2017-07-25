@@ -154,8 +154,6 @@ export default class LevelDB {
     const stream = this._level.createValueStream({ highWaterMark: 1 });
 
     for await (const value of streamToGenerator(stream)) {
-      // eslint-disable-line
-
       // `null` marks a terminated stream.
       if (!value) {
         return;
