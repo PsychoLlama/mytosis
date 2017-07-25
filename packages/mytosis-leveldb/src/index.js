@@ -1,4 +1,10 @@
-/* eslint-disable no-constant-condition, no-use-before-define, require-jsdoc */
+/*
+  eslint-disable
+  no-constant-condition,
+  no-use-before-define,
+  lines-around-comment,
+  require-jsdoc,
+*/
 const NOT_FOUND_ERROR = 'NotFoundError';
 
 /**
