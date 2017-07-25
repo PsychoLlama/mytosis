@@ -9,11 +9,7 @@ import isPromise from 'is-promise';
  * @param  {Function} pipeline.transform - The initial value to start with.
  * @return {Promise} - Resolves to the final arguments output.
  */
-export default async function ({
-  transform,
-  initial,
-  hooks,
-}) {
+export default async function({ transform, initial, hooks }) {
   let result = initial;
 
   for (const hook of hooks) {
@@ -27,4 +23,4 @@ export default async function ({
   }
 
   return result;
-};
+}

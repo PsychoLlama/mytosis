@@ -2,19 +2,17 @@ import * as pipeline from '../pipeline';
 import { Graph, Node } from 'graph-crdt';
 import database from './root';
 
-
 /**
  * Asynchronous node interface.
  * @class
  */
 export default class Context extends Node {
-
   /**
    * Creates a new context.
    * @param {Object} root - The root database instance.
    * @param {Object} [node] - Node configurations.
    */
-  constructor (root, node) {
+  constructor(root, node) {
     super(node);
 
     this.root = root;
@@ -22,7 +20,7 @@ export default class Context extends Node {
     if (root) {
       const config = root[database.configuration];
       const extend = config.extend.context;
-      Object.keys(extend).forEach((key) => {
+      Object.keys(extend).forEach(key => {
         const value = extend[key];
 
         Object.defineProperty(this, key, { value });
@@ -36,7 +34,7 @@ export default class Context extends Node {
    * @param  {Object} [options] - Read options.
    * @return {Promise<Array<*>>} - All the corresponding fields.
    */
-  async fields (fieldNames, options = {}) {
+  async fields(fieldNames, options = {}) {
     const settings = this.root[database.configuration];
     const config = await pipeline.before.read.fields(settings, {
       ...options,
@@ -59,11 +57,12 @@ export default class Context extends Node {
     const edgeFields = Object.keys(edges);
 
     // Associative array of node pointers.
-    const pointers = edgeFields.map((field) => edges[field].edge);
+    const pointers = edgeFields.map(field => edges[field].edge);
 
     // Resolve all the pointers at once, unless there aren't any.
     const results = pointers.length
-      ? await this.root.nodes(pointers, config) : [];
+      ? await this.root.nodes(pointers, config)
+      : [];
 
     // Reassemble them into their key/value pairs.
     const nodes = {};
@@ -72,7 +71,7 @@ export default class Context extends Node {
     });
 
     // Give the fields back in the order they were requested.
-    const fields = config.fields.map((field) => {
+    const fields = config.fields.map(field => {
       if (edges[field]) {
         return nodes[field];
       }
@@ -94,7 +93,7 @@ export default class Context extends Node {
    * @param  {String} [options] - Plugin-level options.
    * @return {Promise} - Resolves to the value or undefined.
    */
-  async read (field, options) {
+  async read(field, options) {
     const [result] = await this.fields([field], options);
 
     return result;
@@ -106,8 +105,7 @@ export default class Context extends Node {
    * @param  {Mixed} value - A value to write.
    * @return {Promise} - Resolves when the value has written successfully.
    */
-  async write (field, value) {
-
+  async write(field, value) {
     /** It's a reference. Save as a pointer. */
     if (value instanceof Node) {
       value = { edge: String(value) };
@@ -138,7 +136,7 @@ export default class Context extends Node {
    * Creates a copy of the context.
    * @return {Context} - A new context with the same uid and root.
    */
-  new () {
+  new() {
     const config = this.meta();
 
     return new Context(this.root, config);

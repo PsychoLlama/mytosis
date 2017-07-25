@@ -12,21 +12,21 @@ const assert = asserter('Mytosis SocketServer');
  * @class
  */
 class Connection {
-
   /**
    * @param  {Object} socket - WebSocket instance.
    */
-  constructor (socket) {
+  constructor(socket) {
     this.id = uuid();
     this.type = 'websocket';
 
     this._socket = socket;
 
-    this.messages = new Stream((push) => {
-      const parseMessage = (message) => {
-        const data = typeof message === 'string'
-          ? JSON.parse(message)
-          : Buffer.from(message);
+    this.messages = new Stream(push => {
+      const parseMessage = message => {
+        const data =
+          typeof message === 'string'
+            ? JSON.parse(message)
+            : Buffer.from(message);
 
         push(data);
       };
@@ -43,8 +43,7 @@ class Connection {
    * @param  {Object|Buffer} message - JSON or a binary buffer.
    * @return {undefined}
    */
-  send (message) {
-
+  send(message) {
     // WebSockets support binary messages.
     const payload = Buffer.isBuffer(message)
       ? message
@@ -59,17 +58,16 @@ class Connection {
  * @class
  */
 export default class SocketServer extends ConnectionGroup {
-
   /**
    * @param  {Object} config - Server options.
    */
-  constructor (config) {
+  constructor(config) {
     assert(config, `Expected config, got "${config}"`);
 
     super();
 
     const server = new Server(config);
-    server.on('connection', (socket) => {
+    server.on('connection', socket => {
       const connection = new Connection(socket);
 
       this.add(connection);

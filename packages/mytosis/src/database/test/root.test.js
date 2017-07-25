@@ -228,12 +228,9 @@ describe('Database', () => {
 
     it('returns the nodes in the order you requested', async () => {
       storage.read.andCall(() => {
-        const nodes = [
-          new Node({ uid: 'second' }),
-          new Node({ uid: 'first' }),
-        ];
+        const nodes = [new Node({ uid: 'second' }), new Node({ uid: 'first' })];
 
-        nodes.forEach((node) => node.merge({ [node.meta().uid]: true }));
+        nodes.forEach(node => node.merge({ [node.meta().uid]: true }));
 
         return nodes;
       });
@@ -301,9 +298,7 @@ describe('Database', () => {
     });
 
     it('does not consult the router if everything is cached', async () => {
-      db.router.pull.andCall(() => [
-        new Node({ uid: 'result' }),
-      ]);
+      db.router.pull.andCall(() => [new Node({ uid: 'result' })]);
 
       await db.nodes(['result']);
       await db.nodes(['result']);
@@ -322,9 +317,9 @@ describe('Database', () => {
     });
 
     it('invokes the pre-read pipeline', async () => {
-      const hook = createSpy().andCall((action) => ({
+      const hook = createSpy().andCall(action => ({
         ...action,
-        keys: action.keys.map((key) => `replaced/${key}`),
+        keys: action.keys.map(key => `replaced/${key}`),
       }));
 
       const db = database({
@@ -341,10 +336,8 @@ describe('Database', () => {
     });
 
     it('invokes the post-read pipeline', async () => {
-      const hook = createSpy().andCall((action) => action);
-      storage.read.andCall(() => [
-        new Node({ uid: 'things' }),
-      ]);
+      const hook = createSpy().andCall(action => action);
+      storage.read.andCall(() => [new Node({ uid: 'things' })]);
 
       const db = database({
         storage,
@@ -362,7 +355,7 @@ describe('Database', () => {
     });
 
     it('allows hooks to override the node values', async () => {
-      const hook = createSpy().andCall((action) => ({
+      const hook = createSpy().andCall(action => ({
         ...action,
         contexts: ['ha!'],
       }));
@@ -379,7 +372,7 @@ describe('Database', () => {
     });
 
     it('calls the post-read hooks for cached values', async () => {
-      const hook = createSpy().andCall((action) => ({
+      const hook = createSpy().andCall(action => ({
         ...action,
         contexts: ['replaced'],
       }));
@@ -404,9 +397,7 @@ describe('Database', () => {
     });
 
     it('ignores nodes it did not ask for', async () => {
-      storage.read.andCall(async () => [
-        new Node({ uid: 'ignore-me' }),
-      ]);
+      storage.read.andCall(async () => [new Node({ uid: 'ignore-me' })]);
 
       const [node] = await db.nodes(['something-else']);
 
@@ -529,7 +520,7 @@ describe('Database', () => {
 
   describe('commit()', () => {
     let graph, node, beforeWrite, afterWrite, storage, router;
-    const Identity = (value) => value;
+    const Identity = value => value;
 
     beforeEach(() => {
       beforeWrite = createSpy().andCall(Identity);
@@ -781,9 +772,10 @@ describe('Database', () => {
   });
 
   describe('API extensions', () => {
-    const extend = (api) => database({
-      extend: { root: api },
-    });
+    const extend = api =>
+      database({
+        extend: { root: api },
+      });
 
     it('are added to the root', () => {
       const db = extend({
@@ -816,7 +808,7 @@ describe('Database', () => {
 
     beforeEach(() => {
       storage = {
-        async * [Symbol.asyncIterator] () {
+        async *[Symbol.asyncIterator]() {
           yield new Node({ uid: 'key' });
         },
       };
@@ -828,7 +820,8 @@ describe('Database', () => {
       const db = database({ storage: {} });
 
       try {
-        for await (const node of db) {} // eslint-disable-line
+        for await (const node of db) {
+        } // eslint-disable-line
         throw new Error('Previous line should have thrown.');
       } catch (error) {
         expect(error.message).toMatch(/storage/i);
@@ -838,7 +831,8 @@ describe('Database', () => {
     it('yields every value from storage', async () => {
       let run = false;
 
-      for await (const pair of db) { // eslint-disable-line
+      for await (const pair of db) {
+        // eslint-disable-line
         run = true;
         expect(pair).toEqual(new Node({ uid: 'key' }));
       }
@@ -847,13 +841,14 @@ describe('Database', () => {
     });
 
     it('ensures the values are nodes', async () => {
-      storage[Symbol.asyncIterator] = async function * () {
+      storage[Symbol.asyncIterator] = async function*() {
         const node = new Node({ uid: 'a-node' });
         node.merge({ data: true });
         yield node.toJSON();
       };
 
-      for await (const node of db) { // eslint-disable-line
+      for await (const node of db) {
+        // eslint-disable-line
         expect(node).toBeA(Node);
         expect(String(node)).toBe('a-node');
       }

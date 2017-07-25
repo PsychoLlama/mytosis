@@ -16,7 +16,6 @@ const hooks = {
  * @type {Object}
  */
 export const base = {
-
   /**
    * Lifecycle hooks.
    * @type {Object}
@@ -50,7 +49,6 @@ export const base = {
 };
 
 const merge = {
-
   /**
    * Merges read hooks together.
    * @param  {Object} hooks - Read hooks.
@@ -74,12 +72,7 @@ const merge = {
    * @param  {Object} target={} - The hooks to add.
    * @return {Object} - The merged hook object.
    */
-  hook: ({
-    read,
-    write,
-    update,
-    request,
-  }, target = {}) => ({
+  hook: ({ read, write, update, request }, target = {}) => ({
     read: merge.read(read, target.read),
     write: write.concat(target.write || []),
     update: update.concat(target.update || []),
@@ -110,7 +103,8 @@ const merge = {
    */
   router: (existing, router) => {
     if (existing && router) {
-      const msg = 'Cannot combine routers. ' +
+      const msg =
+        'Cannot combine routers. ' +
         'Ensure `config.router` is only specified once.';
 
       throw new Error(msg);
@@ -139,7 +133,6 @@ const merge = {
    * @return {ConnectionGroup|Object} - The merged network object.
    */
   network: (base, extension) => {
-
     // Support connections not inside a group.
     if (base) {
       base = ConnectionGroup.ensure(base);
@@ -205,7 +198,7 @@ const merge = {
  * @param  {Object[]} plugins - A list of plugin objects.
  * @return {Object} - The merged plugin object.
  */
-export default (plugins) => {
+export default plugins => {
   const config = plugins.reduce(merge.plugins, base);
 
   return {

@@ -4,10 +4,10 @@ import { Graph, Node } from 'graph-crdt';
 import LocalStoragePlugin from '../index';
 
 const createFakeStore = () => ({
-  removeItem () {},
-  setItem () {},
-  getItem () {},
-  clear () {},
+  removeItem() {},
+  setItem() {},
+  getItem() {},
+  clear() {},
 });
 
 describe('Mytosis LocalStorage', () => {
@@ -55,12 +55,12 @@ describe('Mytosis LocalStorage', () => {
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         String(node),
-        JSON.stringify(node)
+        JSON.stringify(node),
       );
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         String(other),
-        JSON.stringify(other)
+        JSON.stringify(other),
       );
     });
 
@@ -70,7 +70,7 @@ describe('Mytosis LocalStorage', () => {
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         `data-stuff/${String(node)}`,
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -129,7 +129,7 @@ describe('Mytosis LocalStorage', () => {
     beforeEach(() => {
       node = new Node({ uid: 'some-node' });
       localStorage[node] = JSON.stringify(node);
-      localStorage.getItem.mockImplementation((key) => localStorage[key]);
+      localStorage.getItem.mockImplementation(key => localStorage[key]);
     });
 
     it('is defined', () => {
@@ -139,7 +139,8 @@ describe('Mytosis LocalStorage', () => {
     it('yields every node in localStorage', async () => {
       let run = false;
 
-      for await (const value of store) { // eslint-disable-line
+      for await (const value of store) {
+        // eslint-disable-line
         run = true;
         expect(value).toEqual(node.toJSON());
       }
@@ -153,7 +154,8 @@ describe('Mytosis LocalStorage', () => {
       const prefixed = new Node({ uid: 'pre/node' });
       localStorage[prefixed] = JSON.stringify(prefixed);
 
-      for await (const value of store) { // eslint-disable-line
+      for await (const value of store) {
+        // eslint-disable-line
         expect(value).toEqual(prefixed.toJSON());
         expect(value).not.toEqual(node.toJSON());
       }

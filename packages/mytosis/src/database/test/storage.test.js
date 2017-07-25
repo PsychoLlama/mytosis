@@ -28,7 +28,6 @@ describe('Storage plugin', () => {
     });
 
     it('contains complete node state', async () => {
-
       // Write two partial updates.
       await db.write('state', { original: true });
       await db.write('state', { update: true });
@@ -39,10 +38,7 @@ describe('Storage plugin', () => {
       const [{ graph }] = write.calls[1].arguments;
       const node = graph.value('state');
 
-      expect([...node]).toEqual([
-        ['original', true],
-        ['update', true],
-      ]);
+      expect([...node]).toEqual([['original', true], ['update', true]]);
     });
 
     it('is passed node updates', async () => {
@@ -56,9 +52,13 @@ describe('Storage plugin', () => {
     });
 
     it('is passed the options object', async () => {
-      await db.write('users', {}, {
-        potatoes: true,
-      });
+      await db.write(
+        'users',
+        {},
+        {
+          potatoes: true,
+        },
+      );
 
       const [action] = write.calls[0].arguments;
       expect(action).toContain({
@@ -67,13 +67,16 @@ describe('Storage plugin', () => {
     });
 
     it('is not called if storage is disabled', async () => {
-      await db.write('users', {}, {
-        storage: null,
-      });
+      await db.write(
+        'users',
+        {},
+        {
+          storage: null,
+        },
+      );
 
       expect(write).toNotHaveBeenCalled();
     });
-
   });
 
   describe('read', () => {
@@ -96,9 +99,7 @@ describe('Storage plugin', () => {
       expect(read).toHaveBeenCalled();
       expect(result).toBeA(Node);
 
-      expect([...result]).toEqual([
-        ['from', 'storage'],
-      ]);
+      expect([...result]).toEqual([['from', 'storage']]);
     });
 
     it('is not called if the value is cached', async () => {

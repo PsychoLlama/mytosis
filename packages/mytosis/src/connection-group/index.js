@@ -11,7 +11,6 @@ const connections = Symbol('Connections');
  * @class ConnectionGroup
  */
 export default class ConnectionGroup extends Emitter {
-
   /**
    * Creates a connection group from a connection,
    * @param  {ConnectionGroup|Object} connection -
@@ -20,7 +19,7 @@ export default class ConnectionGroup extends Emitter {
    * If a group is given, the same group is returned.
    * If a connection is given, then it's wrapped into a new group.
    */
-  static ensure = (connection) => {
+  static ensure = connection => {
     if (connection instanceof ConnectionGroup) {
       return connection;
     }
@@ -34,11 +33,10 @@ export default class ConnectionGroup extends Emitter {
   [subscriptions] = {};
   [connections] = {};
 
-  messages = new Stream((push) => {
-
+  messages = new Stream(push => {
     // Create a subscription.
-    const subscribeToConnection = (connection) => {
-      const subscription = connection.messages.forEach((message) => {
+    const subscribeToConnection = connection => {
+      const subscription = connection.messages.forEach(message => {
         push(message, connection);
       });
 
@@ -46,7 +44,7 @@ export default class ConnectionGroup extends Emitter {
     };
 
     // Dispose of the subscription.
-    const disposeOfSubscription = (connection) => {
+    const disposeOfSubscription = connection => {
       const subscription = this[subscriptions][connection.id];
       subscription.dispose();
     };
@@ -70,7 +68,7 @@ export default class ConnectionGroup extends Emitter {
    * @param  {String} key - Connection identifier.
    * @return {Object|null} - The matching connection.
    */
-  id (key) {
+  id(key) {
     return this[connections][key] || null;
   }
 
@@ -79,7 +77,7 @@ export default class ConnectionGroup extends Emitter {
    * @param  {Object} connection - Network connection.
    * @return {undefined}
    */
-  add (connection) {
+  add(connection) {
     const exists = this[connections].hasOwnProperty(connection.id);
 
     if (!exists) {
@@ -95,7 +93,7 @@ export default class ConnectionGroup extends Emitter {
    * @param  {Object} connection - The connection in question.
    * @return {undefined}
    */
-  remove (connection) {
+  remove(connection) {
     const exists = this[connections].hasOwnProperty(connection.id);
 
     if (exists) {
@@ -111,7 +109,7 @@ export default class ConnectionGroup extends Emitter {
    * @param  {Function} predicate - Returns whether the value should be kept.
    * @return {ConnectionGroup} - The resulting set.
    */
-  filter (predicate) {
+  filter(predicate) {
     const result = new ConnectionGroup();
 
     // Add matching items.
@@ -129,10 +127,8 @@ export default class ConnectionGroup extends Emitter {
    * @param  {String} type - Connection type (e.g., 'websocket', 'http').
    * @return {ConnectionGroup} - A new list containing only those connections.
    */
-  type (type) {
-    return this.filter((connection) => (
-      connection.type === type
-    ));
+  type(type) {
+    return this.filter(connection => connection.type === type);
   }
 
   /**
@@ -140,7 +136,7 @@ export default class ConnectionGroup extends Emitter {
    * @param  {Any} msg - A message to send.
    * @return {undefined}
    */
-  send (msg) {
+  send(msg) {
     for (const connection of this) {
       connection.send(msg);
     }
@@ -152,7 +148,7 @@ export default class ConnectionGroup extends Emitter {
    * @param  {String} connection.id - The connection's unique identifier.
    * @return {Boolean} - Whether it's contained.
    */
-  has (connection) {
+  has(connection) {
     return this[connections].hasOwnProperty(connection.id);
   }
 
@@ -161,11 +157,11 @@ export default class ConnectionGroup extends Emitter {
    * @param  {ConnectionGroup} group - Source connections.
    * @return {ConnectionGroup} - The two groups joined together.
    */
-  union (group) {
+  union(group) {
     const result = new ConnectionGroup();
     const addToGroup = result.add.bind(result);
 
-    const removeFromGroup = (connection) => {
+    const removeFromGroup = connection => {
       if (!this.has(connection) && !group.has(connection)) {
         result.remove(connection);
       }
@@ -187,7 +183,7 @@ export default class ConnectionGroup extends Emitter {
    * Yields every connection in the group.
    * @return {undefined}
    */
-  * [Symbol.iterator] () {
+  *[Symbol.iterator]() {
     const group = this[connections];
 
     for (const id in group) {

@@ -16,12 +16,11 @@ const symbol = {
  * @class Subscription
  */
 class Subscription {
-
   /**
    * @param  {Stream} stream - Current stream context.
    * @param  {Function} callback - The subscribed function.
    */
-  constructor (stream, callback) {
+  constructor(stream, callback) {
     this[symbol.handler] = callback;
     this.stream = stream;
   }
@@ -30,12 +29,12 @@ class Subscription {
    * Unsubscribes the callback.
    * @return {undefined}
    */
-  dispose () {
+  dispose() {
     const { stream } = this;
 
     // Remove the listener.
     const filtered = this.stream[symbol.callbacks].filter(
-      (callback) => callback !== this[symbol.handler],
+      callback => callback !== this[symbol.handler],
     );
 
     stream[symbol.callbacks] = filtered;
@@ -56,13 +55,12 @@ class Subscription {
  * @class Stream
  */
 export default class Stream {
-
   /**
    * Constructs a new Stream instance, `new` optional.
    * @param  {Function} publisher - Stream publisher.
    * @return {Stream} - The new stream instance.
    */
-  static create (publisher) {
+  static create(publisher) {
     return new Stream(publisher);
   }
 
@@ -73,8 +71,8 @@ export default class Stream {
    * @param  {String} event - The event name.
    * @return {Stream} - An event stream.
    */
-  static fromEvent (emitter, event) {
-    return new Stream((push) => {
+  static fromEvent(emitter, event) {
+    return new Stream(push => {
       const add = emitter.on || emitter.addEventListener;
       add.call(emitter, event, push);
 
@@ -90,17 +88,17 @@ export default class Stream {
    * Resolves when the stream closes.
    * @type {Promise}
    */
-  complete = new Promise((res) => {
+  complete = new Promise(res => {
     this[symbol.resolve] = res;
   });
 
   /**
    * @param {Function} publisher - Used to generate consumable data.
    */
-  constructor (publisher) {
+  constructor(publisher) {
     if (!(publisher instanceof Function)) {
       throw new TypeError(
-        `Stream(...) expects a function, was given "${publisher}"`
+        `Stream(...) expects a function, was given "${publisher}"`,
       );
     }
 
@@ -113,7 +111,7 @@ export default class Stream {
    * @param  {Function} callback - Invoked for every event.
    * @return {stream} - The current stream.
    */
-  forEach (callback) {
+  forEach(callback) {
     this[symbol.callbacks].push(callback);
 
     this[symbol.observe]();
@@ -134,10 +132,10 @@ export default class Stream {
       throw new Error('Cannot emit values after stream is closed.');
     }
 
-    this[symbol.callbacks].forEach((callback) => {
+    this[symbol.callbacks].forEach(callback => {
       callback(message, sender);
     });
-  }
+  };
 
   /**
    * Terminates the stream permanently.
@@ -153,14 +151,14 @@ export default class Stream {
     this[symbol.isClosed] = true;
     this[symbol.callbacks] = [];
     this[symbol.resolve]();
-  }
+  };
 
   /**
    * Forces the stream open.
    * @private
    * @return {undefined}
    */
-  [symbol.observe] () {
+  [symbol.observe]() {
     if (this[symbol.isOpen]) {
       return;
     }

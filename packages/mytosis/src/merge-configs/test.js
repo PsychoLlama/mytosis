@@ -65,24 +65,28 @@ describe('A config', () => {
 
     it('adds extensions', () => {
       const noop = () => {};
-      result = config([{
-        extend: {
-          root: { noop },
-          context: { noop },
+      result = config([
+        {
+          extend: {
+            root: { noop },
+            context: { noop },
+          },
         },
-      }]);
+      ]);
 
       expect(result.extend.root).toContain({ noop });
       expect(result.extend.context).toContain({ noop });
     });
 
     it('does not mutate the base "extend"', () => {
-      config([{
-        extend: {
-          root: { root: true },
-          context: { context: true },
+      config([
+        {
+          extend: {
+            root: { root: true },
+            context: { context: true },
+          },
         },
-      }]);
+      ]);
 
       expect(base.extend.root).toEqual({});
       expect(base.extend.context).toEqual({});
@@ -100,11 +104,15 @@ describe('A config', () => {
       const store1 = { name: 'Storage driver #1' };
       const store2 = { name: 'Storage driver #2' };
 
-      const fail = () => config([{
-        storage: store1,
-      }, {
-        storage: store2,
-      }]);
+      const fail = () =>
+        config([
+          {
+            storage: store1,
+          },
+          {
+            storage: store2,
+          },
+        ]);
 
       expect(fail).toThrow(/storage/);
     });
@@ -136,23 +144,26 @@ describe('A config', () => {
       expect(result.hooks.before.write).toEqual([write]);
     });
 
-    it('adds hooks in the order they\'re defined', () => {
+    it("adds hooks in the order they're defined", () => {
       const first = () => {};
       const second = () => {};
 
-      const result = config([{
-        hooks: {
-          before: {
-            read: { nodes: first },
+      const result = config([
+        {
+          hooks: {
+            before: {
+              read: { nodes: first },
+            },
           },
         },
-      }, {
-        hooks: {
-          before: {
-            read: { nodes: second },
+        {
+          hooks: {
+            before: {
+              read: { nodes: second },
+            },
           },
         },
-      }]);
+      ]);
 
       expect(result.hooks.before.read.nodes).toEqual([first, second]);
     });
@@ -161,17 +172,20 @@ describe('A config', () => {
       const first = () => {};
       const second = () => {};
 
-      const result = config([{
-        extend: {
-          root: { method: first },
-          context: { method: first },
+      const result = config([
+        {
+          extend: {
+            root: { method: first },
+            context: { method: first },
+          },
         },
-      }, {
-        extend: {
-          root: { method: second },
-          context: { method: second },
+        {
+          extend: {
+            root: { method: second },
+            context: { method: second },
+          },
         },
-      }]);
+      ]);
 
       expect(result.extend.root.method).toBe(second);
       expect(result.extend.context.method).toBe(second);
@@ -184,7 +198,7 @@ describe('A config', () => {
     class Connection {
       type = 'test-connection';
 
-      constructor ({ id }) {
+      constructor({ id }) {
         this.id = id;
       }
     }
@@ -216,11 +230,14 @@ describe('A config', () => {
       group1.add(conn);
       group2.add(conn2);
 
-      const result = config([{
-        network: group1,
-      }, {
-        network: group2,
-      }]);
+      const result = config([
+        {
+          network: group1,
+        },
+        {
+          network: group2,
+        },
+      ]);
 
       expect([...result.network]).toContain(conn);
       expect([...result.network]).toContain(conn2);
@@ -229,11 +246,14 @@ describe('A config', () => {
     it('converts single connections into connection groups', () => {
       const conn2 = new Connection({ id: 'conn2' });
 
-      const result = config([{
-        network: conn,
-      }, {
-        network: conn2,
-      }]);
+      const result = config([
+        {
+          network: conn,
+        },
+        {
+          network: conn2,
+        },
+      ]);
 
       expect(result.network).toBeA(ConnectionGroup);
       expect([...result.network]).toContain(conn);
@@ -250,11 +270,15 @@ describe('A config', () => {
     });
 
     it('throws if given more than one router', () => {
-      const fail = () => config([{
-        router: {},
-      }, {
-        router: {},
-      }]);
+      const fail = () =>
+        config([
+          {
+            router: {},
+          },
+          {
+            router: {},
+          },
+        ]);
 
       expect(fail).toThrow(/router/i);
     });

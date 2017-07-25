@@ -29,7 +29,7 @@ export const defaults = (config, options = {}) => {
  * @param  {Mixed} value - Any value.
  * @return {Mixed} - That same value.
  */
-const identity = (value) => value;
+const identity = value => value;
 
 /**
  * Creates an event pipeline.
@@ -37,20 +37,19 @@ const identity = (value) => value;
  * @param  {Function} [transform] - Handles special return values from hooks.
  * @return {Function} - Triggers a pipeline.
  */
-const createPipeline = (path, transform = identity) => (
-
+const createPipeline = (path, transform = identity) =>
   /**
    * Triggers a pipeline.
    * @param  {Object} config - Database configuration object.
    * @param  {Array} options - The initial parameters.
    * @return {Promise} - Resolves to the pipeline output.
    */
-  (config, options) => trigger({
-    hooks: path.reduce((hooks, type) => hooks[type], config.hooks),
-    initial: defaults(config, options),
-    transform: transform,
-  })
-);
+  (config, options) =>
+    trigger({
+      hooks: path.reduce((hooks, type) => hooks[type], config.hooks),
+      initial: defaults(config, options),
+      transform: transform,
+    });
 
 export const before = {
   read: {

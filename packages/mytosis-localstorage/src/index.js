@@ -4,10 +4,10 @@ const assert = (value, msg) => {
   }
 };
 
-const validateBackend = (backend) => {
+const validateBackend = backend => {
   assert(
     typeof backend === 'object' && backend,
-    `Expected a valid backend, got "${backend}"`
+    `Expected a valid backend, got "${backend}"`,
   );
 
   assert(backend.removeItem, 'Backend does not support `removeItem()` method.');
@@ -22,26 +22,20 @@ const validateBackend = (backend) => {
  * @param  {String} key - A localStorage key.
  * @return {Boolean} - Whether the key is correctly prefixed.
  */
-const matchesPrefix = (prefix) => (key) => (
-  key.slice(0, prefix.length) === prefix
-);
+const matchesPrefix = prefix => key => key.slice(0, prefix.length) === prefix;
 
 /**
  * Creates a localStorage plugin for Mytosis
  * @class LocalStoragePlugin
  */
 module.exports = class LocalStoragePlugin {
-
   /**
    * @param {Object} [options] - Plugin settings.
    * @param {String} [options.prefix=''] - Prefixes all reads and writes.
    * @param {Storage} [options.backend=localStorage]
    * Use a different localStorage interface (like sessionStorage).
    */
-  constructor ({
-    backend = global.localStorage,
-    prefix = '',
-  } = {}) {
+  constructor({ backend = global.localStorage, prefix = '' } = {}) {
     validateBackend(backend);
 
     /**
@@ -67,7 +61,7 @@ module.exports = class LocalStoragePlugin {
    * @param  {Graph} write.graph - A collection of graphs to write.
    * @return {undefined}
    */
-  write ({ graph }) {
+  write({ graph }) {
     for (const [field, node] of graph) {
       const data = JSON.stringify(node);
       const index = `${this.prefix}${field}`;
@@ -81,8 +75,8 @@ module.exports = class LocalStoragePlugin {
    * @param  {String} write.key - Node index.
    * @return {Object|null} - Whatever was in localStorage.
    */
-  read ({ keys }) {
-    return keys.map((key) => {
+  read({ keys }) {
+    return keys.map(key => {
       const index = `${this.prefix}${key}`;
       const result = this.backend.getItem(index);
 
@@ -99,7 +93,7 @@ module.exports = class LocalStoragePlugin {
    * @param  {String} id - The unique node id.
    * @return {undefined}
    */
-  remove (id) {
+  remove(id) {
     const index = `${this.prefix}${id}`;
     this.backend.removeItem(index);
   }
@@ -108,7 +102,7 @@ module.exports = class LocalStoragePlugin {
    * Streams all the nodes from storage.
    * @return {AsyncIterator<Node>} - Every node in localStorage.
    */
-  async * [Symbol.asyncIterator] () {
+  async *[Symbol.asyncIterator]() {
     const { backend, prefix } = this;
     const isPrefixed = matchesPrefix(prefix);
 

@@ -19,17 +19,17 @@ const mapToWriteOp = ([key, node]) => ({
  * @param  {String} key - Key to read.
  * @return {Promise<Object>} - The node json data.
  */
-const readAsPromise = (level) => (key) => new Promise((resolve, reject) => {
-  level.get(key, (error, result) => {
+const readAsPromise = level => key =>
+  new Promise((resolve, reject) => {
+    level.get(key, (error, result) => {
+      // Represent "not found" errors as "undefined".
+      if (error && error.type !== NOT_FOUND_ERROR) {
+        return reject(error);
+      }
 
-    // Represent "not found" errors as "undefined".
-    if (error && error.type !== NOT_FOUND_ERROR) {
-      return reject(error);
-    }
-
-    return resolve(result);
+      return resolve(result);
+    });
   });
-});
 
 /**
  * Create a $q.defer style promise.
@@ -54,13 +54,13 @@ const defer = () => {
  * @param  {Stream.Readable} stream - A value stream from levelup.
  * @return {Promise<Object>} - Resolves with each node.
  */
-async function * streamToGenerator (stream) {
+async function* streamToGenerator(stream) {
   let promise;
 
-  stream.on('data', (data) => promise.resolve(data));
+  stream.on('data', data => promise.resolve(data));
   stream.once('end', () => promise.resolve(null));
 
-  stream.on('error', (error) => {
+  stream.on('error', error => {
     stream.removeAllListeners();
     promise.reject(error);
   });
@@ -91,20 +91,19 @@ const assert = (expr, msg) => {
  * @class
  */
 export default class LevelDB {
-
   /**
    * @param  {Object} config - Configures the level interface.
    * @param  {Object} config.backend - A compatible level instance.
    * @throws {Error} - If required config options are omitted.
    */
-  constructor (config) {
+  constructor(config) {
     assert(config, `Constructor expected an object, was given "${config}"`);
     assert(
       typeof config.backend === 'object' && config.backend,
       'Invalid "config.backend". A LevelDB interface is required.',
     );
 
-    const level = this._level = config.backend;
+    const level = (this._level = config.backend);
     this._readKey = readAsPromise(level);
   }
 
@@ -114,7 +113,7 @@ export default class LevelDB {
    * @param  {String} action.key - The key to read.
    * @return {Promise} - Resolves with the data (if no errors occur).
    */
-  read (action) {
+  read(action) {
     const reads = action.keys.map(this._readKey);
 
     return Promise.all(reads);
@@ -126,12 +125,12 @@ export default class LevelDB {
    * @param  {Graph} action.graph - A collection of updated nodes.
    * @return {Promise} - Resolves when the write finishes.
    */
-  write (action) {
+  write(action) {
     return new Promise((resolve, reject) => {
       const writes = [...action.graph].map(mapToWriteOp);
 
       // Writes all nodes simultaneously.
-      this._level.batch(writes, (error) => {
+      this._level.batch(writes, error => {
         if (error) {
           return reject(error);
         }
@@ -145,12 +144,12 @@ export default class LevelDB {
    * Streams every node from the database.
    * @return {AsyncIterator<Object>} - Yields every node.
    */
-  async * [Symbol.asyncIterator] () {
-
+  async *[Symbol.asyncIterator]() {
     // Don't flush all at once - read one value at a time.
     const stream = this._level.createValueStream({ highWaterMark: 1 });
 
-    for await (const value of streamToGenerator(stream)) { // eslint-disable-line
+    for await (const value of streamToGenerator(stream)) {
+      // eslint-disable-line
 
       // `null` marks a terminated stream.
       if (!value) {

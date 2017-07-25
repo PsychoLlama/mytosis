@@ -2,10 +2,9 @@ import trigger from './index';
 import expect, { createSpy } from 'expect';
 
 describe('A trigger', () => {
-
   it('should return a promise', () => {
     const result = trigger({
-      transform () {},
+      transform() {},
       initial: {},
       hooks: [],
     });
@@ -18,7 +17,7 @@ describe('A trigger', () => {
     spy.andReturn(Promise.resolve());
 
     await trigger({
-      transform () {},
+      transform() {},
       hooks: [spy],
       initial: {},
     });
@@ -32,7 +31,7 @@ describe('A trigger', () => {
     const initial = { data: 'nope' };
 
     await trigger({
-      transform () {},
+      transform() {},
       hooks: [spy],
       initial,
     });
@@ -46,7 +45,7 @@ describe('A trigger', () => {
     const context = { '`this` context test': true };
 
     await context::trigger({
-      transform () {},
+      transform() {},
       hooks: [spy],
       initial: {},
     });
@@ -72,12 +71,9 @@ describe('A trigger', () => {
     spy.andReturn(Promise.resolve('nope'));
 
     await trigger({
-      transform: (result) => result.replace(/first/, 'second'),
+      transform: result => result.replace(/first/, 'second'),
       initial: 'initial',
-      hooks: [
-        async () => 'first hook value',
-        spy,
-      ],
+      hooks: [async () => 'first hook value', spy],
     });
 
     expect(spy).toHaveBeenCalledWith('second hook value');
@@ -88,12 +84,9 @@ describe('A trigger', () => {
     spy.andReturn(Promise.resolve());
 
     const value = await trigger({
-      transform: (output) => output,
+      transform: output => output,
       initial: 0,
-      hooks: [
-        async (val) => val + 1,
-        async (val) => val + 1,
-      ],
+      hooks: [async val => val + 1, async val => val + 1],
     });
 
     expect(value).toEqual(2);
@@ -103,13 +96,9 @@ describe('A trigger', () => {
     const value = await trigger({
       transform: output => output,
       initial: 0,
-      hooks: [
-        async (num) => num + 2,
-        (num) => num + 2,
-      ],
+      hooks: [async num => num + 2, num => num + 2],
     });
 
     expect(value).toEqual(4);
   });
-
 });

@@ -11,7 +11,7 @@ const settings = Symbol('database configuration');
  * @param  {Connection} connection - Valid member of a connection group.
  * @return {Boolean} - Whether the connection is offline.
  */
-const isOffline = (connection) => Boolean(connection.offline);
+const isOffline = connection => Boolean(connection.offline);
 
 /**
  * Turns a node into a context.
@@ -19,8 +19,7 @@ const isOffline = (connection) => Boolean(connection.offline);
  * @param  {Object|Node} data - Any data that can be transformed to a node.
  * @return {Context} - A new database context.
  */
-const createContextFromNode = (database) => (data) => {
-
+const createContextFromNode = database => data => {
   // Ensure the data is a node.
   const node = data instanceof Node ? data : Node.source(data);
 
@@ -38,7 +37,7 @@ const createContextFromNode = (database) => (data) => {
  * @param  {Node|Context} [node] - The data to cache.
  * @return {void}
  */
-const cacheContext = (graph) => (context) => {
+const cacheContext = graph => context => {
   if (!context) {
     return;
   }
@@ -52,28 +51,25 @@ const cacheContext = (graph) => (context) => {
  * @class Database
  */
 class Database extends Graph {
-
   /**
    * Instantiates a new graph database.
    * @param  {Object} config - A database configuration object.
    */
-  constructor (config) {
+  constructor(config) {
     super();
 
     this[settings] = config;
 
     const createRouter = config.router;
 
-    const router = createRouter
-      ? createRouter(this, config)
-      : null;
+    const router = createRouter ? createRouter(this, config) : null;
 
     Object.defineProperty(this, 'router', { value: router });
 
     const extensions = config.extend.root;
 
     /** Add API extensions from the config. */
-    Object.keys(extensions).forEach((key) => {
+    Object.keys(extensions).forEach(key => {
       const value = extensions[key];
 
       /** Non-enumerable and immutable. */
@@ -86,7 +82,7 @@ class Database extends Graph {
    * Storage and network plugins are excluded from the branch.
    * @return {Database} - A new, ephemeral database instance.
    */
-  branch () {
+  branch() {
     const { extend, hooks } = this[settings];
 
     const config = merge([{ extend, hooks }]);
@@ -108,14 +104,12 @@ class Database extends Graph {
    * @param  {Object} [options] - Override global configuration.
    * @return {Promise} - Resolves when the commit has been processed.
    */
-  async commit (update, options = {}) {
-
+  async commit(update, options = {}) {
     // Storage drivers get the full state of each node.
     const graph = new Graph();
     const contexts = this.new();
 
     for (const [id, node] of update) {
-
       if (node instanceof Context) {
         contexts.merge({ [id]: node });
       } else {
@@ -176,8 +170,7 @@ class Database extends Graph {
    * @param  {Object} [options] - Override default behavior.
    * @return {Context} - Resolves to the context written.
    */
-  async write (uid, value, options = {}) {
-
+  async write(uid, value, options = {}) {
     // Turn the object into a database context.
     const context = new Context(this, { uid });
     const current = this.value(uid);
@@ -216,7 +209,7 @@ class Database extends Graph {
    * @example
    * const [timeline, profile] = await db.nodes(['timeline', 'profile'])
    */
-  async nodes (keys, options = {}) {
+  async nodes(keys, options = {}) {
     const config = await pipeline.before.read.nodes(this[settings], {
       ...options,
       offline: this[settings].network.filter(isOffline),
@@ -224,8 +217,8 @@ class Database extends Graph {
     });
 
     // Load nodes from the cache and resolve with the value.
-    const getFinalValue = (action) => {
-      const nodes = config.keys.map((key) => this.value(key));
+    const getFinalValue = action => {
+      const nodes = config.keys.map(key => this.value(key));
 
       return pipeline.after.read.nodes(this[settings], {
         ...action,
@@ -234,7 +227,7 @@ class Database extends Graph {
     };
 
     // Find all the keys that aren't cached.
-    const absentFromCache = config.keys.filter((key) => !this.value(key));
+    const absentFromCache = config.keys.filter(key => !this.value(key));
     const reads = [];
 
     // Terminate early if everything is already cached.
@@ -270,17 +263,18 @@ class Database extends Graph {
     }, {});
 
     // Ignore nodes we didn't request.
-    const isRelevantContext = (context) => {
+    const isRelevantContext = context => {
       const { uid } = context.meta();
       return requestedKeys.hasOwnProperty(uid);
     };
 
     // Process each node.
-    results.forEach((nodes = []) => nodes
-      .filter(Boolean)
-      .map(createContextFromNode(this))
-      .filter(isRelevantContext)
-      .forEach(cacheContext(this))
+    results.forEach((nodes = []) =>
+      nodes
+        .filter(Boolean)
+        .map(createContextFromNode(this))
+        .filter(isRelevantContext)
+        .forEach(cacheContext(this)),
     );
 
     // Run the results through the pipeline.
@@ -300,7 +294,7 @@ class Database extends Graph {
    * @param  {Boolean} [options.force] - Ignore cache and force read.
    * @return {Context|null} - Resolves to the node.
    */
-  async read (key, options = {}) {
+  async read(key, options = {}) {
     const [node] = await this.nodes([key], options);
     return node;
   }
@@ -311,7 +305,7 @@ class Database extends Graph {
    * @param  {Object} options - options for executing the query
    * @return {undefined}
    */
-  query (query, options) {
+  query(query, options) {
     const config = this[settings];
     const engines = config.engines;
     const engine = options.engine;
@@ -336,7 +330,7 @@ class Database extends Graph {
    *   console.log('Found:', node)
    * }
    */
-  async * [Symbol.asyncIterator] () {
+  async *[Symbol.asyncIterator]() {
     const storage = this[settings].storage || {};
     const supported = Boolean(storage[Symbol.asyncIterator]);
 
@@ -345,7 +339,8 @@ class Database extends Graph {
     }
 
     // Start the database stream!
-    for await (const node of storage) { // eslint-disable-line
+    for await (const node of storage) {
+      // eslint-disable-line
 
       // Make sure each value is a node.
       yield node instanceof Node ? node : Node.source(node);
@@ -358,7 +353,7 @@ class Database extends Graph {
  * @param  {...Object} configs - Plugins and configurations for the database.
  * @return {Database} - A new database instance.
  */
-function database (...configs) {
+function database(...configs) {
   const config = merge(configs);
 
   return new Database(config);

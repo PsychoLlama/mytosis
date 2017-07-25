@@ -8,18 +8,18 @@ import LevelDB from '../index';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150;
 
-const createFakeStream = (values) => {
+const createFakeStream = values => {
   const stream = new Readable({ objectMode: true });
   stream.removeAllListeners = jest.fn(stream.removeAllListeners);
 
-  stream._read = jest.fn(() => { // eslint-disable-line
+  stream._read = jest.fn(() => {
+    // eslint-disable-line
     const [next = null] = values;
     values = values.slice(1);
 
     if (next instanceof Error) {
       stream.emit('error', next);
     } else {
-
       // Real life isn't synchronous.
       setTimeout(() => stream.push(next), 20);
     }
@@ -128,7 +128,8 @@ describe('Mytosis LevelDB', () => {
     });
 
     it('creates a value stream', async () => {
-      for await (const value of level) {} // eslint-disable-line
+      for await (const value of level) {
+      } // eslint-disable-line
       expect(backend.createValueStream).toHaveBeenCalled();
     });
 
@@ -137,7 +138,8 @@ describe('Mytosis LevelDB', () => {
       backend.createValueStream.mockReturnValue(stream);
       let run = 0;
 
-      for await (const value of level) { // eslint-disable-line
+      for await (const value of level) {
+        // eslint-disable-line
         run += 1;
       }
 
@@ -149,7 +151,8 @@ describe('Mytosis LevelDB', () => {
       backend.createValueStream.mockReturnValue(stream);
 
       try {
-        for await (const value of level) {} // eslint-disable-line
+        for await (const value of level) {
+        } // eslint-disable-line
         throw new Error('Should have thrown an error prior.');
       } catch (error) {
         expect(error.message).toMatch(/oh no/);
@@ -162,7 +165,8 @@ describe('Mytosis LevelDB', () => {
       backend.createValueStream.mockReturnValue(stream);
 
       try {
-        for await (const value of level) {} // eslint-disable-line
+        for await (const value of level) {
+        } // eslint-disable-line
       } catch (error) {
         // Meh.
       }
@@ -175,7 +179,8 @@ describe('Mytosis LevelDB', () => {
       backend.createValueStream.mockReturnValue(stream);
 
       // Pray this doesn't time out.
-      for await (const value of level) { // eslint-disable-line
+      for await (const value of level) {
+        // eslint-disable-line
         throw new Error('Should not have been called.');
       }
     });
