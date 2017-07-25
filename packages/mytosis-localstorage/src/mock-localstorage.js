@@ -1,5 +1,5 @@
+// eslint-disable-next-line
 function mockLocalStorage() {
-  // eslint-disable-line require-jsdoc
   global.localStorage = Object.defineProperties(
     {},
     {

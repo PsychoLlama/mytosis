@@ -121,8 +121,6 @@ describe('Mytosis LocalStorage', () => {
     });
   });
 
-  // Fun babel-eslint bug causes the "semi" rule to trigger on for-await loops.
-  // Source: https://github.com/babel/babel-eslint/issues/415
   describe('async iterator', () => {
     let node;
 
@@ -140,9 +138,8 @@ describe('Mytosis LocalStorage', () => {
       let run = false;
 
       for await (const value of store) {
-        // eslint-disable-line
-        run = true;
         expect(value).toEqual(node.toJSON());
+        run = true;
       }
 
       expect(run).toBe(true);
