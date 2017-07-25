@@ -1,6 +1,14 @@
 {
   "scripts": {
-    "postinstall": "lerna bootstrap"
+    "postinstall": "lerna bootstrap",
+    "precommit": "lint-staged",
+    "prettier": "prettier --single-quote --trailing-comma all"
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm run prettier -- --write",
+      "git add"
+    ]
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
