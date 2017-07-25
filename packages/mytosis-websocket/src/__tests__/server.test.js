@@ -14,7 +14,7 @@ describe('Mytosis websocket server', () => {
   beforeEach(() => {
     wss = new Emitter();
     Server.mockReset();
-    Server.mockImplementation(function () {
+    Server.mockImplementation(function() {
       return wss;
     });
 
@@ -113,7 +113,6 @@ describe('Mytosis websocket server', () => {
   });
 
   it('turns array buffers into buffer objects', () => {
-
     // The .buffer property is the underlying `ArrayBuffer`.
     const { buffer } = new Uint8Array([1, 2, 3]);
     const socket = new Emitter();
@@ -138,7 +137,7 @@ describe('Mytosis websocket server', () => {
 
     expect(socket.removeListener).toHaveBeenCalledWith(
       'message',
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 

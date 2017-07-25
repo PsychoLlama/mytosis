@@ -158,13 +158,14 @@ describe('A context', () => {
   });
 
   describe('API extension', () => {
-    const extend = (context) => database({
-      extend: { context },
-    });
+    const extend = context =>
+      database({
+        extend: { context },
+      });
 
     it('should contain extensions from the config', () => {
       const root = extend({
-        wazzup () {},
+        wazzup() {},
       });
 
       const ctx = new Context(root);

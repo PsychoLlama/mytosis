@@ -49,7 +49,7 @@ describe('Stream', () => {
 
     it('sends values to all subscribers', () => {
       const msg = {};
-      spy.andCall((push) => push(msg));
+      spy.andCall(push => push(msg));
       const stream = new Stream(spy);
       stream.forEach(each);
 
@@ -88,7 +88,7 @@ describe('Stream', () => {
     });
 
     it('allows two parameters', () => {
-      const stream = new Stream((push) => push(1, 2, 3));
+      const stream = new Stream(push => push(1, 2, 3));
       stream.forEach(spy);
 
       expect(spy).toHaveBeenCalledWith(1, 2);
@@ -153,7 +153,7 @@ describe('Stream', () => {
       const publisher = createSpy();
       stream = new Stream(publisher);
 
-      publisher.andCall((next) => {
+      publisher.andCall(next => {
         push = next;
       });
     });

@@ -10,12 +10,11 @@ const assert = asserter('Mytosis WebSocket');
  * @class
  */
 export default class Socket {
-
   /**
    * @param  {String} url - WebSocket protocol formatted url.
    * @param  {Object} [config] - WebSocket protocol formatted url.
    */
-  constructor (url, config = {}) {
+  constructor(url, config = {}) {
     assert(typeof url === 'string', `Got URL "${url}" (expected string)`);
     const { protocols, ...options } = config;
 
@@ -23,16 +22,13 @@ export default class Socket {
     this.type = 'websocket';
     this.offline = true;
 
-    const socket = this._websocket = new WebSocket(url, protocols, options);
+    const socket = (this._websocket = new WebSocket(url, protocols, options));
 
     // Handle incoming messages.
-    this.messages = new Stream((push) => {
+    this.messages = new Stream(push => {
       const parseMessages = ({ data }) => {
-
         // Support binary (Blob/ArrayBuffer) payloads.
-        const payload = typeof data === 'string'
-          ? JSON.parse(data)
-          : data;
+        const payload = typeof data === 'string' ? JSON.parse(data) : data;
 
         push(payload);
       };
@@ -55,7 +51,7 @@ export default class Socket {
    * @param  {Mixed} message - JSON or a binary interface.
    * @return {undefined}
    */
-  send (message) {
+  send(message) {
     const payload = isBinary(message) ? message : JSON.stringify(message);
 
     this._websocket.send(payload);

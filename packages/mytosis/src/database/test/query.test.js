@@ -3,7 +3,6 @@ import expect, { spyOn } from 'expect';
 import { queryEngine } from '../../mocks';
 
 describe('A database query', () => {
-
   let db;
   let executeQuery;
 
@@ -24,9 +23,10 @@ describe('A database query', () => {
   });
 
   it('should throw if it cannot find query engine', () => {
-    const query = () => db.query('string', {
-      engine: 'engine',
-    });
+    const query = () =>
+      db.query('string', {
+        engine: 'engine',
+      });
     expect(query).toThrow(Error);
   });
 
@@ -40,7 +40,6 @@ describe('A database query', () => {
   });
 
   it('should return correct value', () => {
-
     executeQuery.andReturn('cheese');
 
     const result = db.query(['users'], {
@@ -48,6 +47,4 @@ describe('A database query', () => {
     });
     expect(result).toEqual('cheese');
   });
-
-
 });

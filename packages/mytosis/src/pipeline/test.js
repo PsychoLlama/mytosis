@@ -5,9 +5,9 @@ import mergeConfigs from '../merge-configs';
 import { Connection } from '../mocks';
 import * as pipeline from './index';
 
-const hooks = (hooks) => mergeConfigs([{ hooks }]);
+const hooks = hooks => mergeConfigs([{ hooks }]);
 
-describe('The pipeline\'s default option setter', () => {
+describe("The pipeline's default option setter", () => {
   const storage = { storage: true };
   let config, group, conn;
 
@@ -17,10 +17,12 @@ describe('The pipeline\'s default option setter', () => {
 
     group.add(conn);
 
-    config = mergeConfigs([{
-      network: group,
-      storage,
-    }]);
+    config = mergeConfigs([
+      {
+        network: group,
+        storage,
+      },
+    ]);
   });
 
   it('adds storage and network fields', () => {
@@ -102,15 +104,13 @@ describe('The pipeline', () => {
     return hooks(hooksObject);
   };
 
-  const getPipeline = (path) => path.reduce((obj, type) => (
-    obj[type]
-  ), pipeline);
+  const getPipeline = path => path.reduce((obj, type) => obj[type], pipeline);
 
-  methods.forEach((path) => {
+  methods.forEach(path => {
     describe(`"${path.join('.')}" method`, async () => {
       it('allows hooks to override the arguments', async () => {
         const options = { original: 'yep' };
-        const hook = (initial) => ({ ...initial, added: true });
+        const hook = initial => ({ ...initial, added: true });
         const config = buildConfig(path, hook);
 
         const result = await getPipeline(path)(config, options);
@@ -145,9 +145,11 @@ describe('The pipeline', () => {
 
       it('uses an empty storage list if null is given', async () => {
         const options = { storage: null };
-        const config = mergeConfigs([{
-          storage: { name: 'storage driver' },
-        }]);
+        const config = mergeConfigs([
+          {
+            storage: { name: 'storage driver' },
+          },
+        ]);
 
         const result = await getPipeline(path)(config, options);
 
@@ -159,9 +161,11 @@ describe('The pipeline', () => {
         const conn = new Connection({ id: 'connection 1' });
         group.add(conn);
 
-        const config = mergeConfigs([{
-          network: group,
-        }]);
+        const config = mergeConfigs([
+          {
+            network: group,
+          },
+        ]);
 
         const result = await getPipeline(path)(config, { network: null });
 

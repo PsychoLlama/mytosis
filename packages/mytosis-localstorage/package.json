@@ -35,7 +35,6 @@
     "babel-runtime": "^6.23.0",
     "eslint": "^4.1.1",
     "eslint-config-llama": "^3.0.0",
-    "eslint-plugin-babel": "^4.1.1",
     "graph-crdt": "^0.7.0",
     "jest": "^20.0.4",
     "regenerator-runtime": "^0.10.5"

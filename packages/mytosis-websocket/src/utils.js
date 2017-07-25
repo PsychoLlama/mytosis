@@ -1,7 +1,7 @@
 /* global Blob */
 
 // Creates a convenient `assert` function.
-export const asserter = (app) => (expr, msg) => {
+export const asserter = app => (expr, msg) => {
   if (!expr) {
     throw new Error(`${app}: ${msg}`);
   }
@@ -17,7 +17,7 @@ const hasBlobSupport = typeof Blob === 'function';
  * @param  {Mixed} data - JSON or binary data.
  * @return {Boolean} - If it's binary.
  */
-export const isBinary = (data) => {
+export const isBinary = data => {
   if (binaryNotSupported || !data) {
     return false;
   }

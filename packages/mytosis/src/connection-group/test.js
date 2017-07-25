@@ -181,7 +181,7 @@ describe('ConnectionGroup', () => {
       group.add(conn);
       group.add(new Connection({ id: 'conn2' }));
 
-      const result = group.filter((conn) => conn.id === 'conn1');
+      const result = group.filter(conn => conn.id === 'conn1');
 
       expect([...result].length).toBe(1);
     });

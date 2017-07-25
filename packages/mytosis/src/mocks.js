@@ -3,9 +3,9 @@ import { createSpy } from 'expect';
 import Stream from './stream';
 
 export class Storage {
-  cache = {}
+  cache = {};
 
-  async write ({ graph }) {
+  async write({ graph }) {
     const { cache } = this;
 
     for (const [uid, node] of graph) {
@@ -13,17 +13,15 @@ export class Storage {
     }
   }
 
-  async read ({ keys }) {
-    const saved = keys.map((key) => this.cache[key]).filter(Boolean);
+  async read({ keys }) {
+    const saved = keys.map(key => this.cache[key]).filter(Boolean);
 
-    return saved.map((value) => (
-      JSON.parse(value)
-    ));
+    return saved.map(value => JSON.parse(value));
   }
 }
 
 export class Connection {
-  constructor ({ id = 'default-connection-id', type = 'mock' } = {}) {
+  constructor({ id = 'default-connection-id', type = 'mock' } = {}) {
     this.type = type;
     this.id = id;
   }
@@ -37,7 +35,7 @@ export class Connection {
 }
 
 export class Router {
-  static create () {
+  static create() {
     return new Router();
   }
 
@@ -48,5 +46,5 @@ export class Router {
 export const createRouter = createSpy().andCall(() => new Router());
 
 export const queryEngine = {
-  executeQuery () {},
+  executeQuery() {},
 };

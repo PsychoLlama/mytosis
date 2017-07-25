@@ -9,7 +9,6 @@ describe('The database', () => {
   });
 
   it('allows document structures', async () => {
-
     // Build some nodes.
     const users = await db.write('users', {});
     const alice = await db.write('users/alice', {
@@ -29,13 +28,10 @@ describe('The database', () => {
     const prefs = await user.read('settings');
 
     // Assert the data wrote correctly.
-    expect([...prefs]).toEqual([
-      ['background', 'blue'],
-    ]);
+    expect([...prefs]).toEqual([['background', 'blue']]);
   });
 
   it('allows circular references', async () => {
-
     // Write two users.
     const alice = await db.write('users/alice', {
       name: 'Alice',
