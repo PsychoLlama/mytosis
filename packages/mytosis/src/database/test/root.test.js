@@ -821,7 +821,9 @@ describe('Database', () => {
 
       try {
         for await (const node of db) {
-        } // eslint-disable-line
+          expect(node).toBeA(Node);
+        }
+
         throw new Error('Previous line should have thrown.');
       } catch (error) {
         expect(error.message).toMatch(/storage/i);

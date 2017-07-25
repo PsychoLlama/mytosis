@@ -13,3 +13,6 @@ extends:
 parser: babel-eslint
 parserOptions:
   sourceType: module
+
+rules:
+  lines-around-comment: off

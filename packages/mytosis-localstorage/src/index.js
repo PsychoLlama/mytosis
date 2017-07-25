@@ -1,4 +1,3 @@
-/* eslint-disable lines-around-comment */
 const assert = (value, msg) => {
   if (!value) {
     throw new Error(`mytosis-localstorage: ${msg}`);
