@@ -36,6 +36,7 @@ function run_script_in_packages {
   done
 }
 
+run_script_in_packages build
 run_script_in_packages lint
 run_script_in_packages test
 
