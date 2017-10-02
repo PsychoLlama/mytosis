@@ -1,6 +1,6 @@
 {
+  "private": true,
   "scripts": {
-    "postinstall": "lerna bootstrap",
     "precommit": "lint-staged",
     "prettier": "prettier --single-quote --trailing-comma all"
   },
@@ -14,8 +14,10 @@
     "babel-eslint": "^7.2.3",
     "eslint-config-prettier": "^2.3.0",
     "husky": "^0.14.3",
-    "lerna": "^2.0.0-rc.5",
     "lint-staged": "^4.0.2",
     "prettier": "^1.5.3"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

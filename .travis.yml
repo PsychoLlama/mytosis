@@ -5,6 +5,9 @@ node_js:
 - 6
 - 8
 
+before_install:
+- npm i -g yarn@1.1.0
+- yarn config set workspaces-experimental true
+
 script:
-- yarn lerna run test
-- yarn lerna run lint
+- ./run-tests.sh
