@@ -69,4 +69,85 @@ describe('Primitive', () => {
     expect(type.isValid(undefined)).toBe(false);
     expect(isValid).not.toHaveBeenCalled();
   });
+
+  it('throws if the serializer is invalid', () => {
+    const def = { isValid() {}, serialize: 5 };
+    const fail = () => new Primitive('any', def);
+
+    expect(fail).toThrow(/serialize/i);
+    expect(
+      () =>
+        new Primitive('any', {
+          isValid: () => true,
+          serialize() {},
+          hydrate() {},
+        }),
+    ).not.toThrow();
+  });
+
+  it('throws if a hydrator was omitted with a serializer', () => {
+    const isValid = value => value instanceof Date;
+    const def = { isValid, serialize() {} };
+    const fail = () => new Primitive('time', def);
+
+    expect(fail).toThrow(/hydr/i);
+    expect(() => new Primitive('time', { ...def, hydrate() {} })).not.toThrow();
+  });
+
+  it('returns the value when no serializer is omitted', () => {
+    const type = new Primitive('string', {
+      isValid: value => typeof value === 'string',
+    });
+
+    expect(type.serialize('stuff')).toBe('stuff');
+  });
+
+  it('throws if the serialized type is invalid', () => {
+    const isValid = value => typeof value === 'number';
+    const type = new Primitive('number', { isValid });
+    const fail = () => type.serialize('not a number');
+
+    expect(fail).toThrow(/invalid/i);
+  });
+
+  it('uses the serializer if specified', () => {
+    const isValid = value => value instanceof Date;
+    const serialize = jest.fn(() => 30);
+    const hydrate = () => {};
+    const type = new Primitive('time', { isValid, serialize, hydrate });
+    const date = new Date();
+    const result = type.serialize(date, 'extra');
+
+    expect(serialize).toHaveBeenCalledWith(date);
+    expect(result).toEqual(30);
+  });
+
+  it('uses the hydrator when given', () => {
+    const isValid = value => typeof value === 'string';
+    const serialize = jest.fn();
+    const hydrate = jest.fn(() => 'hydrated');
+    const type = new Primitive('string', { isValid, serialize, hydrate });
+    const result = type.hydrate('value', 'extra');
+
+    expect(hydrate).toHaveBeenCalledWith('value');
+    expect(result).toBe('hydrated');
+  });
+
+  it('returns the value if no hydrator is given', () => {
+    const isValid = value => !!value === value;
+    const type = new Primitive('boolean', { isValid });
+    const result = type.hydrate(false);
+
+    expect(result).toBe(false);
+  });
+
+  it('throws if the value failed to hydrate', () => {
+    const isValid = value => value instanceof Date;
+    const serialize = jest.fn(date => date.getTime());
+    const hydrate = value => value;
+    const type = new Primitive('time', { isValid, serialize, hydrate });
+    const fail = () => type.hydrate(type.serialize(new Date()));
+
+    expect(fail).toThrow(/type/i);
+  });
 });
