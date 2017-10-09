@@ -1,3 +1,4 @@
+// @flow
 import Primitive from '../Primitive';
 
 describe('Primitive', () => {
@@ -5,14 +6,8 @@ describe('Primitive', () => {
     expect(Primitive).toEqual(expect.any(Function));
   });
 
-  it('throws if the name is omitted', () => {
-    const fail = () => new Primitive();
-
-    expect(fail).toThrow(/name/i);
-  });
-
   it('throws if the name contains non-word characters', () => {
-    const def = { isValid() {} };
+    const def = { isValid: () => false };
 
     expect(() => new Primitive('', def)).toThrow(/name/i);
     expect(() => new Primitive(' ', def)).toThrow(/name/i);
@@ -26,18 +21,6 @@ describe('Primitive', () => {
     expect(() => new Primitive('camelCased', def)).not.toThrow();
   });
 
-  it('throws if the definition is omitted', () => {
-    const fail = () => new Primitive('string');
-
-    expect(fail).toThrow(/definition/i);
-  });
-
-  it('throws if the validator is omitted', () => {
-    const fail = () => new Primitive('string', {});
-
-    expect(fail).toThrow(/valid/i);
-  });
-
   it('consults the validator', () => {
     const isValid = jest.fn(() => false);
     const type = new Primitive('string', { isValid });
@@ -45,21 +28,6 @@ describe('Primitive', () => {
 
     expect(isValid).toHaveBeenCalledWith(5);
     expect(result).toBe(false);
-  });
-
-  it('coerces validation results to booleans', () => {
-    const isValid = jest.fn(() => 'wat');
-    const type = new Primitive('number', { isValid });
-
-    expect(type.isValid(20)).toBe(true);
-  });
-
-  it('only passes the first arg through the validator', () => {
-    const isValid = jest.fn();
-    const type = new Primitive('number', { isValid });
-    type.isValid(1, 2, 3);
-
-    expect(isValid).toHaveBeenCalledWith(1);
   });
 
   it('always returns false when given `undefined`', () => {
@@ -70,21 +38,6 @@ describe('Primitive', () => {
     expect(isValid).not.toHaveBeenCalled();
   });
 
-  it('throws if the serializer is invalid', () => {
-    const def = { isValid() {}, serialize: 5 };
-    const fail = () => new Primitive('any', def);
-
-    expect(fail).toThrow(/serialize/i);
-    expect(
-      () =>
-        new Primitive('any', {
-          isValid: () => true,
-          serialize() {},
-          hydrate() {},
-        }),
-    ).not.toThrow();
-  });
-
   it('throws if a hydrator was omitted with a serializer', () => {
     const isValid = value => value instanceof Date;
     const def = { isValid, serialize() {} };
@@ -92,6 +45,17 @@ describe('Primitive', () => {
 
     expect(fail).toThrow(/hydr/i);
     expect(() => new Primitive('time', { ...def, hydrate() {} })).not.toThrow();
+  });
+
+  it('throws if a serializer was omitted with a hydrator', () => {
+    const isValid = value => value instanceof Date;
+    const def = { isValid, hydrate() {} };
+    const fail = () => new Primitive('time', def);
+
+    expect(fail).toThrow(/serialize/i);
+    expect(
+      () => new Primitive('time', { ...def, serialize() {} }),
+    ).not.toThrow();
   });
 
   it('returns the value when no serializer is omitted', () => {
@@ -116,7 +80,7 @@ describe('Primitive', () => {
     const hydrate = () => {};
     const type = new Primitive('time', { isValid, serialize, hydrate });
     const date = new Date();
-    const result = type.serialize(date, 'extra');
+    const result = type.serialize(date);
 
     expect(serialize).toHaveBeenCalledWith(date);
     expect(result).toEqual(30);
@@ -127,7 +91,7 @@ describe('Primitive', () => {
     const serialize = jest.fn();
     const hydrate = jest.fn(() => 'hydrated');
     const type = new Primitive('string', { isValid, serialize, hydrate });
-    const result = type.hydrate('value', 'extra');
+    const result = type.hydrate('value');
 
     expect(hydrate).toHaveBeenCalledWith('value');
     expect(result).toBe('hydrated');
