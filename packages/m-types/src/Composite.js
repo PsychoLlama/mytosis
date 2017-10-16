@@ -24,7 +24,7 @@ export default class Composite {
       },
     },
   ) {
-    assert(/^[A-Z][a-zA-Z]*$/.test(name), 'Invalid name.');
+    assert(/^[A-Z][a-zA-Z:]*$/.test(name), `Invalid composite name "${name}".`);
 
     this.definition = def.initialFieldSet || {};
     this.defaultType = def.defaultType;
@@ -34,6 +34,7 @@ export default class Composite {
   /**
    * Ensures the type is valid.
    * @param  {Object} data - Any object.
+   * @throws {Error} - If the data is invalid.
    * @return {void}
    */
   validate(data: Object): void {

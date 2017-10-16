@@ -23,6 +23,13 @@ describe('Composite', () => {
     expect(() => new Composite('Product', def)).not.toThrow();
   });
 
+  it('allows names with colons in them', () => {
+    const def = {};
+
+    expect(() => new Composite(':Product:name', def)).toThrow(/name/i);
+    expect(() => new Composite('Product:name', def)).not.toThrow();
+  });
+
   describe('validator', () => {
     it('throws if a field is unrecognized', () => {
       const Product = new Composite('Product', {
