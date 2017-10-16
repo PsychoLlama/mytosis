@@ -6,7 +6,7 @@ const invalidNameMsg = name =>
   '\nNames must begin lowercase and contain no special characters.';
 
 type TypeDefinition = {
-  isValid(data: any): boolean,
+  isValid(data: mixed): boolean,
   serialize?: Function,
   hydrate?: Function,
 };
@@ -44,10 +44,10 @@ export default class Primitive {
 
   /**
    * Whether the value is valid.
-   * @param  {Any} value - Anything but `undefined`.
+   * @param  {mixed} value - Anything but `undefined`.
    * @return {Boolean} - Whether the value is valid.
    */
-  isValid(value: any): boolean {
+  isValid(value: mixed): boolean {
     if (value === undefined) {
       return false;
     }
@@ -57,14 +57,14 @@ export default class Primitive {
 
   /**
    * Serializes a value into a JSON friendly data structure.
-   * @param  {Any} value - A value belonging to the called type.
-   * @return {Any} - The JSON-ready value.
+   * @param  {mixed} value - A value belonging to the called type.
+   * @return {mixed} - The JSON-ready value.
    * @throws {Error} - If the value is invalid.
    */
-  serialize(value: any) {
+  serialize(value: mixed) {
     assert(
       this.isValid(value),
-      `Cannot serialize invalid ${this.name} (${value}).`,
+      `Cannot serialize invalid ${this.name} (${String(value)}).`,
     );
 
     if (this._serialize) {
@@ -76,16 +76,16 @@ export default class Primitive {
 
   /**
    * Rehydrates a previously hydrated value. Non-idempotent.
-   * @param  {Any} value - Something to rehydrate.
-   * @return {Any} - A validated type.
+   * @param  {mixed} value - Something to rehydrate.
+   * @return {mixed} - A validated type.
    * @throws {Error} - If the type failed to hydrate properly.
    */
-  hydrate(value: any) {
+  hydrate(value: mixed) {
     const result = this._hydrate ? this._hydrate(value) : value;
 
     assert(
       this.isValid(result),
-      `Rehydration failed: unexpected type (${value}).`,
+      `Rehydration failed: unexpected type (${String(value)}).`,
     );
 
     return result;
