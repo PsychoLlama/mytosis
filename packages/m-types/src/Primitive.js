@@ -13,7 +13,7 @@ type TypeDefinition = {
 
 /** Creates primitive types. */
 export default class Primitive {
-  _isValid: Function;
+  _isValid: mixed => boolean;
   _serialize: ?Function;
   _hydrate: ?Function;
   name: string;
