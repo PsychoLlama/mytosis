@@ -1,4 +1,6 @@
 // @flow
+import assert from 'minimalistic-assert';
+
 import type Composite from './Composite';
 import type Primitive from './Primitive';
 import type Enum from './Enum';
@@ -47,6 +49,11 @@ class AddMigration extends Migration {
    * @return {Object} - What the type should look like.
    */
   migrateType(type: Composite): CompositeTypeMap {
+    assert(
+      !type.definition[this.field],
+      `Field "${this.field}" already exists in type ${type.name}.`,
+    );
+
     return {
       defaultType: type.defaultType,
       definition: {
@@ -91,6 +98,12 @@ class RemoveMigration extends Migration {
    * @return {Object} - What the type should look like.
    */
   migrateType(type: Composite): CompositeTypeMap {
+    assert(
+      this.field in type.definition,
+      `Can't remove field "${this.field}" from type ${type.name}; ` +
+        `No such field exists.`,
+    );
+
     const definition = { ...type.definition };
     delete definition[this.field];
 
@@ -114,3 +127,43 @@ class RemoveMigration extends Migration {
 }
 
 export const remove = (field: string) => new RemoveMigration(field);
+
+/** Changes the type of a field. */
+class ChangeTypeMigration extends Migration {
+  field: string;
+  type: AnyType;
+
+  /**
+   * @param  {String} field - The field to change.
+   * @param  {Type} type - Any type.
+   */
+  constructor(field: string, type: AnyType) {
+    super('CHANGE_TYPE');
+
+    this.field = field;
+    this.type = type;
+  }
+
+  /**
+   * Changes the type of a field.
+   * @param  {Composite} type - Any composite type.
+   * @return {Object} - What the composite should look like.
+   */
+  migrateType(type: Composite): CompositeTypeMap {
+    assert(
+      type.definition.hasOwnProperty(this.field),
+      `Field "${this.field}" doesn't exist in type ${type.name}.`,
+    );
+
+    return {
+      defaultType: type.defaultType,
+      definition: {
+        ...type.definition,
+        [this.field]: this.type,
+      },
+    };
+  }
+}
+
+export const changeType = (field: string, type: AnyType) =>
+  new ChangeTypeMigration(field, type);
