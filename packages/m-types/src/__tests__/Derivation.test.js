@@ -40,6 +40,7 @@ describe('Derivation', () => {
       /name/i,
     );
     expect(() => new Derivation('sym&ols', number, def)).toThrow(/name/i);
+    expect(() => new Derivation('camelCased', number, def)).toThrow(/name/i);
     expect(() => new Derivation('spaced words', number, def)).toThrow(/name/i);
     expect(() => new Derivation('', number, def)).toThrow(/name/i);
 

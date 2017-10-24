@@ -1,7 +1,7 @@
 // @flow
 import assert from 'minimalistic-assert';
 
-import type Primitive from './Primitive';
+import Primitive, { nameRegex } from './Primitive';
 
 type Definition = {
   isValid(value: mixed): boolean,
@@ -23,10 +23,7 @@ export default class Derivation {
    * @param  {Object} def - The derivation rule set.
    */
   constructor(name: string, primitive: Primitive, def: Definition) {
-    assert(
-      /^[a-z][0-9a-z-]*$/.test(name),
-      `Invalid derivation name "${name}".`,
-    );
+    assert(nameRegex.test(name), `Invalid derivation name "${name}".`);
 
     this.subtype = primitive;
     this._definition = def;
@@ -65,7 +62,7 @@ export default class Derivation {
    * @param  {mixed} value - Anything but undefined.
    * @return {Boolean} - Whether the value is valid.
    */
-  isValid(value: mixed) {
+  isValid(value: mixed): boolean {
     return this._definition.isValid(value);
   }
 }
