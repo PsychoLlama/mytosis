@@ -15,6 +15,7 @@ type Coercible = Primitive | Derivation;
  */
 export default class Enum extends Primitive {
   /**
+   * @param  {Primitive} coercion - The type to use in a coercion.
    * @param  {Array} types - Primitive or literal values.
    */
   constructor(coercion: Coercible, types: TypeList) {
