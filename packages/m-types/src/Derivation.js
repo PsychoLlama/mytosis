@@ -25,9 +25,11 @@ export default class Derivation {
   constructor(name: string, primitive: Primitive, def: Definition) {
     assert(nameRegex.test(name), `Invalid derivation name "${name}".`);
 
-    this.subtype = primitive;
-    this._definition = def;
     this.name = name;
+    this.subtype = primitive;
+    Object.defineProperty(this, '_definition', {
+      value: def,
+    });
   }
 
   /**

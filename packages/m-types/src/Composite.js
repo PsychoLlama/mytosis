@@ -26,9 +26,15 @@ export default class Composite {
   ) {
     assert(/^[A-Z][a-zA-Z:]*$/.test(name), `Invalid composite name "${name}".`);
 
-    this.definition = def.initialFieldSet || {};
-    this.defaultType = def.defaultType;
     this.name = name;
+    Object.defineProperties(this, {
+      definition: {
+        value: def.initialFieldSet || {},
+      },
+      defaultType: {
+        value: def.defaultType || null,
+      },
+    });
   }
 
   /**

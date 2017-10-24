@@ -22,12 +22,12 @@ export default class Primitive {
    * @param  {Function} def.isValid - Whether an arbitrary value qualifies.
    */
   constructor(name: string, def: TypeDefinition) {
-    assert(typeof name === 'string', 'Primitive(..) expects a name.');
     assert(nameRegex.test(name), invalidNameMsg(name));
-    assert(def instanceof Object, `Missing primitive definition (${name}).`);
 
-    this._isValid = def.isValid;
     this.name = name;
+    Object.defineProperty(this, '_isValid', {
+      value: def.isValid,
+    });
   }
 
   /**
