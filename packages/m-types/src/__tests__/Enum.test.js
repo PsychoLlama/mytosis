@@ -1,4 +1,5 @@
 // @flow
+import Derivation from '../Derivation';
 import Primitive from '../Primitive';
 import Composite from '../Composite';
 import Enum from '../Enum';
@@ -53,5 +54,17 @@ describe('Enum', () => {
     const fail = () => new Enum([validEnum]);
 
     expect(fail).toThrow(/enum/i);
+  });
+
+  it('throws if the set contains ambiguous types', () => {
+    const time = new Derivation('time', string, {
+      isValid: value => value instanceof Date,
+      dehydrate: date => date.toUTCString(),
+      hydrate: utc => new Date(utc),
+    });
+
+    const fail = () => new Enum([time, string]);
+
+    expect(fail).toThrow(/ambiguous/i);
   });
 });

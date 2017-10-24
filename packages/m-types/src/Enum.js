@@ -1,6 +1,7 @@
 // @flow
 import assert from 'minimalistic-assert';
 
+import Derivation from './Derivation';
 import type Literal from './Literal';
 import Composite from './Composite';
 import Primitive from './Primitive';
@@ -11,10 +12,11 @@ import Primitive from './Primitive';
  */
 export default class Enum extends Primitive {
   /**
-   * @param  {Primitive[]} types - Primitive or literal values.
+   * @param  {Array} types - Primitive or literal values.
    */
-  constructor(types: Array<Primitive | Literal>) {
+  constructor(types: Array<Primitive | Literal | Derivation>) {
     assert(types.length, 'List of enum values is empty.');
+    const typeSet = new Set(types);
 
     // Flow doesn't catch these. I'm probably making a n00b mistake.
     types.forEach(type => {
@@ -26,6 +28,15 @@ export default class Enum extends Primitive {
         notComposite,
         `Enums cannot contain composite types (given ${type.name}).`,
       );
+
+      // Ensure types can always be inferred by value.
+      if (type instanceof Derivation) {
+        assert(
+          !typeSet.has(type.subtype),
+          `Enum contains ambiguous types (${type.name} & ${type.subtype
+            .name}).`,
+        );
+      }
     });
 
     super('enum', {
