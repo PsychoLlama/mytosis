@@ -5,7 +5,9 @@ const invalidNameMsg = name =>
   `Invalid primitive name "${name}".` +
   '\nNames must begin lowercase and contain no special characters.';
 
+type JsonPrimitive = ?(number | string | boolean);
 type TypeDefinition = {
+  coerce(value: JsonPrimitive): JsonPrimitive,
   isValid(data: mixed): boolean,
 };
 
@@ -14,6 +16,7 @@ export const nameRegex = /^[a-z][0-9a-z-]*$/;
 /** Creates primitive types. */
 export default class Primitive {
   _isValid: mixed => boolean;
+  _coerce: Function;
   name: string;
 
   /**
@@ -25,8 +28,9 @@ export default class Primitive {
     assert(nameRegex.test(name), invalidNameMsg(name));
 
     this.name = name;
-    Object.defineProperty(this, '_isValid', {
-      value: def.isValid,
+    Object.defineProperties(this, {
+      _isValid: { value: def.isValid },
+      _coerce: { value: def.coerce },
     });
   }
 
@@ -41,5 +45,14 @@ export default class Primitive {
     }
 
     return this._isValid(value);
+  }
+
+  /**
+   * Coerces a JSON value to the given type.
+   * @param  {mixed} value - Any JSON-expressable value.
+   * @return {mixed} - The type this primitive represents.
+   */
+  coerce(value: JsonPrimitive) {
+    return this._coerce(value);
   }
 }

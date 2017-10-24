@@ -7,7 +7,7 @@ describe('Primitive', () => {
   });
 
   it('throws if the name contains non-word characters', () => {
-    const def = { isValid: () => false };
+    const def = { isValid: () => false, coerce: String };
 
     expect(() => new Primitive('', def)).toThrow(/name/i);
     expect(() => new Primitive('   ', def)).toThrow(/name/i);
@@ -24,7 +24,7 @@ describe('Primitive', () => {
 
   it('consults the validator', () => {
     const isValid = jest.fn(() => false);
-    const type = new Primitive('string', { isValid });
+    const type = new Primitive('string', { isValid, coerce: String });
     const result = type.isValid(5);
 
     expect(isValid).toHaveBeenCalledWith(5);
@@ -33,9 +33,19 @@ describe('Primitive', () => {
 
   it('always returns false when given `undefined`', () => {
     const isValid = jest.fn(() => true);
-    const type = new Primitive('any', { isValid });
+    const type = new Primitive('any', { isValid, coerce: String });
 
     expect(type.isValid(undefined)).toBe(false);
     expect(isValid).not.toHaveBeenCalled();
+  });
+
+  it('can coerce values', () => {
+    const type = new Primitive('string', {
+      isValid: value => typeof value === 'string',
+      coerce: String,
+    });
+
+    expect(type.coerce(5)).toBe('5');
+    expect(type.coerce('data')).toBe('data');
   });
 });

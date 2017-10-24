@@ -26,4 +26,10 @@ describe('Literal', () => {
     expect(() => new Literal(-Infinity)).toThrow(/invalid/);
     expect(() => new Literal(NaN)).toThrow(/invalid/);
   });
+
+  it('coerces to the literal value', () => {
+    expect(new Literal(5).coerce(10)).toBe(5);
+    expect(new Literal('things').coerce(null)).toBe('things');
+    expect(new Literal(null).coerce(-13)).toBe(null);
+  });
 });

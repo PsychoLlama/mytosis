@@ -19,6 +19,7 @@ export default class Literal extends Primitive {
 
     super('literal', {
       isValid: data => data === value,
+      coerce: () => value,
     });
   }
 }

@@ -5,10 +5,12 @@ import Primitive from '../Primitive';
 
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
+  coerce: String,
 });
 
 const number = new Primitive('number', {
   isValid: value => typeof value === 'number',
+  coerce: Number,
 });
 
 describe('Migration', () => {

@@ -6,6 +6,9 @@ import type Literal from './Literal';
 import Composite from './Composite';
 import Primitive from './Primitive';
 
+type TypeList = Array<Primitive | Literal | Derivation>;
+type Coercible = Primitive | Derivation;
+
 /**
  * Represents a list of possible primitives or
  * literal values. Incompatible with composites and other enums.
@@ -14,7 +17,7 @@ export default class Enum extends Primitive {
   /**
    * @param  {Array} types - Primitive or literal values.
    */
-  constructor(types: Array<Primitive | Literal | Derivation>) {
+  constructor(coercion: Coercible, types: TypeList) {
     assert(types.length, 'List of enum values is empty.');
     const typeSet = new Set(types);
 
@@ -39,8 +42,13 @@ export default class Enum extends Primitive {
       }
     });
 
+    // Resolve the correct coercion interface even through derived types.
+    const ambassador =
+      coercion instanceof Derivation ? coercion.subtype : coercion;
+
     super('enum', {
       isValid: value => types.some(type => type.isValid(value)),
+      coerce: value => ambassador.coerce(value),
     });
   }
 }
