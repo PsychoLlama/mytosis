@@ -28,7 +28,7 @@ export class Migration {
 }
 
 /** Represents an ADD migration. */
-class AddMigration extends Migration {
+export class Add extends Migration {
   field: string;
   type: AnyType;
 
@@ -76,11 +76,8 @@ class AddMigration extends Migration {
   }
 }
 
-export const add = (field: string, type: AnyType) =>
-  new AddMigration(field, type);
-
 /** Represents a DROP operation. */
-class RemoveMigration extends Migration {
+export class Remove extends Migration {
   field: string;
 
   /**
@@ -126,10 +123,8 @@ class RemoveMigration extends Migration {
   }
 }
 
-export const remove = (field: string) => new RemoveMigration(field);
-
 /** Changes the type of a field. */
-class ChangeTypeMigration extends Migration {
+export class TypeChange extends Migration {
   field: string;
   type: AnyType;
 
@@ -164,6 +159,3 @@ class ChangeTypeMigration extends Migration {
     };
   }
 }
-
-export const changeType = (field: string, type: AnyType) =>
-  new ChangeTypeMigration(field, type);

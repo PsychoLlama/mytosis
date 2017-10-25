@@ -1,5 +1,5 @@
 // @flow
-import * as migrations from '../migrations';
+import { Add, Remove, TypeChange, Migration } from '../migrations';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
 
@@ -24,17 +24,17 @@ describe('Migration', () => {
       },
     });
 
-  describe('add', () => {
+  describe('Add', () => {
     it('creates a migration', () => {
-      const migration = migrations.add('name', string);
+      const migration = new Add('name', string);
 
-      expect(migration).toEqual(expect.any(migrations.Migration));
+      expect(migration).toEqual(expect.any(Migration));
       expect(migration.name).toBe('ADD');
     });
 
     it('updates the field set', () => {
       const type = createType();
-      const migration = migrations.add('joined', string);
+      const migration = new Add('joined', string);
       const result = migration.migrateType(type);
 
       expect(result).toEqual({
@@ -47,7 +47,7 @@ describe('Migration', () => {
     });
 
     it('updates the data set', () => {
-      const migration = migrations.add('joined', string);
+      const migration = new Add('joined', string);
       const result = migration.migrateData({
         gamertag: 'z33k',
       });
@@ -56,7 +56,7 @@ describe('Migration', () => {
     });
 
     it('throws if the field exists', () => {
-      const migration = migrations.add('gamertag', string);
+      const migration = new Add('gamertag', string);
       const type = createType();
       const fail = () => migration.migrateType(type);
 
@@ -64,16 +64,16 @@ describe('Migration', () => {
     });
   });
 
-  describe('remove', () => {
+  describe('Remove', () => {
     it('creates a migration', () => {
-      const migration = migrations.remove('gamertag');
+      const migration = new Remove('gamertag');
 
-      expect(migration).toEqual(expect.any(migrations.Migration));
+      expect(migration).toEqual(expect.any(Migration));
       expect(migration.name).toBe('REMOVE');
     });
 
     it('drops the field from the type', () => {
-      const migration = migrations.remove('gamertag');
+      const migration = new Remove('gamertag');
       const type = createType();
       const result = migration.migrateType(type);
 
@@ -85,7 +85,7 @@ describe('Migration', () => {
     });
 
     it('drops the field from data', () => {
-      const migration = migrations.remove('lastName');
+      const migration = new Remove('lastName');
       const result = migration.migrateData({
         firstName: 'Bob',
         lastName: 'Bobinson',
@@ -95,7 +95,7 @@ describe('Migration', () => {
     });
 
     it('throws if the field does not exist', () => {
-      const migration = migrations.remove('wat');
+      const migration = new Remove('wat');
       const type = createType();
       const fail = () => migration.migrateType(type);
 
@@ -103,16 +103,16 @@ describe('Migration', () => {
     });
   });
 
-  describe('changeType', () => {
+  describe('TypeChange', () => {
     it('creates a migration', () => {
-      const migration = migrations.changeType('gamertag', number);
+      const migration = new TypeChange('gamertag', number);
 
-      expect(migration).toEqual(expect.any(migrations.Migration));
+      expect(migration).toEqual(expect.any(Migration));
       expect(migration.name).toBe('CHANGE_TYPE');
     });
 
     it('throws if the field does not exist', () => {
-      const migration = migrations.changeType('bacon', string);
+      const migration = new TypeChange('bacon', string);
       const type = createType();
       const fail = () => migration.migrateType(type);
 
@@ -120,7 +120,7 @@ describe('Migration', () => {
     });
 
     it('updates the type', () => {
-      const migration = migrations.changeType('score', string);
+      const migration = new TypeChange('score', string);
       const type = createType();
       const result = migration.migrateType(type);
 
