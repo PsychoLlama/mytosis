@@ -2,10 +2,11 @@
 import assert from 'minimalistic-assert';
 
 import type Composite from './Composite';
-import type Primitive from './Primitive';
+import Derivation from './Derivation';
+import Primitive from './Primitive';
 import type Union from './Union';
 
-type AnyType = Primitive | Union | Composite;
+type AnyType = Primitive | Derivation | Union | Composite;
 
 type CompositeTypeMap = {
   definition: { [string]: AnyType },
@@ -157,5 +158,27 @@ export class TypeChange extends Migration {
         [this.field]: this.type,
       },
     };
+  }
+
+  /**
+   * Coerces the given field to the new type.
+   * @param  {Object} value - Any object.
+   * @return {Object} - The coerced data.
+   */
+  migrateData(value: Object) {
+    const { field, type } = this;
+
+    if (!value.hasOwnProperty(field)) {
+      return value;
+    }
+
+    const copy = { ...value };
+    if (type instanceof Derivation) {
+      copy[field] = type.subtype.coerce(copy[field]);
+    } else if (type instanceof Primitive) {
+      copy[field] = type.coerce(copy[field]);
+    }
+
+    return copy;
   }
 }

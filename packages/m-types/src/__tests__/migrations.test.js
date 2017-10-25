@@ -1,5 +1,6 @@
 // @flow
 import { Add, Remove, TypeChange, Migration } from '../migrations';
+import Derivation from '../Derivation';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
 
@@ -11,6 +12,12 @@ const string = new Primitive('string', {
 const number = new Primitive('number', {
   isValid: value => typeof value === 'number',
   coerce: Number,
+});
+
+const time = new Derivation('time', string, {
+  dehydrate: date => date.toUTCString(),
+  isValid: date => date instanceof Date,
+  hydrate: utc => new Date(utc),
 });
 
 describe('Migration', () => {
@@ -134,6 +141,36 @@ describe('Migration', () => {
     });
 
     // Requires primitive coercion interface.
-    it('updates data');
+    it('coerces primitive data types', () => {
+      const migration = new TypeChange('score', string);
+      const result = migration.migrateData({
+        lastName: 'Stevenson',
+        score: 30,
+      });
+
+      expect(result).toEqual({
+        lastName: 'Stevenson',
+        score: '30',
+      });
+    });
+
+    it('does not attempt a migration if the field is absent', () => {
+      const migration = new TypeChange('score', string);
+      const input = { lastName: 'Stevenson' };
+      const result = migration.migrateData(input);
+
+      expect(result).toEqual(input);
+    });
+
+    it('can migrate primitives to derived types', () => {
+      const migration = new TypeChange('score', time);
+      const input = { lastName: 'Johnson', score: 500 };
+      const result = migration.migrateData(input);
+
+      expect(result).toEqual({ ...input, score: '500' });
+    });
+
+    // Requires an implementation of Pointer.
+    it('migrates composite types');
   });
 });
