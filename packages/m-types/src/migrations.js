@@ -244,3 +244,54 @@ export class Move extends Migration {
     return result;
   }
 }
+
+/** Changes the implied type of a composite */
+export class DefaultTypeChange extends Migration {
+  type: ?AnyType;
+
+  /**
+   * @param  {Type} type - Any type.
+   */
+  constructor(type: ?AnyType) {
+    super('CHANGE_DEFAULT_TYPE');
+
+    this.type = type;
+  }
+
+  /**
+   * Updates the default type on a composite definition.
+   * @param  {Composite} type - Any composite.
+   * @return {Object} - The new type definition.
+   */
+  migrateType(type: Composite): CompositeTypeMap {
+    return {
+      definition: { ...type.definition },
+      defaultType: this.type,
+    };
+  }
+
+  /**
+   * Coerces every mapped type in the object.
+   * @param  {Composite} type - The composite the data conforms to.
+   * @param  {Object} data - Any object.
+   * @return {Object} - The new data composite.
+   */
+  migrateData(type: Composite, data: Object) {
+    const copy = { ...data };
+
+    const noStrictDefinition = key => !type.definition.hasOwnProperty(key);
+    const fields = Object.keys(copy).filter(noStrictDefinition);
+
+    fields.forEach(field => {
+      if (this.type instanceof Derivation) {
+        copy[field] = this.type.subtype.coerce(copy[field]);
+      } else if (this.type instanceof Primitive) {
+        copy[field] = this.type.coerce(copy[field]);
+      } else if (this.type === null) {
+        delete copy[field];
+      }
+    });
+
+    return copy;
+  }
+}

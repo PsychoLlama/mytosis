@@ -1,8 +1,15 @@
 // @flow
-import { Add, Remove, TypeChange, Move, Migration } from '../migrations';
 import Derivation from '../Derivation';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
+import {
+  DefaultTypeChange,
+  TypeChange,
+  Migration,
+  Remove,
+  Move,
+  Add,
+} from '../migrations';
 
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
@@ -12,6 +19,11 @@ const string = new Primitive('string', {
 const number = new Primitive('number', {
   isValid: value => typeof value === 'number',
   coerce: Number,
+});
+
+const boolean = new Primitive('boolean', {
+  isValid: value => typeof value === 'boolean',
+  coerce: Boolean,
 });
 
 const time = new Derivation('time', string, {
@@ -206,6 +218,17 @@ describe('Migration', () => {
       expect(fail).toThrow(/number/i);
     });
 
+    it('returns the same type data', () => {
+      const migration = new Move('firstName', 'gamertag');
+      const type = createType();
+      const result = migration.migrateType(type);
+
+      expect(result).toEqual({
+        defaultType: type.defaultType,
+        definition: type.definition,
+      });
+    });
+
     it('migrates data', () => {
       const migration = new Move('firstName', 'lastName');
       const result = migration.migrateData({
@@ -233,6 +256,86 @@ describe('Migration', () => {
       });
 
       expect(result).toEqual({ lastName: 'Jobs' });
+    });
+  });
+
+  describe('DefaultTypeChange', () => {
+    it('creates a migration', () => {
+      const migration = new DefaultTypeChange(string);
+
+      expect(migration).toEqual(expect.any(Migration));
+      expect(migration.name).toBe('CHANGE_DEFAULT_TYPE');
+    });
+
+    it('creates the correct type', () => {
+      const migration = new DefaultTypeChange(number);
+      const type = createType();
+      const result = migration.migrateType(type);
+
+      expect(result.definition).toEqual(type.definition);
+      expect(result.defaultType).toBe(number);
+    });
+
+    it('migrates all data', () => {
+      const type = new Composite('Counter', { defaultType: number });
+      const migration = new DefaultTypeChange(string);
+      const result = migration.migrateData(type, {
+        abc: 2,
+        def: 4,
+        ghi: 6,
+      });
+
+      expect(result).toEqual({
+        abc: '2',
+        def: '4',
+        ghi: '6',
+      });
+    });
+
+    it('works with derivations', () => {
+      const type = new Composite('Counter', { defaultType: number });
+      const migration = new DefaultTypeChange(time);
+      const result = migration.migrateData(type, {
+        id: 5,
+      });
+
+      expect(result).toEqual({ id: '5' });
+    });
+
+    it('leaves field definitions alone', () => {
+      const migration = new DefaultTypeChange(string);
+      const type = new Composite('Counter', {
+        initialFieldSet: { tombstone: boolean },
+        defaultType: number,
+      });
+
+      const result = migration.migrateData(type, {
+        tombstone: true,
+        abc: 40,
+        def: 16,
+      });
+
+      expect(result).toEqual({
+        tombstone: true,
+        abc: '40',
+        def: '16',
+      });
+    });
+
+    it('removes mapped values when the default type is removed', () => {
+      const migration = new DefaultTypeChange(null);
+      const type = new Composite('Counter', {
+        initialFieldSet: { tombstone: boolean },
+        defaultType: number,
+      });
+
+      const result = migration.migrateData(type, {
+        tombstone: true,
+        abc: 40,
+        def: 16,
+      });
+
+      expect(result).toEqual({ tombstone: true });
     });
   });
 });
