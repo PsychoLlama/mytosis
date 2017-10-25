@@ -3,7 +3,6 @@
 [include]
 
 [libs]
-./custom-definitions
 
 [lints]
 
