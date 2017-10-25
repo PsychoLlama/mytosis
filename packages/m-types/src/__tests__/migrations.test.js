@@ -1,5 +1,5 @@
 // @flow
-import { Add, Remove, TypeChange, Migration } from '../migrations';
+import { Add, Remove, TypeChange, Move, Migration } from '../migrations';
 import Derivation from '../Derivation';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
@@ -172,5 +172,67 @@ describe('Migration', () => {
 
     // Requires an implementation of Pointer.
     it('migrates composite types');
+  });
+
+  describe('Move', () => {
+    it('creates a new migration', () => {
+      const migration = new Move('firstName', 'lastName');
+
+      expect(migration).toEqual(expect.any(Migration));
+      expect(migration.name).toBe('MOVE');
+    });
+
+    it('throws if the source field is undefined', () => {
+      const migration = new Move('noSuchField', 'lastName');
+      const type = createType();
+      const fail = () => migration.migrateType(type);
+
+      expect(fail).toThrow(/noSuchField/);
+    });
+
+    it('throws if the target field is undefined', () => {
+      const migration = new Move('firstName', 'poptarts');
+      const type = createType();
+      const fail = () => migration.migrateType(type);
+
+      expect(fail).toThrow(/poptarts/);
+    });
+
+    it('throws if the two fields are incompatible', () => {
+      const migration = new Move('firstName', 'score');
+      const type = createType();
+      const fail = () => migration.migrateType(type);
+
+      expect(fail).toThrow(/number/i);
+    });
+
+    it('migrates data', () => {
+      const migration = new Move('firstName', 'lastName');
+      const result = migration.migrateData({
+        firstName: 'Smith',
+        score: 30,
+      });
+
+      expect(result).toEqual({ lastName: 'Smith', score: 30 });
+    });
+
+    it('overwrites the target', () => {
+      const migration = new Move('firstName', 'gamertag');
+      const result = migration.migrateData({
+        firstName: 'Steve',
+        gamertag: 'st3v3',
+      });
+
+      expect(result).toEqual({ gamertag: 'Steve' });
+    });
+
+    it('skips the migration if the field is absent', () => {
+      const migration = new Move('firstName', 'lastName');
+      const result = migration.migrateData({
+        lastName: 'Jobs',
+      });
+
+      expect(result).toEqual({ lastName: 'Jobs' });
+    });
   });
 });

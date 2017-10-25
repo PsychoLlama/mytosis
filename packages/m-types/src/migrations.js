@@ -182,3 +182,65 @@ export class TypeChange extends Migration {
     return copy;
   }
 }
+
+/** Moves data from one field to another. */
+export class Move extends Migration {
+  from: string;
+  to: string;
+
+  /**
+   * @param  {String} from - The field to migrate from.
+   * @param  {String} to - The field to migrate into (destructive).
+   */
+  constructor(from: string, to: string) {
+    super('MOVE');
+
+    this.from = from;
+    this.to = to;
+  }
+
+  /**
+   * Ensures migration preconditions are satisfied. The
+   * same type is returned.
+   * @param  {Composite} type - Any composite.
+   * @return {Composite} - The same type.
+   */
+  migrateType(type: Composite): CompositeTypeMap {
+    const definition = { ...type.definition };
+    const sourceExists = definition.hasOwnProperty(this.from);
+    const targetExists = definition.hasOwnProperty(this.to);
+    const fail = field => `Field "${field}" isn't defined in type ${type.name}`;
+    assert(sourceExists, fail(this.from));
+    assert(targetExists, fail(this.to));
+
+    const target = definition[this.to];
+    const source = definition[this.from];
+    const isSameType = target === source;
+    assert(
+      isSameType,
+      `Can't move ${source.name} into ${target.name} ` +
+        `(${type.name} "${this.from}" -> "${this.to}").`,
+    );
+
+    return {
+      defaultType: type.defaultType,
+      definition,
+    };
+  }
+
+  /**
+   * Moves one field to another.
+   * @param  {Object} data - Any object.
+   * @return {Object} - Migrated data.
+   */
+  migrateData(data: Object) {
+    if (!data.hasOwnProperty(this.from)) {
+      return data;
+    }
+
+    const { [this.from]: value, ...result } = data;
+    result[this.to] = value;
+
+    return result;
+  }
+}
