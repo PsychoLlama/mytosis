@@ -11,33 +11,33 @@ type Coercible = Primitive | Derivation;
 
 /**
  * Represents a list of possible primitives or
- * literal values. Incompatible with composites and other enums.
+ * literal values. Incompatible with composites and other unions.
  */
-export default class Enum extends Primitive {
+export default class Union extends Primitive {
   /**
    * @param  {Primitive} coercion - The type to use in a coercion.
    * @param  {Array} types - Primitive or literal values.
    */
   constructor(coercion: Coercible, types: TypeList) {
-    assert(types.length, 'List of enum values is empty.');
+    assert(types.length, 'List of union values is empty.');
     const typeSet = new Set(types);
 
     // Flow doesn't catch these. I'm probably making a n00b mistake.
     types.forEach(type => {
       const notComposite = !(type instanceof Composite);
-      const notEnum = !(type instanceof Enum);
+      const notUnion = !(type instanceof Union);
 
-      assert(notEnum, `Enums cannot contain other enums.`);
+      assert(notUnion, `Unions cannot contain other unions.`);
       assert(
         notComposite,
-        `Enums cannot contain composite types (given ${type.name}).`,
+        `Unions cannot contain composite types (given ${type.name}).`,
       );
 
       // Ensure types can always be inferred by value.
       if (type instanceof Derivation) {
         assert(
           !typeSet.has(type.subtype),
-          `Enum contains ambiguous types (${type.name} & ${type.subtype
+          `Union contains ambiguous types (${type.name} & ${type.subtype
             .name}).`,
         );
       }
@@ -47,7 +47,7 @@ export default class Enum extends Primitive {
     const ambassador =
       coercion instanceof Derivation ? coercion.subtype : coercion;
 
-    super('enum', {
+    super('union', {
       isValid: value => types.some(type => type.isValid(value)),
       coerce: value => ambassador.coerce(value),
     });

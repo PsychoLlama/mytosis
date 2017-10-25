@@ -2,7 +2,7 @@
 import Derivation from '../Derivation';
 import Primitive from '../Primitive';
 import Composite from '../Composite';
-import Enum from '../Enum';
+import Union from '../Union';
 
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
@@ -14,26 +14,26 @@ const number = new Primitive('number', {
   coerce: Number,
 });
 
-describe('Enum', () => {
+describe('Union', () => {
   it('is a function', () => {
-    expect(Enum).toEqual(expect.any(Function));
+    expect(Union).toEqual(expect.any(Function));
   });
 
   it('throws if the value list is empty', () => {
-    const fail = () => new Enum(number, []);
+    const fail = () => new Union(number, []);
 
     expect(fail).toThrow(/empty/i);
   });
 
   it('passes if the value satisfies the first type', () => {
-    const set = new Enum(string, [string]);
+    const set = new Union(string, [string]);
 
     expect(set.isValid('instance')).toBe(true);
     expect(set.isValid(5)).toBe(false);
   });
 
   it('passes if the value can satisfy any of the types', () => {
-    const set = new Enum(number, [string, number]);
+    const set = new Union(number, [string, number]);
 
     expect(set.isValid(-5)).toBe(true);
     expect(set.isValid('bacon')).toBe(true);
@@ -46,16 +46,16 @@ describe('Enum', () => {
       initialFieldSet: { name: string },
     });
 
-    const fail = () => new Enum(Product, [Product]);
+    const fail = () => new Union(Product, [Product]);
 
     expect(fail).toThrow(/composite/i);
   });
 
-  it('fails if the list contains an Enum', () => {
-    const validEnum = new Enum(string, [string]);
-    const fail = () => new Enum(string, [validEnum]);
+  it('fails if the list contains a Union', () => {
+    const validUnion = new Union(string, [string]);
+    const fail = () => new Union(string, [validUnion]);
 
-    expect(fail).toThrow(/enum/i);
+    expect(fail).toThrow(/union/i);
   });
 
   it('throws if the set contains ambiguous types', () => {
@@ -65,13 +65,13 @@ describe('Enum', () => {
       hydrate: utc => new Date(utc),
     });
 
-    const fail = () => new Enum(string, [time, string]);
+    const fail = () => new Union(string, [time, string]);
 
     expect(fail).toThrow(/ambiguous/i);
   });
 
   it('uses the first param as the coercion type', () => {
-    const values = new Enum(number, [string, number]);
+    const values = new Union(number, [string, number]);
 
     expect(values.coerce('5')).toBe(5);
     expect(values.coerce('6.8')).toBe(6.8);
@@ -84,7 +84,7 @@ describe('Enum', () => {
       hydrate: utc => new Date(utc),
     });
 
-    const values = new Enum(time, [time, number]);
+    const values = new Union(time, [time, number]);
 
     expect(values.coerce(10)).toBe('10');
   });

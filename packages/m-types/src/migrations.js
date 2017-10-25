@@ -3,9 +3,9 @@ import assert from 'minimalistic-assert';
 
 import type Composite from './Composite';
 import type Primitive from './Primitive';
-import type Enum from './Enum';
+import type Union from './Union';
 
-type AnyType = Primitive | Enum | Composite;
+type AnyType = Primitive | Union | Composite;
 
 type CompositeTypeMap = {
   definition: { [string]: AnyType },
