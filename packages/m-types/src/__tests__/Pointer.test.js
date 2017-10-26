@@ -9,6 +9,7 @@ const string = new Primitive('string', {
 });
 
 const Product = new Composite('Product', {});
+const Player = new Composite('Player', {});
 
 describe('Pointer', () => {
   it('works', () => {
@@ -26,7 +27,15 @@ describe('Pointer', () => {
     expect(pointer.dehydrate(object)).toBe(object.toString());
   });
 
+  it('validates using the composite CRDT binding', () => {
+    const invalid = { type: Player };
+    const valid = { type: Product };
+    const pointer = new Pointer(string, Product);
+
+    expect(pointer.isValid(valid)).toBe(true);
+    expect(pointer.isValid(invalid)).toBe(false);
+  });
+
   // Requires CRDT-composite bindings.
   it('hydrates using composite type instantiation');
-  it('validates using the composite CRDT binding');
 });

@@ -19,8 +19,12 @@ export default class Pointer extends Derivation {
   constructor(subtype: Primitive, type: Composite) {
     super('pointer', subtype, {
       dehydrate: (value: StringCoercible) => value.toString(),
-      isValid: () => {
-        throw new Error('Not implemented.');
+      isValid: value => {
+        if (!(value instanceof Object)) {
+          return false;
+        }
+
+        return value.type === type;
       },
       hydrate: () => {
         throw new Error('Not implemented.');
