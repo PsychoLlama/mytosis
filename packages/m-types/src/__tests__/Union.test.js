@@ -4,6 +4,7 @@ import Primitive from '../Primitive';
 import Composite from '../Composite';
 import Union from '../Union';
 
+const CRDT = { import: data => data };
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
   coerce: String,
@@ -44,6 +45,7 @@ describe('Union', () => {
   it('fails if the list contains a composite', () => {
     const Product = new Composite('Product', {
       initialFieldSet: { name: string },
+      CRDT,
     });
 
     const fail = () => new Union(Product, [Product]);

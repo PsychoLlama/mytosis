@@ -2,29 +2,25 @@
 import assert from 'minimalistic-assert';
 
 import Primitive from './Primitive';
+import type Derivation from './Pointer';
 
 /**
  * Creates object-style types.
  */
 export default class Composite {
-  definition: { [field: string]: Primitive | Composite };
-  defaultType: ?(Primitive | Composite);
+  definition: FieldSet;
+  defaultType: ?Field;
   name: string;
 
   /**
    * @param  {String} name - A name for the type.
    * @param  {Definition} def - A description of the type.
    */
-  constructor(
-    name: string,
-    def: {
-      defaultType?: Primitive | Composite,
-      initialFieldSet?: {
-        [field: string]: Primitive | Composite,
-      },
-    },
-  ) {
-    assert(/^[A-Z][a-zA-Z:]*$/.test(name), `Invalid composite name "${name}".`);
+  constructor(name: string, def: Definition) {
+    assert(
+      /^[A-Z][_a-zA-Z:]*$/.test(name),
+      `Invalid composite name "${name}".`,
+    );
 
     this.name = name;
     Object.defineProperties(this, {
@@ -68,3 +64,12 @@ export default class Composite {
     }
   }
 }
+
+type Field = Primitive | Derivation;
+type FieldSet = { [field: string]: Field };
+type CRDT = { import(data: Object): Object };
+type Definition = {
+  initialFieldSet?: FieldSet,
+  defaultType?: Field,
+  CRDT: CRDT,
+};
