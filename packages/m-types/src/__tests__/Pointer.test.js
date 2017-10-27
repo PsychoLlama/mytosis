@@ -28,15 +28,28 @@ describe('Pointer', () => {
     expect(pointer.dehydrate(object)).toBe(object.toString());
   });
 
-  it('validates using the composite CRDT binding', () => {
-    const invalid = { type: Player };
-    const valid = { type: Product };
+  it('validates using the subtype', () => {
     const pointer = new Pointer(string, Product);
 
-    expect(pointer.isValid(valid)).toBe(true);
-    expect(pointer.isValid(invalid)).toBe(false);
+    expect(pointer.isValid('abc123')).toBe(true);
+    expect(pointer.isValid(5)).toBe(false);
+    expect(pointer.isValid(null)).toBe(false);
+    expect(pointer.isValid([])).toBe(false);
   });
 
-  // Requires CRDT-composite bindings.
-  it('hydrates using composite type instantiation');
+  it('dehydrates to the same value', () => {
+    const pointer = new Pointer(string, Product);
+
+    expect(pointer.dehydrate('value')).toBe('value');
+    expect(pointer.dehydrate('1234')).toBe('1234');
+  });
+
+  it('hydrates using the derivation subtype', () => {
+    const pointer = new Pointer(string, Product);
+    const wat = '%^&*(){GuINcN}';
+
+    expect(pointer.hydrate('string')).toBe('string');
+    expect(pointer.hydrate('12345')).toBe('12345');
+    expect(pointer.hydrate(wat)).toBe(wat);
+  });
 });

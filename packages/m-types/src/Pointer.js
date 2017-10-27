@@ -3,10 +3,6 @@ import type Composite from './Composite';
 import type Primitive from './Primitive';
 import Derivation from './Derivation';
 
-type StringCoercible = {
-  toString: () => string,
-};
-
 /** Represents a foreign key to a composite instance. */
 export default class Pointer extends Derivation {
   to: Composite;
@@ -18,17 +14,9 @@ export default class Pointer extends Derivation {
    */
   constructor(subtype: Primitive, type: Composite) {
     super('pointer', subtype, {
-      dehydrate: (value: StringCoercible) => value.toString(),
-      isValid: value => {
-        if (!(value instanceof Object)) {
-          return false;
-        }
-
-        return value.type === type;
-      },
-      hydrate: () => {
-        throw new Error('Not implemented.');
-      },
+      dehydrate: value => subtype.coerce(value),
+      isValid: value => subtype.isValid(value),
+      hydrate: value => value,
     });
 
     this.to = type;
