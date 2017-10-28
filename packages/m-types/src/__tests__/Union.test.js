@@ -1,10 +1,8 @@
 // @flow
 import Derivation from '../Derivation';
 import Primitive from '../Primitive';
-import Composite from '../Composite';
 import Union from '../Union';
 
-const CRDT = { import: data => data };
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
   coerce: String,
