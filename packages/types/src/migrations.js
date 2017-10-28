@@ -4,9 +4,8 @@ import assert from 'minimalistic-assert';
 import type Composite from './Composite';
 import Derivation from './Derivation';
 import Primitive from './Primitive';
-import type Union from './Union';
 
-type AnyType = Primitive | Derivation | Union | Composite;
+type AnyType = Primitive | Derivation;
 
 type CompositeTypeMap = {
   definition: { [string]: AnyType },
@@ -23,7 +22,7 @@ export class Migration {
    * @param  {Function} operation - Constructing function.
    */
   constructor(name: string) {
-    this.operation = this.constructor;
+    Object.defineProperty(this, 'operation', { value: this.constructor });
     this.name = name;
   }
 }
@@ -40,8 +39,10 @@ export class Add extends Migration {
   constructor(field: string, type: AnyType) {
     super('ADD');
 
-    this.field = field;
-    this.type = type;
+    Object.defineProperties(this, {
+      field: { value: field },
+      type: { value: type },
+    });
   }
 
   /**
@@ -87,7 +88,9 @@ export class Remove extends Migration {
   constructor(field: string) {
     super('REMOVE');
 
-    this.field = field;
+    Object.defineProperties(this, {
+      field: { value: field },
+    });
   }
 
   /**
@@ -136,8 +139,10 @@ export class TypeChange extends Migration {
   constructor(field: string, type: AnyType) {
     super('CHANGE_TYPE');
 
-    this.field = field;
-    this.type = type;
+    Object.defineProperties(this, {
+      field: { value: field },
+      type: { value: type },
+    });
   }
 
   /**
@@ -195,8 +200,10 @@ export class Move extends Migration {
   constructor(from: string, to: string) {
     super('MOVE');
 
-    this.from = from;
-    this.to = to;
+    Object.defineProperties(this, {
+      from: { value: from },
+      to: { value: to },
+    });
   }
 
   /**
@@ -209,7 +216,8 @@ export class Move extends Migration {
     const definition = { ...type.definition };
     const sourceExists = definition.hasOwnProperty(this.from);
     const targetExists = definition.hasOwnProperty(this.to);
-    const fail = field => `Field "${field}" isn't defined in type ${type.name}`;
+    const fail = field =>
+      `Field "${field}" isn't defined in type ${type.name}.`;
     assert(sourceExists, fail(this.from));
     assert(targetExists, fail(this.to));
 
@@ -255,7 +263,7 @@ export class DefaultTypeChange extends Migration {
   constructor(type: ?AnyType) {
     super('CHANGE_DEFAULT_TYPE');
 
-    this.type = type;
+    Object.defineProperty(this, 'type', { value: type });
   }
 
   /**

@@ -1,4 +1,5 @@
 // @flow
+import * as migrations from '../migrations';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
 import Pointer from '../Pointer';
@@ -145,6 +146,88 @@ describe('Composite', () => {
         });
 
       expect(fail).toThrow(/Product.description/);
+    });
+  });
+
+  describe('migrations', () => {
+    it('throws if the migration set is empty', () => {
+      const Product = new Composite('Product', { CRDT });
+      const fail = () => Product.migrate([]);
+
+      expect(fail).toThrow(/migration/i);
+    });
+
+    it('returns a new composite', () => {
+      const v1 = new Composite('Product', {
+        initialFieldSet: { name: string },
+        CRDT,
+      });
+
+      const v2 = v1.migrate([new migrations.Add('yolo', string)]);
+
+      expect(v2).toEqual(expect.any(Composite));
+      expect(v2).not.toBe(v1);
+      expect(v2.name).toBe(v1.name);
+      expect(v2.CRDT).toBe(v1.CRDT);
+    });
+
+    it('updates the fields', () => {
+      const v1 = new Composite('Product', {
+        initialFieldSet: { title: string },
+        CRDT,
+      });
+
+      const v2 = v1.migrate([
+        new migrations.Add('name', string),
+        new migrations.Move('title', 'name'),
+        new migrations.Remove('title'),
+      ]);
+
+      expect(v2.definition).toEqual({ name: string });
+      expect(v1.definition).toEqual({ title: string });
+    });
+
+    it('sets the migration pointers', () => {
+      const v1 = new Composite('Player', {
+        initialFieldSet: { name: string },
+        CRDT,
+      });
+
+      expect(v1.lastComposite).toBe(null);
+      expect(v1.nextComposite).toBe(null);
+
+      const v2 = v1.migrate([
+        new migrations.Add('gamertag', string),
+        new migrations.Move('name', 'gamertag'),
+        new migrations.Remove('name'),
+        new migrations.Add('score', number),
+      ]);
+
+      expect(v2.lastComposite).toEqual(expect.any(Composite));
+      expect(v1.nextComposite).toEqual(expect.any(Composite));
+      expect(v2.lastComposite.lastComposite.lastComposite.lastComposite).toBe(
+        v1,
+      );
+      expect(v2.lastComposite.definition).toEqual({ gamertag: string });
+      expect(v2.lastComposite.lastComposite.definition).toEqual({
+        gamertag: string,
+        name: string,
+      });
+    });
+
+    it('tracks the version', () => {
+      const v1 = new Composite('User', { CRDT });
+      expect(v1.lastVersion).toBe(null);
+      expect(v1.nextVersion).toBe(null);
+
+      const v2 = v1.migrate([
+        new migrations.Add('firstName', string),
+        new migrations.Add('lastName', string),
+        new migrations.Add('joined', string),
+      ]);
+
+      expect(v2.lastVersion).toBe(v1);
+      expect(v2.nextVersion).toBe(null);
     });
   });
 });
