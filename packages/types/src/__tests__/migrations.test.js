@@ -5,7 +5,6 @@ import Primitive from '../Primitive';
 import {
   DefaultTypeChange,
   TypeChange,
-  Migration,
   Remove,
   Move,
   Add,
@@ -46,13 +45,6 @@ describe('Migration', () => {
     });
 
   describe('Add', () => {
-    it('creates a migration', () => {
-      const migration = new Add('name', string);
-
-      expect(migration).toEqual(expect.any(Migration));
-      expect(migration.name).toBe('ADD');
-    });
-
     it('updates the field set', () => {
       const type = createType();
       const migration = new Add('joined', string);
@@ -86,13 +78,6 @@ describe('Migration', () => {
   });
 
   describe('Remove', () => {
-    it('creates a migration', () => {
-      const migration = new Remove('gamertag');
-
-      expect(migration).toEqual(expect.any(Migration));
-      expect(migration.name).toBe('REMOVE');
-    });
-
     it('drops the field from the type', () => {
       const migration = new Remove('gamertag');
       const type = createType();
@@ -125,13 +110,6 @@ describe('Migration', () => {
   });
 
   describe('TypeChange', () => {
-    it('creates a migration', () => {
-      const migration = new TypeChange('gamertag', number);
-
-      expect(migration).toEqual(expect.any(Migration));
-      expect(migration.name).toBe('CHANGE_TYPE');
-    });
-
     it('throws if the field does not exist', () => {
       const migration = new TypeChange('bacon', string);
       const type = createType();
@@ -189,13 +167,6 @@ describe('Migration', () => {
   });
 
   describe('Move', () => {
-    it('creates a new migration', () => {
-      const migration = new Move('firstName', 'lastName');
-
-      expect(migration).toEqual(expect.any(Migration));
-      expect(migration.name).toBe('MOVE');
-    });
-
     it('throws if the source field is undefined', () => {
       const migration = new Move('noSuchField', 'lastName');
       const type = createType();
@@ -262,13 +233,6 @@ describe('Migration', () => {
   });
 
   describe('DefaultTypeChange', () => {
-    it('creates a migration', () => {
-      const migration = new DefaultTypeChange(string);
-
-      expect(migration).toEqual(expect.any(Migration));
-      expect(migration.name).toBe('CHANGE_DEFAULT_TYPE');
-    });
-
     it('creates the correct type', () => {
       const migration = new DefaultTypeChange(number);
       const type = createType();
