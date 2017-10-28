@@ -12,23 +12,8 @@ type CompositeTypeMap = {
   defaultType: ?AnyType,
 };
 
-/** Represents a simple type/data migration. */
-export class Migration {
-  operation: Function;
-  name: string;
-
-  /**
-   * @param  {String} name - Identifier for the migration type.
-   * @param  {Function} operation - Constructing function.
-   */
-  constructor(name: string) {
-    Object.defineProperty(this, 'operation', { value: this.constructor });
-    this.name = name;
-  }
-}
-
 /** Represents an ADD migration. */
-export class Add extends Migration {
+export class Add {
   field: string;
   type: AnyType;
 
@@ -37,8 +22,6 @@ export class Add extends Migration {
    * @param  {Type} type - The type to use.
    */
   constructor(field: string, type: AnyType) {
-    super('ADD');
-
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -79,15 +62,13 @@ export class Add extends Migration {
 }
 
 /** Represents a DROP operation. */
-export class Remove extends Migration {
+export class Remove {
   field: string;
 
   /**
    * @param  {string} field - The field to drop.
    */
   constructor(field: string) {
-    super('REMOVE');
-
     Object.defineProperties(this, {
       field: { value: field },
     });
@@ -128,7 +109,7 @@ export class Remove extends Migration {
 }
 
 /** Changes the type of a field. */
-export class TypeChange extends Migration {
+export class TypeChange {
   field: string;
   type: AnyType;
 
@@ -137,8 +118,6 @@ export class TypeChange extends Migration {
    * @param  {Type} type - Any type.
    */
   constructor(field: string, type: AnyType) {
-    super('CHANGE_TYPE');
-
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -189,7 +168,7 @@ export class TypeChange extends Migration {
 }
 
 /** Moves data from one field to another. */
-export class Move extends Migration {
+export class Move {
   from: string;
   to: string;
 
@@ -198,8 +177,6 @@ export class Move extends Migration {
    * @param  {String} to - The field to migrate into (destructive).
    */
   constructor(from: string, to: string) {
-    super('MOVE');
-
     Object.defineProperties(this, {
       from: { value: from },
       to: { value: to },
@@ -254,15 +231,13 @@ export class Move extends Migration {
 }
 
 /** Changes the implied type of a composite */
-export class DefaultTypeChange extends Migration {
+export class DefaultTypeChange {
   type: ?AnyType;
 
   /**
    * @param  {Type} type - Any type.
    */
   constructor(type: ?AnyType) {
-    super('CHANGE_DEFAULT_TYPE');
-
     Object.defineProperty(this, 'type', { value: type });
   }
 
