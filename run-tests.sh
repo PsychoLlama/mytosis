@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-LINT_FAIL=
-TEST_FAIL=
-BUILD_FAIL=
+export LINT_FAIL=
+export FLOW_FAIL=
+export TEST_FAIL=
+export BUILD_FAIL=
 
 function command_exists {
   local result
@@ -29,27 +30,41 @@ function run_script_in_packages {
     }
 
     if [[ "$SKIP" != "true" ]]; then
-      yarn run "$1" || echo "'$1' script failed in '$(basename "$PWD")'"
+      yarn run "$1" || {
+        echo "'$1' script failed in '$(basename "$PWD")'"
+        export "$2"=1
+      }
     fi
 
     popd > /dev/null
   done
 }
 
-run_script_in_packages build
-run_script_in_packages lint
-run_script_in_packages test
+run_script_in_packages build BUILD_FAIL
+run_script_in_packages lint LINT_FAIL
+run_script_in_packages flow FLOW_FAIL
+run_script_in_packages test TEST_FAIL
+
+if [[ ! -z "$BUILD_FAIL" ]]; then
+  echo Compilation failed.
+  FAIL=1
+fi
 
 if [[ ! -z "$TEST_FAIL" ]]; then
   echo Tests failed.
-  BUILD_FAIL=1
+  FAIL=1
 fi
 
 if [[ ! -z "$LINT_FAIL" ]]; then
   echo Lint failed.
-  BUILD_FAIL=1
+  FAIL=1
 fi
 
-if [[ ! -z "$BUILD_FAIL" ]]; then
+if [[ ! -z "$FLOW_FAIL" ]]; then
+  echo Type checks failed.
+  FAIL=1
+fi
+
+if [[ ! -z "$FAIL" ]]; then
   exit 1
 fi

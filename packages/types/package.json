@@ -1,0 +1,38 @@
+{
+  "name": "@mytosis/types",
+  "version": "0.1.0",
+  "description": "Experimental evolutional type system for CRDTs",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "babel src/ -d dist/ --ignore __tests__",
+    "lint": "eslint src/",
+    "flow": "flow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsychoLlama/mytosis.git"
+  },
+  "keywords": [
+    "typed",
+    "CRDT"
+  ],
+  "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PsychoLlama/mytosis/issues"
+  },
+  "homepage": "https://github.com/PsychoLlama/mytosis#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
+    "eslint": "^4.8.0",
+    "flow-bin": "^0.56.0",
+    "jest": "^21.2.1"
+  },
+  "dependencies": {
+    "minimalistic-assert": "^1.0.0"
+  }
+}
