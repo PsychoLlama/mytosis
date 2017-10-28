@@ -10,7 +10,6 @@ const string = new Primitive('string', {
 
 const CRDT = { import: data => data };
 const Product = new Composite('Product', { CRDT });
-const Player = new Composite('Player', { CRDT });
 
 describe('Pointer', () => {
   it('works', () => {
