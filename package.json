@@ -6,7 +6,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "npm run prettier -- --write",
+      "yarn prettier --write",
       "eslint",
       "git add"
     ]
