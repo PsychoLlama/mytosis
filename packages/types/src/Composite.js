@@ -11,25 +11,6 @@ import type {
   Add,
 } from './migrations';
 
-const initialProps = {
-  lastComposite: {
-    writable: true,
-    value: null,
-  },
-  nextComposite: {
-    writable: true,
-    value: null,
-  },
-  lastVersion: {
-    writable: true,
-    value: null,
-  },
-  nextVersion: {
-    writable: true,
-    value: null,
-  },
-};
-
 /**
  * Creates object-style types.
  */
@@ -46,6 +27,8 @@ export default class Composite {
   lastComposite: ?Composite;
   nextComposite: ?Composite;
 
+  migration: ?Migration;
+
   /**
    * @param  {String} name - A name for the type.
    * @param  {Definition} def - A description of the type.
@@ -58,7 +41,6 @@ export default class Composite {
 
     this.name = name;
     Object.defineProperties(this, {
-      ...initialProps,
       definition: {
         value: def.initialFieldSet || {},
       },
@@ -67,6 +49,26 @@ export default class Composite {
       },
       CRDT: {
         value: def.CRDT,
+      },
+      lastComposite: {
+        writable: true,
+        value: null,
+      },
+      nextComposite: {
+        writable: true,
+        value: null,
+      },
+      lastVersion: {
+        writable: true,
+        value: null,
+      },
+      nextVersion: {
+        writable: true,
+        value: null,
+      },
+      migration: {
+        writable: true,
+        value: null,
       },
     });
   }
@@ -104,11 +106,13 @@ export default class Composite {
    * @return {Composite} - A new composite with the changes applied.
    */
   migrate(operations: Migration[]): Composite {
+    assert(!this.migration, `Can't migrate the same ${this.name} type twice.`);
     assert(operations.length, 'Migration list is empty.');
 
     // Apply all migrations into a new composite.
     const migrated = operations.reduce((composite, migration) => {
       const { defaultType, definition } = migration.migrateType(composite);
+      composite.migration = migration;
 
       const result = new Composite(composite.name, {
         initialFieldSet: definition,

@@ -205,13 +205,19 @@ describe('Composite', () => {
 
       expect(v2.lastComposite).toEqual(expect.any(Composite));
       expect(v1.nextComposite).toEqual(expect.any(Composite));
+      expect(v2.lastComposite.nextComposite).toBe(v2);
       expect(v2.lastComposite.lastComposite.lastComposite.lastComposite).toBe(
         v1,
       );
+
       expect(v2.lastComposite.definition).toEqual({ gamertag: string });
       expect(v2.lastComposite.lastComposite.definition).toEqual({
         gamertag: string,
         name: string,
+      });
+
+      expect(v1.nextComposite.nextComposite.nextComposite.definition).toEqual({
+        gamertag: string,
       });
     });
 
@@ -228,6 +234,30 @@ describe('Composite', () => {
 
       expect(v2.lastVersion).toBe(v1);
       expect(v2.nextVersion).toBe(null);
+    });
+
+    it('keeps a reference to each migration', () => {
+      const user = new Composite('User', { CRDT });
+      expect(user.migration).toBe(null);
+
+      user.migrate([
+        new migrations.Add('firstName', string),
+        new migrations.Remove('firstName'),
+      ]);
+
+      expect(user.migration).toEqual(expect.any(migrations.Add));
+      expect(user.nextComposite.migration).toEqual(
+        expect.any(migrations.Remove),
+      );
+    });
+
+    it('throws if you migrate the same composite twice', () => {
+      const v1 = new Composite('User', { CRDT });
+      const migrate = () =>
+        v1.migrate([new migrations.Add('fullName', string)]);
+
+      expect(migrate).not.toThrow();
+      expect(migrate).toThrow(/(migrate|migration)/i);
     });
   });
 });
