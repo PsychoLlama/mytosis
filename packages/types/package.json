@@ -1,5 +1,5 @@
 {
-  "name": "m-types",
+  "name": "@mytosis/types",
   "version": "0.1.0",
   "description": "Experimental evolutional type system for CRDTs",
   "main": "dist/index.js",
