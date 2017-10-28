@@ -42,17 +42,6 @@ describe('Union', () => {
     expect(set.isValid(true)).toBe(false);
   });
 
-  it('fails if the list contains a composite', () => {
-    const Product = new Composite('Product', {
-      initialFieldSet: { name: string },
-      CRDT,
-    });
-
-    const fail = () => new Union(Product, [Product]);
-
-    expect(fail).toThrow(/composite/i);
-  });
-
   it('fails if the list contains a Union', () => {
     const validUnion = new Union(string, [string]);
     const fail = () => new Union(string, [validUnion]);

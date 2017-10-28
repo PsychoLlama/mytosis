@@ -1,10 +1,17 @@
 // @flow
 import Composite from '../Composite';
 import Primitive from '../Primitive';
+import Pointer from '../Pointer';
+import Union from '../Union';
 
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
   coerce: String,
+});
+
+const number = new Primitive('number', {
+  isValid: value => typeof value === 'number',
+  coerce: Number,
 });
 
 const CRDT = {
@@ -61,40 +68,57 @@ describe('Composite', () => {
       expect(fail).toThrow(/description/i);
     });
 
-    it('throws if the nested composite type is invalid', () => {
+    it('throws if the pointer is invalid', () => {
+      const Company = new Composite('Company', {
+        initialFieldSet: { name: string },
+        CRDT,
+      });
+
       const Product = new Composite('Product', {
         CRDT,
         initialFieldSet: {
-          seller: new Composite('Company', {
-            initialFieldSet: { name: string },
-            CRDT,
-          }),
+          seller: new Pointer(string, Company),
         },
       });
 
       const fail = () =>
         Product.validate({
-          seller: { name: 5 },
+          seller: true,
         });
 
-      expect(fail).toThrow(/name/i);
+      expect(fail).toThrow(/seller/i);
     });
 
-    it('works with default types', () => {
-      const Players = new Composite('Players', {
+    it('validates default types', () => {
+      const Player = new Composite('Player', {
+        initialFieldSet: { gamertag: string },
         CRDT,
-        defaultType: new Composite('Player', {
-          initialFieldSet: { gamertag: string },
-          CRDT,
-        }),
+      });
+
+      const Players = new Composite('Players', {
+        defaultType: new Pointer(string, Player),
+        CRDT,
       });
 
       const fail = () =>
         Players.validate({
-          bobjones6: { gamertag: null },
+          steve: 10,
         });
 
-      expect(fail).toThrow(/Player.gamertag/i);
+      expect(fail).toThrow(/Player/i);
+    });
+
+    it('validates unions', () => {
+      const Player = new Composite('Player', {
+        defaultType: new Union(number, [string, number]),
+        CRDT,
+      });
+
+      const fail = () => Player.validate({ value: true });
+      const pass = () => Player.validate({ value: '5' });
+
+      expect(fail).toThrow(/Player.value/);
+      expect(pass).not.toThrow();
     });
 
     it('passes when the type is valid', () => {

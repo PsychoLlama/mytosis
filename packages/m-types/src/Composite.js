@@ -1,8 +1,8 @@
 // @flow
 import assert from 'minimalistic-assert';
 
+import Derivation from './Derivation';
 import Primitive from './Primitive';
-import type Derivation from './Pointer';
 
 /**
  * Creates object-style types.
@@ -39,7 +39,7 @@ export default class Composite {
    * @throws {Error} - If the data is invalid.
    * @return {void}
    */
-  validate(data: Object): void {
+  validate(data: ValidationTarget): void {
     for (const field in data) {
       if (!data.hasOwnProperty(field)) {
         continue;
@@ -51,15 +51,11 @@ export default class Composite {
       const type = this.definition[field] || this.defaultType;
       const value = data[field];
 
-      if (type instanceof Primitive) {
+      if (type instanceof Primitive || type instanceof Derivation) {
         assert(
           type.isValid(value),
           `Invalid type at ${this.name}.${field} (expected ${type.name}).`,
         );
-      }
-
-      if (type instanceof Composite) {
-        type.validate(value);
       }
     }
   }
@@ -68,6 +64,7 @@ export default class Composite {
 type Field = Primitive | Derivation;
 type FieldSet = { [field: string]: Field };
 type CRDT = { import(data: Object): Object };
+type ValidationTarget = { [string]: string | number | boolean };
 type Definition = {
   initialFieldSet?: FieldSet,
   defaultType?: Field,
