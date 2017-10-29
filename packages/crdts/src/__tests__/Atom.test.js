@@ -18,6 +18,13 @@ describe('Atom', () => {
     expect(atom.version).toBe(1);
   });
 
+  it('throws if the version is invalid', () => {
+    expect(() => Atom.import([-1, {}])).toThrow(/version/i);
+    expect(() => Atom.import([Infinity, {}])).toThrow(/version/i);
+    expect(() => Atom.import([-Infinity, {}])).toThrow(/version/i);
+    expect(() => Atom.import([NaN, {}])).toThrow(/version/i);
+  });
+
   describe('toJSON()', () => {
     it('returns an import-style value', () => {
       const atom = Atom.import([60, { data: true }]);
@@ -147,6 +154,47 @@ describe('Atom', () => {
 
         expect(shaken).toBe(null);
       });
+    });
+  });
+
+  describe('merge()', () => {
+    it('applies the update', () => {
+      const atom = Atom.import([1, { name: 'stale' }]);
+      const update = Atom.import([2, { name: 'update' }]);
+      atom.merge(update);
+
+      expect(atom.read('name')).toBe('update');
+      expect(atom.version).toBe(update.version);
+    });
+
+    it('is unaffected by later mutations of the update', () => {
+      const atom = Atom.import([1, { name: 'stale' }]);
+      const update = Atom.import([2, { name: 'update' }]);
+      atom.merge(update);
+
+      const later = Atom.import([3, { name: 'noooo' }]);
+      update.merge(later);
+
+      expect(atom.read('name')).toBe('update');
+    });
+  });
+
+  describe('createUpdate()', () => {
+    it('returns an atom', () => {
+      const atom = Atom.import([1, {}]);
+      const result = atom.createUpdate({
+        bacon: true,
+        wat: 'no',
+      });
+
+      expect(result).toEqual(expect.any(Atom));
+    });
+
+    it('uses an incremented version', () => {
+      const atom = Atom.import([30, {}]);
+      const result = atom.createUpdate({ progress: true });
+
+      expect(result.version).toBe(atom.version + 1);
     });
   });
 });

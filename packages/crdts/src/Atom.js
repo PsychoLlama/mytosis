@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 // @flow
+import assert from 'minimalistic-assert';
 
 type primitive = number | string | boolean;
 type DehydratedMap = { [string]: primitive };
@@ -56,9 +57,12 @@ export default class Atom {
    * @return {Atom} - A new atom with all the data.
    */
   static import([version: number, data: DehydratedMap]: Dehydrated) {
-    const atom = new Atom();
+    const validVersion = isFinite(version) && version > 0;
+    assert(validVersion, `Atom given invalid version (${version}).`);
 
+    const atom = new Atom();
     atom.version = version;
+
     Object.keys(data).forEach(key => {
       atom.__crdt__.set(key, data[key]);
     });
@@ -71,6 +75,7 @@ export default class Atom {
     Object.defineProperties(this, {
       __crdt__: {
         value: new Map(),
+        writable: true,
       },
       version: {
         writable: true,
@@ -117,6 +122,28 @@ export default class Atom {
     }
 
     return update.version > this.version ? update : null;
+  }
+
+  /**
+   * Applies an update to the atom. Assumes the update blindly
+   * (assumes the update has already been shaken).
+   * @param  {Atom} update - The value to replace current state.
+   * @return {undefined}
+   */
+  merge(update: Atom) {
+    this.__crdt__ = update.__crdt__;
+    this.version = update.version;
+  }
+
+  /**
+   * Formats an update for the atom.
+   * @param  {Object} update - New fields for the atom.
+   * @return {Atom} - A patch which, when applied, will yield the new state.
+   */
+  createUpdate(update: DehydratedMap) {
+    const version = this.version + 1;
+
+    return Atom.import([version, update]);
   }
 
   /**
