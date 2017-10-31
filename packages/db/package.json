@@ -6,8 +6,9 @@
   "scripts": {
     "test": "jest",
     "build": "babel src/ -d dist/ --ignore __tests__",
-    "lint": "eslint src",
-    "flow": "flow"
+    "lint": "eslint src/",
+    "flow": "flow",
+    "prepare": "yarn build"
   },
   "repository": {
     "type": "git",
