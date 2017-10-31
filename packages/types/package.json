@@ -7,7 +7,8 @@
     "test": "jest",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "lint": "eslint src/",
-    "flow": "flow"
+    "flow": "flow",
+    "prepare": "yarn build"
   },
   "repository": {
     "type": "git",
