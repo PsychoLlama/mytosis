@@ -56,7 +56,7 @@ export default class Atom {
    * @param  {Object} data - Data to import.
    * @return {Atom} - A new atom with all the data.
    */
-  static import([version: number, data: DehydratedMap]: Dehydrated) {
+  static import([version, data]: Dehydrated) {
     const validVersion = isFinite(version) && version > 0;
     assert(validVersion, `Atom given invalid version (${version}).`);
 
