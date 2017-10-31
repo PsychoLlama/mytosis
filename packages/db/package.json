@@ -38,5 +38,9 @@
     "eslint": "^4.10.0",
     "flow-bin": "^0.57.3",
     "jest": "^21.2.1"
+  },
+  "dependencies": {
+    "@mytosis/crdts": "^0.1.0",
+    "@mytosis/types": "^0.1.0"
   }
 }
