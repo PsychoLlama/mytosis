@@ -1,8 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "precommit": "lint-staged",
-    "prettier": "prettier --single-quote --trailing-comma all"
+    "precommit": "lint-staged"
   },
   "lint-staged": {
     "*.js": [
