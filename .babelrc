@@ -1,0 +1,9 @@
+{
+  "presets": ["env", "flow"],
+  "plugins": [
+    "transform-async-generator-functions",
+    "transform-object-rest-spread",
+    "transform-export-extensions",
+    "transform-runtime"
+  ]
+}
