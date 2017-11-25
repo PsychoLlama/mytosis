@@ -23,8 +23,8 @@ describe('Config formatter', () => {
 
   it('uses the storage engine if provided', () => {
     const storage = {
-      write: async () => ({}),
-      read: async () => ({}),
+      write: () => Promise.resolve({}),
+      read: () => Promise.resolve({}),
     };
 
     const config = createConfig({ storage });
@@ -46,8 +46,8 @@ describe('Config formatter', () => {
     const network = {
       connections: [],
       router: {
-        push: async () => {},
-        pull: async () => {},
+        push: () => Promise.resolve(),
+        pull: () => Promise.resolve(),
       },
     };
 
