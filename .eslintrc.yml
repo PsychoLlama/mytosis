@@ -5,6 +5,9 @@ env:
   jest: true
   es6: true
 
+plugins:
+  - import
+
 extends:
   - eslint:recommended
   - llama
@@ -16,3 +19,5 @@ parserOptions:
 
 rules:
   lines-around-comment: off
+  no-duplicate-imports: off
+  import/no-duplicates: error
