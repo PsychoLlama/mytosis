@@ -11,23 +11,28 @@ type NetworkConfiguration = {
   router: Object,
 };
 
-type Options = {|
+export type Options = {|
   +network?: NetworkConfiguration,
   +storage?: StoragePlugin,
   +hooks?: Hook[],
 |};
 
-type Config = {|
+export type Config = {
   +storage: ?StoragePlugin,
   +hooks: Hook[],
   +network: {
     +connections: Object[],
     +router: ?Object,
   },
-|};
+};
 
-export default (config?: Options): Config => {
-  const { hooks = [], network = {}, storage = null } = config || {};
+/**
+ * Provides default settings for database configs.
+ * @param  {Options} options - User-provided database configuration.
+ * @return {Config} - Properly formatted db config.
+ */
+export const create = (options?: Options): Config => {
+  const { hooks = [], network = {}, storage = null } = options || {};
   const { connections = [], router = null } = network;
 
   return {

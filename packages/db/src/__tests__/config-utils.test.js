@@ -1,7 +1,7 @@
 // @flow
-import createConfig from '../create-config';
+import { create as createConfig } from '../config-utils';
 
-describe('Config formatter', () => {
+describe('Config creator', () => {
   it('returns an object given nothing', () => {
     const result = createConfig();
 
