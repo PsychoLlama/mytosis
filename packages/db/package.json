@@ -7,7 +7,6 @@
     "test": "jest",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "lint": "eslint src/",
-    "flow": "flow",
     "prepare": "yarn build"
   },
   "repository": {
@@ -36,7 +35,10 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-flow": "^6.23.0",
     "eslint": "^4.10.0",
-    "flow-bin": "^0.57.3",
     "jest": "^21.2.1"
+  },
+  "dependencies": {
+    "@mytosis/crdts": "^0.1.0",
+    "@mytosis/types": "^0.1.0"
   }
 }

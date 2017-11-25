@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
-    "build": "babel src/ -d dist/ --ignore __tests__",
+    "transpile": "babel src/ -d dist/ --ignore __tests__",
+    "build": "yarn transpile && flow-copy-source src dist --ignore __tests__",
     "lint": "eslint src/",
-    "flow": "flow",
     "prepare": "yarn build"
   },
   "repository": {
@@ -30,7 +30,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-flow": "^6.23.0",
     "eslint": "^4.8.0",
-    "flow-bin": "^0.56.0",
+    "flow-copy-source": "^1.2.1",
     "jest": "^21.2.1"
   },
   "dependencies": {

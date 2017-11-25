@@ -1,1 +1,2 @@
-export Atom from './Atom';
+// @flow
+export { default as Atom } from './Atom';
