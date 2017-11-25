@@ -13,7 +13,7 @@ export default async function({ transform, initial, hooks }) {
   let result = initial;
 
   for (const hook of hooks) {
-    let output = this::hook(result);
+    let output = hook.call(this, result);
 
     if (isPromise(output)) {
       output = await output;
