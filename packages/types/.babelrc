@@ -1,7 +1,0 @@
-{
-  "presets": ["es2015", "flow"],
-  "plugins": [
-    "transform-object-rest-spread",
-    "babel-plugin-transform-export-extensions"
-  ]
-}

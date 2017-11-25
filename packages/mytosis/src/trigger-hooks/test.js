@@ -44,7 +44,7 @@ describe('A trigger', () => {
     spy.andReturn(Promise.resolve());
     const context = { '`this` context test': true };
 
-    await context::trigger({
+    await trigger.call(context, {
       transform() {},
       hooks: [spy],
       initial: {},

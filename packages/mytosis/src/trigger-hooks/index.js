@@ -1,5 +1,3 @@
-import isPromise from 'is-promise';
-
 /**
  * Triggers an asynchronous hook pipeline. Each hook can change
  * the input to the next via the `transform` callback.
@@ -13,11 +11,7 @@ export default async function({ transform, initial, hooks }) {
   let result = initial;
 
   for (const hook of hooks) {
-    let output = this::hook(result);
-
-    if (isPromise(output)) {
-      output = await output;
-    }
+    const output = await hook.call(this, result);
 
     result = transform(output, result);
   }
