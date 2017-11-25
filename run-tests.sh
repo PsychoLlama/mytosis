@@ -41,7 +41,6 @@ function run_script_in_packages {
 }
 
 run_script_in_packages build BUILD_FAIL
-run_script_in_packages lint LINT_FAIL
 run_script_in_packages test TEST_FAIL
 
 if [[ ! -z "$BUILD_FAIL" ]]; then
@@ -54,10 +53,10 @@ if [[ ! -z "$TEST_FAIL" ]]; then
   FAIL=1
 fi
 
-if [[ ! -z "$LINT_FAIL" ]]; then
+yarn lint || {
   echo Lint failed.
   FAIL=1
-fi
+}
 
 yarn flow || {
   echo Type checks failed.

@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "lint": "eslint packages/*/src"
   },
   "lint-staged": {
     "*.js": [
@@ -12,6 +13,8 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
+    "eslint": "^4.11.0",
+    "eslint-config-llama": "^3.0.0",
     "eslint-config-prettier": "^2.3.0",
     "eslint-plugin-import": "^2.8.0",
     "flow-bin": "^0.59.0",

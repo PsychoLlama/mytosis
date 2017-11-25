@@ -6,8 +6,6 @@
   "scripts": {
     "build": "babel src/ -d dist/",
     "prepublish": "npm run build",
-    "lint": "eslint src/",
-    "fix-lint": "npm run lint -- --fix",
     "dev": "npm run build -- --watch",
     "test": "mocha 'src/**/*test.js' --opts mocha.opts",
     "test:watch": "npm test -- --watch --reporter min",
@@ -22,13 +20,10 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.3",
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.24.1",
-    "eslint": "^4.1.1",
-    "eslint-config-llama": "^3.0.0",
     "expect": "^1.20.2",
     "mocha": "^3.4.2"
   },
