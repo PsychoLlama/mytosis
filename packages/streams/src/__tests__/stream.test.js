@@ -91,4 +91,66 @@ describe('Stream', () => {
 
     expect(close).toHaveBeenCalled();
   });
+
+  it('reopens the stream if eagerly closed', () => {
+    const publisher = jest.fn();
+    const stream = new Stream(publisher);
+    const dispose = stream.forEach(jest.fn());
+    dispose();
+
+    stream.forEach(jest.fn());
+
+    expect(publisher).toHaveBeenCalledTimes(2);
+  });
+
+  describe('promise interface', () => {
+    it('is implemented', () => {
+      const stream = new Stream(jest.fn());
+
+      expect(stream.then).toEqual(expect.any(Function));
+      expect(stream.catch).toEqual(expect.any(Function));
+    });
+
+    it('starts the publisher when observed', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+      stream.then(jest.fn());
+
+      expect(publisher).toHaveBeenCalled();
+    });
+
+    it('resolves when the publisher instructs', async () => {
+      const result = { resolve: 'value' };
+      const stream = new Stream((push, resolve) => resolve(result));
+
+      await expect(stream).resolves.toBe(result);
+    });
+
+    it('rejects when the publisher instructs', async () => {
+      const error = new Error('Testing stream result rejection');
+      const stream = new Stream((push, resolve, reject) => reject(error));
+
+      await expect(stream).rejects.toBe(error);
+    });
+
+    it('prevents the stream from eagerly closing with promise observers', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      stream.then(jest.fn());
+      const dispose = stream.forEach(jest.fn());
+      dispose();
+
+      expect(close).not.toHaveBeenCalled();
+    });
+
+    it('handles rejection values', async () => {
+      const error = new Error('Testing stream rejection (and .catch)');
+      const stream = new Stream((push, resolve, reject) => reject(error));
+
+      const handler = jest.fn();
+      await stream.catch(handler);
+
+      expect(handler).toHaveBeenCalledWith(error);
+    });
+  });
 });
