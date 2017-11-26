@@ -29,6 +29,7 @@ type StreamEvent<Data, Result> =
   | StreamTerminationEvent<Result>;
 
 type Observer<Data, Result> = (StreamEvent<Data, Result>) => any;
+type ResultTranformer<Result, Output> = (?Error, data?: Result) => Output;
 
 const noop = () => {};
 
@@ -327,7 +328,7 @@ export default class Stream<Message, Result = void> {
    * @return {Stream} - A new event stream.
    */
   map<Output>(transform: Message => Output): Stream<Output, Result> {
-    const stream: Stream<Output, Result> = new Stream(push =>
+    const stream = new Stream(push =>
       this.forEach(message => {
         const mapped = transform(message);
         push(mapped);
@@ -338,5 +339,27 @@ export default class Stream<Message, Result = void> {
     stream._deferredResult = this._deferredResult;
 
     return stream;
+  }
+
+  /**
+   * Creates a stream where the promise return value is mapped to a new value.
+   * @param  {Function} transform - Result transformer.
+   * @return {Stream} - A new stream. All data is drawn from the parent stream.
+   */
+  mapResult<Output>(
+    transform: ResultTranformer<Result, Output>,
+  ): Stream<Message, Output> {
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (!event.done) {
+          return push(event.value);
+        }
+
+        const { error = null, value } = event;
+        const result = transform(error, value);
+
+        return resolve(result);
+      }),
+    );
   }
 }

@@ -135,7 +135,7 @@ describe('Stream', () => {
       });
     });
 
-    it('invokes the callback on failed termination', () => {
+    it('invokes the callback on failed termination', async () => {
       const error = new Error('Testing .observe() rejection handling');
       const stream = new Stream((push, resolve, reject) => reject(error));
       const callback = jest.fn();
@@ -145,6 +145,8 @@ describe('Stream', () => {
         done: true,
         error,
       });
+
+      await stream.catch(jest.fn());
     });
 
     it('does not invoke the callback after unsubscribing', () => {
@@ -450,6 +452,73 @@ describe('Stream', () => {
       const mapped = stream.map(value => value * 2);
 
       await expect(mapped).resolves.toBe(value);
+    });
+  });
+
+  describe('mapResult', () => {
+    const setup = (publisher = jest.fn()) => ({
+      stream: new Stream(publisher),
+      publisher,
+    });
+
+    it('returns a new stream', () => {
+      const { stream } = setup();
+      const result = stream.mapResult((error, value = 0) => Number(value) * 2);
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('forwards data events', () => {
+      const { stream, publisher } = setup();
+      publisher.mockImplementation(push => push('yolo'));
+
+      const mapped = stream.mapResult(() => null);
+      const callback = jest.fn();
+      mapped.forEach(callback);
+
+      expect(callback).toHaveBeenCalledWith('yolo');
+    });
+
+    it('passes the resolve data to the transformer', async () => {
+      const { stream, publisher } = setup();
+      publisher.mockImplementation((push, resolve) => resolve('result'));
+      const transform = jest.fn();
+      const mapped = stream.mapResult(transform);
+      mapped.forEach(jest.fn());
+
+      expect(transform).toHaveBeenCalledWith(null, 'result');
+    });
+
+    it('uses the return value as a resolve value', async () => {
+      const { stream, publisher } = setup();
+      publisher.mockImplementation((push, resolve) => resolve());
+      const mapped = stream.mapResult(() => 'result');
+
+      await expect(mapped).resolves.toBe('result');
+    });
+
+    it('rejects if the transformer throws', async () => {
+      const { stream, publisher } = setup();
+      const error = new Error('Testing mapResult() error handling');
+      publisher.mockImplementation((push, resolve) => resolve());
+      const mapped = stream.mapResult(() => {
+        throw error;
+      });
+
+      await expect(mapped).rejects.toBe(error);
+    });
+
+    it('closes both streams when no listeners exist', () => {
+      const { stream, publisher } = setup();
+      const close = jest.fn();
+      publisher.mockReturnValue(close);
+      const mapped = stream.mapResult(() => 5);
+      const dispose = mapped.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
     });
   });
 });
