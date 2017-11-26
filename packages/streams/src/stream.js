@@ -13,6 +13,23 @@ type Publisher<Message, Result> = (
   (Error) => any,
 ) => CloseStreamHandler;
 
+type StreamDataEvent<Data> = {
+  done: false,
+  value: Data,
+};
+
+type StreamTerminationEvent<Result> = {
+  done: true,
+  value?: Result,
+  error?: Error,
+};
+
+type StreamEvent<Data, Result> =
+  | StreamDataEvent<Data>
+  | StreamTerminationEvent<Result>;
+
+type Observer<Data, Result> = (StreamEvent<Data, Result>) => any;
+
 const noop = () => {};
 
 // Locates the splice-friendly index of a subscriber in an array.
@@ -53,10 +70,9 @@ const defer = (deferred: Object = {}) => {
 // eslint-disable-next-line valid-jsdoc
 /** Creates a lazy pipe-driven event stream (cacheless). */
 export default class Stream<Message, Result = void> {
-  _terminationListeners: TerminationCallback<Result>[];
   _closeStreamHandler: CloseStreamHandler;
+  _observers: Observer<Message, Result>[];
   _publisher: Publisher<Message, Result>;
-  _subscribers: Subscriber<Message>[];
   _deferredResult: Deferred<Result>;
   _hasPromiseObservers: boolean;
   _open: boolean;
@@ -76,10 +92,7 @@ export default class Stream<Message, Result = void> {
         writable: true,
         value: false,
       },
-      _subscribers: {
-        value: [],
-      },
-      _terminationListeners: {
+      _observers: {
         value: [],
       },
       _closeStreamHandler: {
@@ -125,31 +138,24 @@ export default class Stream<Message, Result = void> {
   }
 
   _resolve: ResolveStream<Result> = (result: Result) => {
-    this._invokeTerminationCallbacks(null, result);
+    this._notifyObservers({
+      value: result,
+      done: true,
+    });
 
     this._terminateStream();
     this._deferredResult.resolve(result);
   };
 
   _reject = (error: Error) => {
-    this._invokeTerminationCallbacks(error);
+    this._notifyObservers({
+      done: true,
+      error,
+    });
 
     this._terminateStream();
     this._deferredResult.reject(error);
   };
-
-  /**
-   * Invokes every `onFinish` callback.
-   * @private
-   * @param  {Error}  [error] - An error if the stream terminated unsuccessfully.
-   * @param  {Object} [result] - Resolve value.
-   * @return {void}
-   */
-  _invokeTerminationCallbacks(error: ?Error, result: ?Result) {
-    this._terminationListeners.forEach(callback => {
-      callback(error, result);
-    });
-  }
 
   /**
    * Terminates the stream permanently.
@@ -161,8 +167,7 @@ export default class Stream<Message, Result = void> {
     this._closeStream();
 
     // Deconstruct to minimize the risk of memory leaks.
-    this._terminationListeners.splice(0, this._terminationListeners.length);
-    this._subscribers.splice(0, this._subscribers.length);
+    this._observers.splice(0, this._observers.length);
     this._closeStreamHandler = null;
     this._publisher = noop;
   }
@@ -194,8 +199,21 @@ export default class Stream<Message, Result = void> {
   _publishMessage: PublishMessage<Message> = (message: Message) => {
     assert(!this.closed, `Values can't be emitted after ending a stream.`);
 
-    this._subscribers.forEach(subscriber => subscriber(message));
+    this._notifyObservers({
+      value: message,
+      done: false,
+    });
   };
+
+  /**
+   * Broadcasts a stream event to all observers.
+   * @private
+   * @param  {StreamEvent} msg - Either a data event or termination event.
+   * @return {void}
+   */
+  _notifyObservers(msg: StreamEvent<Message, Result>) {
+    this._observers.forEach(observer => observer(msg));
+  }
 
   /**
    * Ensures the given function is never invoked more than once.
@@ -224,9 +242,29 @@ export default class Stream<Message, Result = void> {
    * @return {void}
    */
   _closeIfNoListenersExist() {
-    if (!this._terminationListeners.length && !this._subscribers.length) {
+    if (!this._observers.length) {
       this._closeStream();
     }
+  }
+
+  /**
+   * Watches a stream for both data and termination events.
+   * @param  {Function} observer - Called for every event.
+   * @return {Function} - Invoke to unsubscribe.
+   */
+  observe(observer: Observer<Message, Result>): () => void {
+    if (this.closed) {
+      return noop;
+    }
+
+    this._observers.push(observer);
+    this._openStream();
+
+    return this._createUnsubscribeCallback(() => {
+      const index = findSubscriber(this._observers, observer);
+      this._observers.splice(index, 1);
+      this._closeIfNoListenersExist();
+    });
   }
 
   /**
@@ -235,21 +273,30 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} subscriber - Stream observer called for every message.
    * @return {Function} - Unsubscribes when called.
    */
-  forEach(subscriber: Subscriber<Message>): () => void {
-    if (this.closed) {
-      return noop;
-    }
+  forEach(subscriber: Subscriber<Message>) {
+    return this.observe(event => {
+      if (event.done) {
+        return;
+      }
 
-    this._subscribers.push(subscriber);
-    this._openStream();
-
-    const dispose = this._createUnsubscribeCallback(() => {
-      const index = findSubscriber(this._subscribers, subscriber);
-      this._subscribers.splice(index, 1);
-      this._closeIfNoListenersExist();
+      subscriber(event.value);
     });
+  }
 
-    return dispose;
+  /**
+   * Invokes the given callback when the stream terminates.
+   * @param  {Function} callback - Invoked using node-style params on stream termination.
+   * @return {Function} - Unsubscribes when invoked.
+   */
+  onFinish(callback: TerminationCallback<Result>) {
+    return this.observe(event => {
+      if (!event.done) {
+        return;
+      }
+
+      const { error = null, value } = event;
+      callback(error, value);
+    });
   }
 
   /**
@@ -272,22 +319,6 @@ export default class Stream<Message, Result = void> {
    */
   catch(errorHandler: Error => any) {
     this.then(undefined, errorHandler);
-  }
-
-  /**
-   * Invokes the given callback when the stream terminates.
-   * @param  {Function} callback - Invoked using node-style params on stream termination.
-   * @return {Function} - Unsubscribes when invoked.
-   */
-  onFinish(callback: TerminationCallback<Result>) {
-    this._terminationListeners.push(callback);
-    this._openStream();
-
-    return this._createUnsubscribeCallback(() => {
-      const index = findSubscriber(this._terminationListeners, callback);
-      this._terminationListeners.splice(index, 1);
-      this._closeIfNoListenersExist();
-    });
   }
 
   /**

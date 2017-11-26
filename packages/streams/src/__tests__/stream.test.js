@@ -113,6 +113,91 @@ describe('Stream', () => {
     expect(publisher).toHaveBeenCalledTimes(2);
   });
 
+  describe('observe()', () => {
+    it('returns a function', () => {
+      const stream = new Stream(jest.fn());
+      const result = stream.observe(jest.fn());
+
+      expect(result).toEqual(expect.any(Function));
+    });
+
+    it('opens the stream', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+
+      expect(publisher).not.toHaveBeenCalled();
+      stream.observe(jest.fn());
+      expect(publisher).toHaveBeenCalled();
+    });
+
+    it('invokes the callback for data events', () => {
+      const msg = 'new message';
+      const stream = new Stream(push => push(msg));
+      const callback = jest.fn();
+      stream.observe(callback);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        done: false,
+        value: msg,
+      });
+    });
+
+    it('invokes the callback when successfully terminated', () => {
+      const stream = new Stream((push, resolve) => resolve(10));
+      const callback = jest.fn();
+      stream.observe(callback);
+
+      expect(callback).toHaveBeenCalledWith({
+        done: true,
+        value: 10,
+      });
+    });
+
+    it('invokes the callback on failed termination', () => {
+      const error = new Error('Testing .observe() rejection handling');
+      const stream = new Stream((push, resolve, reject) => reject(error));
+      const callback = jest.fn();
+      stream.observe(callback);
+
+      expect(callback).toHaveBeenCalledWith({
+        done: true,
+        error,
+      });
+    });
+
+    it('does not invoke the callback after unsubscribing', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+      const callback = jest.fn();
+      const dispose = stream.observe(callback);
+      dispose();
+      publisher.mock.calls[0][0]({ new: 'message' });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('terminates the stream after unsubscribing', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const dispose = stream.observe(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('does not close the stream if other listeners exist', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const dispose = stream.observe(jest.fn());
+      stream.observe(jest.fn());
+      dispose();
+
+      expect(close).not.toHaveBeenCalled();
+    });
+  });
+
   describe('promise interface', () => {
     it('is implemented', () => {
       const stream = new Stream(jest.fn());
@@ -212,7 +297,7 @@ describe('Stream', () => {
 
       // FRAGILE: asserting on implementation details.
       // eslint-disable-next-line no-underscore-dangle
-      expect(stream._subscribers).toHaveLength(0);
+      expect(stream._observers).toHaveLength(0);
     });
 
     it('terminates the stream on rejection', async () => {
@@ -243,7 +328,7 @@ describe('Stream', () => {
     });
   });
 
-  describe('onFinish', () => {
+  describe('onFinish()', () => {
     it('returns a function', () => {
       const stream = new Stream(jest.fn());
       const result = stream.onFinish(jest.fn());
