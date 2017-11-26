@@ -204,5 +204,32 @@ describe('Stream', () => {
       // eslint-disable-next-line no-underscore-dangle
       expect(stream._subscribers).toHaveLength(0);
     });
+
+    it('terminates the stream on rejection', async () => {
+      const close = jest.fn();
+      const error = new Error('Testing stream rejection cleanup');
+      const stream = new Stream((push, resolve, reject) => {
+        reject(error);
+        return close;
+      });
+
+      await stream.catch(jest.fn());
+
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('does not call `close` twice if resolved twice', async () => {
+      const close = jest.fn();
+      await new Stream((push, resolve) => {
+        Promise.resolve().then(() => {
+          resolve({});
+          resolve({});
+        });
+
+        return close;
+      });
+
+      expect(close).toHaveBeenCalledTimes(1);
+    });
   });
 });

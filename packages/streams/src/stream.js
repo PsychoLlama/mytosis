@@ -100,9 +100,12 @@ export default class Stream<Message: Object, Result> {
     }
 
     this._open = true;
-    const { reject } = this._deferredResult;
 
-    const close = this._publisher(this._publishMessage, this._resolve, reject);
+    const close = this._publisher(
+      this._publishMessage,
+      this._resolve,
+      this._reject,
+    );
 
     if (close) {
       if (this.closed) {
@@ -116,6 +119,11 @@ export default class Stream<Message: Object, Result> {
   _resolve: ResolveStream<Result> = (result: Result) => {
     this._terminateStream();
     this._deferredResult.resolve(result);
+  };
+
+  _reject = (error: Error) => {
+    this._terminateStream();
+    this._deferredResult.reject(error);
   };
 
   /**
