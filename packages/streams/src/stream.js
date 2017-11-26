@@ -4,11 +4,14 @@ import assert from 'minimalistic-assert';
 type PublishMessage<Message> = Message => void;
 type CloseStreamHandler = ?() => void;
 type Subscriber<Message> = Message => any;
+type ResolveStream<Result> = Result => void;
 type Publisher<Message, Result> = (
   PublishMessage<Message>,
-  (Result) => any,
+  ResolveStream<Result>,
   (Error) => any,
 ) => CloseStreamHandler;
+
+const noop = () => {};
 
 // Locates the splice-friendly index of a subscriber in an array.
 // .findIndex() is unsupported in IE.
@@ -47,24 +50,23 @@ const defer = (deferred: Object = {}) => {
 
 // eslint-disable-next-line valid-jsdoc
 /** Creates a lazy pipe-driven event stream (cacheless). */
-export default class Stream<Message: Object, Result: Object> {
+export default class Stream<Message: Object, Result> {
   _closeStreamHandler: CloseStreamHandler;
   _publisher: Publisher<Message, Result>;
   _subscribers: Subscriber<Message>[];
   _deferredResult: Deferred<Result>;
   _hasPromiseObservers: boolean;
-  _promise: Promise<Result>;
+  closed: boolean = false;
   _open: boolean;
 
   /**
    * @param  {Function} publisher - Responsible for publishing events.
    */
   constructor(publisher: Publisher<Message, Result>) {
-    const deferred: Deferred<Result> = defer();
-
     Object.defineProperties(this, {
       _publisher: {
         value: publisher,
+        writable: true,
       },
       _open: {
         writable: true,
@@ -78,7 +80,7 @@ export default class Stream<Message: Object, Result: Object> {
         value: null,
       },
       _deferredResult: {
-        value: deferred,
+        value: defer(),
       },
       _hasPromiseObservers: {
         writable: true,
@@ -93,18 +95,42 @@ export default class Stream<Message: Object, Result: Object> {
    * @return {void}
    */
   _openStream() {
-    if (this._open) {
+    if (this._open || this.closed) {
       return;
     }
 
     this._open = true;
-    const { resolve, reject } = this._deferredResult;
+    const { reject } = this._deferredResult;
 
-    const close = this._publisher(this._publishMessage, resolve, reject);
+    const close = this._publisher(this._publishMessage, this._resolve, reject);
 
     if (close) {
-      this._closeStreamHandler = close;
+      if (this.closed) {
+        close();
+      } else {
+        this._closeStreamHandler = close;
+      }
     }
+  }
+
+  _resolve: ResolveStream<Result> = (result: Result) => {
+    this._terminateStream();
+    this._deferredResult.resolve(result);
+  };
+
+  /**
+   * Terminates the stream permanently.
+   * @private
+   * @return {void}
+   */
+  _terminateStream() {
+    this.closed = true;
+    this._closeStream();
+
+    // Deconstruct to minimize the risk of memory leaks.
+    this._subscribers.splice(0, this._subscribers.length);
+    this._closeStreamHandler = null;
+    this._publisher = noop;
   }
 
   /**
@@ -114,7 +140,7 @@ export default class Stream<Message: Object, Result: Object> {
    */
   _closeStream() {
     // Observing a stream's promise value prevents eager closing.
-    if (this._hasPromiseObservers) {
+    if (this._hasPromiseObservers && !this.closed) {
       return;
     }
 
@@ -132,6 +158,8 @@ export default class Stream<Message: Object, Result: Object> {
    * @return {void}
    */
   _publishMessage: PublishMessage<Message> = (message: Message) => {
+    assert(!this.closed, `Values can't be emitted after ending a stream.`);
+
     this._subscribers.forEach(subscriber => subscriber(message));
   };
 
@@ -142,6 +170,10 @@ export default class Stream<Message: Object, Result: Object> {
    * @return {Function} - Unsubscribes when called.
    */
   forEach(subscriber: Subscriber<Message>): () => void {
+    if (this.closed) {
+      return noop;
+    }
+
     this._subscribers.push(subscriber);
     this._openStream();
 

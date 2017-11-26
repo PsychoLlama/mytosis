@@ -152,5 +152,57 @@ describe('Stream', () => {
 
       expect(handler).toHaveBeenCalledWith(error);
     });
+
+    it('closes the stream once terminated', async () => {
+      const close = jest.fn();
+      const stream = new Stream((push, resolve) => {
+        // Hack to test async termination.
+        Promise.resolve({}).then(resolve);
+
+        return close;
+      });
+
+      await stream;
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('allows synchronous termination', async () => {
+      const close = jest.fn();
+      const stream = new Stream((push, resolve) => {
+        resolve();
+
+        return close;
+      });
+
+      stream.forEach(jest.fn());
+
+      expect(close).toHaveBeenCalled();
+      await stream;
+    });
+
+    it('throws if a value is emitted after termination', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+      stream.forEach(jest.fn());
+      const [push, resolve] = publisher.mock.calls[0];
+      resolve();
+
+      expect(push).toThrow(/(closed|terminate|end)/i);
+    });
+
+    it('does not activate if a listener is added post-termination', () => {
+      const publisher = jest.fn((push, resolve) => resolve());
+      const stream = new Stream(publisher);
+      const dispose = stream.forEach(jest.fn());
+      dispose();
+
+      stream.forEach(jest.fn());
+
+      expect(publisher).toHaveBeenCalledTimes(1);
+
+      // FRAGILE: asserting on implementation details.
+      // eslint-disable-next-line no-underscore-dangle
+      expect(stream._subscribers).toHaveLength(0);
+    });
   });
 });
