@@ -5,6 +5,7 @@ type PublishMessage<Message> = Message => void;
 type CloseStreamHandler = ?() => void;
 type Subscriber<Message> = Message => any;
 type ResolveStream<Result> = Result => void;
+type TerminationCallback<Result> = (?Error, ?Result) => any;
 type Publisher<Message, Result> = (
   PublishMessage<Message>,
   ResolveStream<Result>,
@@ -51,13 +52,15 @@ const defer = (deferred: Object = {}) => {
 // eslint-disable-next-line valid-jsdoc
 /** Creates a lazy pipe-driven event stream (cacheless). */
 export default class Stream<Message: Object, Result> {
+  _terminationListeners: TerminationCallback<Result>[];
   _closeStreamHandler: CloseStreamHandler;
   _publisher: Publisher<Message, Result>;
   _subscribers: Subscriber<Message>[];
   _deferredResult: Deferred<Result>;
   _hasPromiseObservers: boolean;
-  closed: boolean = false;
   _open: boolean;
+
+  closed: boolean = false;
 
   /**
    * @param  {Function} publisher - Responsible for publishing events.
@@ -73,6 +76,9 @@ export default class Stream<Message: Object, Result> {
         value: false,
       },
       _subscribers: {
+        value: [],
+      },
+      _terminationListeners: {
         value: [],
       },
       _closeStreamHandler: {
@@ -117,14 +123,31 @@ export default class Stream<Message: Object, Result> {
   }
 
   _resolve: ResolveStream<Result> = (result: Result) => {
+    this._invokeTerminationCallbacks(null, result);
+
     this._terminateStream();
     this._deferredResult.resolve(result);
   };
 
   _reject = (error: Error) => {
+    this._invokeTerminationCallbacks(error);
+
     this._terminateStream();
     this._deferredResult.reject(error);
   };
+
+  /**
+   * Invokes every `onFinish` callback.
+   * @private
+   * @param  {Error}  [error] - An error if the stream terminated unsuccessfully.
+   * @param  {Object} [result] - Resolve value.
+   * @return {void}
+   */
+  _invokeTerminationCallbacks(error: ?Error, result: ?Result) {
+    this._terminationListeners.forEach(callback => {
+      callback(error, result);
+    });
+  }
 
   /**
    * Terminates the stream permanently.
@@ -136,6 +159,7 @@ export default class Stream<Message: Object, Result> {
     this._closeStream();
 
     // Deconstruct to minimize the risk of memory leaks.
+    this._terminationListeners.splice(0, this._terminationListeners.length);
     this._subscribers.splice(0, this._subscribers.length);
     this._closeStreamHandler = null;
     this._publisher = noop;
@@ -172,6 +196,38 @@ export default class Stream<Message: Object, Result> {
   };
 
   /**
+   * Ensures the given function is never invoked more than once.
+   * @throws {Error} - If invoked more than once.
+   * @param  {Function} fn - Unsubscribe handler.
+   * @return {Function} - Invoked at most once.
+   * @private
+   */
+  _createUnsubscribeCallback(fn: Function) {
+    let unsubscribed = false;
+
+    return () => {
+      assert(
+        !unsubscribed,
+        `Listener had already been removed. dispose() should only be called once.`,
+      );
+
+      unsubscribed = true;
+      fn();
+    };
+  }
+
+  /**
+   * Closes the stream, but only if nobody's watching.
+   * @private
+   * @return {void}
+   */
+  _closeIfNoListenersExist() {
+    if (!this._terminationListeners.length && !this._subscribers.length) {
+      this._closeStream();
+    }
+  }
+
+  /**
    * Observes stream events.
    * @throws {Error} - If you unsubscribe twice (indicates a memory leak).
    * @param  {Function} subscriber - Stream observer called for every message.
@@ -185,21 +241,11 @@ export default class Stream<Message: Object, Result> {
     this._subscribers.push(subscriber);
     this._openStream();
 
-    let unsubscribed;
-    const dispose = () => {
-      assert(
-        !unsubscribed,
-        `Listener had already been removed. dispose() should only be called once.`,
-      );
-
-      unsubscribed = true;
+    const dispose = this._createUnsubscribeCallback(() => {
       const index = findSubscriber(this._subscribers, subscriber);
       this._subscribers.splice(index, 1);
-
-      if (!this._subscribers.length) {
-        this._closeStream();
-      }
-    };
+      this._closeIfNoListenersExist();
+    });
 
     return dispose;
   }
@@ -224,5 +270,21 @@ export default class Stream<Message: Object, Result> {
    */
   catch(errorHandler: Error => any) {
     this.then(undefined, errorHandler);
+  }
+
+  /**
+   * Invokes the given callback when the stream terminates.
+   * @param  {Function} callback - Invoked using node-style params on stream termination.
+   * @return {Function} - Unsubscribes when invoked.
+   */
+  onFinish(callback: TerminationCallback<Result>) {
+    this._terminationListeners.push(callback);
+    this._openStream();
+
+    return this._createUnsubscribeCallback(() => {
+      const index = findSubscriber(this._terminationListeners, callback);
+      this._terminationListeners.splice(index, 1);
+      this._closeIfNoListenersExist();
+    });
   }
 }

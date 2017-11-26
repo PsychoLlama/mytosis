@@ -92,6 +92,16 @@ describe('Stream', () => {
     expect(close).toHaveBeenCalled();
   });
 
+  it('does not close the stream if finish listeners exist', () => {
+    const close = jest.fn();
+    const stream = new Stream(() => close);
+    const dispose = stream.forEach(jest.fn());
+    stream.onFinish(jest.fn());
+    dispose();
+
+    expect(close).not.toHaveBeenCalled();
+  });
+
   it('reopens the stream if eagerly closed', () => {
     const publisher = jest.fn();
     const stream = new Stream(publisher);
@@ -230,6 +240,101 @@ describe('Stream', () => {
       });
 
       expect(close).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('onFinish', () => {
+    it('returns a function', () => {
+      const stream = new Stream(jest.fn());
+      const result = stream.onFinish(jest.fn());
+
+      expect(result).toEqual(expect.any(Function));
+    });
+
+    it('opens the stream', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+      stream.onFinish(jest.fn());
+
+      expect(publisher).toHaveBeenCalled();
+    });
+
+    it('is invoked when the stream terminates', () => {
+      const stream = new Stream((push, resolve) => resolve(5));
+      const callback = jest.fn();
+      stream.onFinish(callback);
+
+      expect(callback).toHaveBeenCalledWith(null, 5);
+    });
+
+    it('does not invoke callbacks twice', () => {
+      const stream = new Stream((push, resolve) => {
+        resolve(5);
+        resolve(10);
+      });
+
+      const callback = jest.fn();
+      stream.onFinish(callback);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('invokes callbacks with rejections', async () => {
+      const error = new Error('Testing onFinish callback rejections');
+      const stream = new Stream((push, resolve, reject) => {
+        reject(error);
+        reject(error);
+      });
+
+      const callback = jest.fn();
+      stream.onFinish(callback);
+
+      expect(callback).toHaveBeenCalledWith(error, undefined);
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      await stream.catch(jest.fn());
+    });
+
+    it('does not invoke after unsubscribing', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+
+      const callback = jest.fn();
+      const dispose = stream.onFinish(callback);
+      dispose();
+      publisher.mock.calls[0][1]({ resolved: true });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('terminates the stream on unsubscribe', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const dispose = stream.onFinish(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('does not terminate the stream if other finish handlers exist', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const dispose = stream.onFinish(jest.fn());
+      stream.onFinish(jest.fn());
+
+      dispose();
+      expect(close).not.toHaveBeenCalled();
+    });
+
+    it('does not terminate the stream if other message handlers exist', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const dispose = stream.onFinish(jest.fn());
+      stream.forEach(jest.fn());
+
+      dispose();
+      expect(close).not.toHaveBeenCalled();
     });
   });
 });
