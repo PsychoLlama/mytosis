@@ -337,4 +337,60 @@ describe('Stream', () => {
       expect(close).not.toHaveBeenCalled();
     });
   });
+
+  describe('map()', () => {
+    const setup = (publisher = jest.fn()) => ({
+      stream: new Stream(publisher),
+      publisher,
+    });
+
+    it('creates a new stream', () => {
+      const { stream } = setup();
+      const result = stream.map(value => value * 2);
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('lazily opens the parent stream', () => {
+      const { stream, publisher } = setup();
+      const result = stream.map(value => value * 2);
+
+      expect(publisher).not.toHaveBeenCalled();
+      result.forEach(jest.fn());
+      expect(publisher).toHaveBeenCalled();
+    });
+
+    it('maps every message to a new value', () => {
+      const { stream, publisher } = setup();
+      const result = stream.map(value => value * 2);
+      const callback = jest.fn();
+      result.forEach(callback);
+      publisher.mock.calls[0][0](5);
+
+      // Value 5 mapped as n * 2.
+      expect(callback).toHaveBeenCalledWith(10);
+    });
+
+    it('closes both streams when abandoned', () => {
+      const { stream, publisher } = setup();
+      const close = jest.fn();
+      publisher.mockReturnValue(close);
+      const mapped = stream.map(value => value * 2);
+      const dispose = mapped.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('resolves with the parent stream result', async () => {
+      const { stream, publisher } = setup();
+      const value = { parent: 'resolve value' };
+      publisher.mockImplementation((push, resolve) => resolve(value));
+      const mapped = stream.map(value => value * 2);
+
+      await expect(mapped).resolves.toBe(value);
+    });
+  });
 });

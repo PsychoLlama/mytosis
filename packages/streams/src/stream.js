@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 // @flow
 import assert from 'minimalistic-assert';
 
@@ -51,7 +52,7 @@ const defer = (deferred: Object = {}) => {
 
 // eslint-disable-next-line valid-jsdoc
 /** Creates a lazy pipe-driven event stream (cacheless). */
-export default class Stream<Message: Object, Result> {
+export default class Stream<Message, Result = void> {
   _terminationListeners: TerminationCallback<Result>[];
   _closeStreamHandler: CloseStreamHandler;
   _publisher: Publisher<Message, Result>;
@@ -86,6 +87,7 @@ export default class Stream<Message: Object, Result> {
         value: null,
       },
       _deferredResult: {
+        writable: true,
         value: defer(),
       },
       _hasPromiseObservers: {
@@ -286,5 +288,26 @@ export default class Stream<Message: Object, Result> {
       this._terminationListeners.splice(index, 1);
       this._closeIfNoListenersExist();
     });
+  }
+
+  /**
+   * Basically Array#map, but for streams.
+   * @param  {Function} transform - Applied to every message.
+   * @return {Stream} - A new event stream.
+   */
+  map<Output>(transform: Message => Output): Stream<Output, Result> {
+    const stream: Stream<Output, Result> = new Stream(push => {
+      const dispose = this.forEach(message => {
+        const mapped = transform(message);
+        push(mapped);
+      });
+
+      return dispose;
+    });
+
+    // Stream maps cannot affect the promise. Sharing here is safe.
+    stream._deferredResult = this._deferredResult;
+
+    return stream;
   }
 }
