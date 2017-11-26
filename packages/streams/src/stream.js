@@ -327,14 +327,12 @@ export default class Stream<Message, Result = void> {
    * @return {Stream} - A new event stream.
    */
   map<Output>(transform: Message => Output): Stream<Output, Result> {
-    const stream: Stream<Output, Result> = new Stream(push => {
-      const dispose = this.forEach(message => {
+    const stream: Stream<Output, Result> = new Stream(push =>
+      this.forEach(message => {
         const mapped = transform(message);
         push(mapped);
-      });
-
-      return dispose;
-    });
+      }),
+    );
 
     // Stream maps cannot affect the promise. Sharing here is safe.
     stream._deferredResult = this._deferredResult;

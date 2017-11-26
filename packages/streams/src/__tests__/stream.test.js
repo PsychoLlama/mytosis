@@ -52,17 +52,6 @@ describe('Stream', () => {
     expect(subscriber).not.toHaveBeenCalled();
   });
 
-  it('allows the same function to subscribe twice', () => {
-    const publisher = jest.fn();
-    const stream = new Stream(publisher);
-    const subscriber = jest.fn();
-    stream.forEach(subscriber);
-    stream.forEach(subscriber);
-    publisher.mock.calls[0][0]({ some: 'message' });
-
-    expect(subscriber).toHaveBeenCalledTimes(2);
-  });
-
   it('only unsubscribes the first subscriber when duplicates exist', () => {
     const publisher = jest.fn();
     const stream = new Stream(publisher);
@@ -73,14 +62,6 @@ describe('Stream', () => {
     publisher.mock.calls[0][0]({ yolo: 'battlecry' });
 
     expect(subscriber).toHaveBeenCalledTimes(1);
-  });
-
-  it('throws if you unsubscribe twice', () => {
-    const stream = new Stream(jest.fn());
-    const dispose = stream.forEach(jest.fn());
-    dispose();
-
-    expect(dispose).toThrow(/listener/i);
   });
 
   it('closes the stream when the listener unsubscribes', () => {
@@ -195,6 +176,39 @@ describe('Stream', () => {
       dispose();
 
       expect(close).not.toHaveBeenCalled();
+    });
+
+    it('allows the same function to subscribe twice', () => {
+      const publisher = jest.fn();
+      const stream = new Stream(publisher);
+      const subscriber = jest.fn();
+      stream.observe(subscriber);
+      stream.observe(subscriber);
+      publisher.mock.calls[0][0]({ some: 'message' });
+
+      expect(subscriber).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not trigger termination twice', () => {
+      const error = new Error('Testing stream resolve AND rejection.');
+      const stream = new Stream((push, resolve, reject) => {
+        resolve(5);
+        resolve(10);
+        reject(error);
+      });
+
+      const callback = jest.fn();
+      stream.observe(callback);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws if you unsubscribe twice', () => {
+      const stream = new Stream(jest.fn());
+      const dispose = stream.observe(jest.fn());
+      dispose();
+
+      expect(dispose).toThrow(/listener/i);
     });
   });
 
@@ -336,32 +350,12 @@ describe('Stream', () => {
       expect(result).toEqual(expect.any(Function));
     });
 
-    it('opens the stream', () => {
-      const publisher = jest.fn();
-      const stream = new Stream(publisher);
-      stream.onFinish(jest.fn());
-
-      expect(publisher).toHaveBeenCalled();
-    });
-
     it('is invoked when the stream terminates', () => {
       const stream = new Stream((push, resolve) => resolve(5));
       const callback = jest.fn();
       stream.onFinish(callback);
 
       expect(callback).toHaveBeenCalledWith(null, 5);
-    });
-
-    it('does not invoke callbacks twice', () => {
-      const stream = new Stream((push, resolve) => {
-        resolve(5);
-        resolve(10);
-      });
-
-      const callback = jest.fn();
-      stream.onFinish(callback);
-
-      expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('invokes callbacks with rejections', async () => {
@@ -400,26 +394,6 @@ describe('Stream', () => {
       expect(close).not.toHaveBeenCalled();
       dispose();
       expect(close).toHaveBeenCalled();
-    });
-
-    it('does not terminate the stream if other finish handlers exist', () => {
-      const close = jest.fn();
-      const stream = new Stream(() => close);
-      const dispose = stream.onFinish(jest.fn());
-      stream.onFinish(jest.fn());
-
-      dispose();
-      expect(close).not.toHaveBeenCalled();
-    });
-
-    it('does not terminate the stream if other message handlers exist', () => {
-      const close = jest.fn();
-      const stream = new Stream(() => close);
-      const dispose = stream.onFinish(jest.fn());
-      stream.forEach(jest.fn());
-
-      dispose();
-      expect(close).not.toHaveBeenCalled();
     });
   });
 
