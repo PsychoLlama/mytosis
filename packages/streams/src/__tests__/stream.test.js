@@ -573,4 +573,64 @@ describe('Stream', () => {
       expect(close).toHaveBeenCalled();
     });
   });
+
+  describe('reduce()', () => {
+    const publishRange = max => (push, resolve) => {
+      const values = Array(max)
+        .fill()
+        .map((value, index) => index + 1);
+
+      values.forEach(push);
+      resolve();
+    };
+
+    const setup = (handler = publishRange(10)) => {
+      const publisher = jest.fn(handler);
+
+      return {
+        stream: new Stream(publisher),
+        publisher,
+      };
+    };
+
+    it('returns a new stream', () => {
+      const { stream } = setup();
+      const result = stream.reduce(jest.fn());
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('streams reduction values', () => {
+      const { stream } = setup(publishRange(3));
+      const reduced = stream.reduce((sum, value) => sum + value, 0);
+      const callback = jest.fn();
+      reduced.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(3);
+      expect(callback).toHaveBeenCalledWith(6);
+    });
+
+    it('resolves with the end result on stream termination', async () => {
+      const { stream } = setup(publishRange(5));
+      const reduced = stream.reduce((sum, value) => sum + value, 0);
+
+      // 1 + 2 + 3 + 4 + 5
+      // 1,  3,  6, 10, 15
+      await expect(reduced).resolves.toBe(15);
+    });
+
+    it('terminates both streams if unobserved', () => {
+      const close = jest.fn();
+      const { stream } = setup(() => close);
+      const reduced = stream.reduce(value => value + 2, 0);
+      const dispose = reduced.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
 });

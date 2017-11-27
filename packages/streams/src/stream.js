@@ -382,4 +382,29 @@ export default class Stream<Message, Result = void> {
 
     return stream;
   }
+
+  /**
+   * Similar to Array#reduce, except the initial value is required.
+   * @param  {Function} reducer - Combines two values into a new one.
+   * @param  {Any} initialValue - A value to start with.
+   * @return {Stream} - Emits each reduction and resolves with the final result.
+   */
+  reduce<Result>(
+    reducer: (Result, Message) => Result,
+    initialValue: Result,
+  ): Stream<Result, Result> {
+    let lastValue = initialValue;
+
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (event.done) {
+          resolve(lastValue);
+          return;
+        }
+
+        lastValue = reducer(lastValue, event.value);
+        push(lastValue);
+      }),
+    );
+  }
 }
