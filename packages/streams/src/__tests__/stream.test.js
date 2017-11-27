@@ -722,5 +722,22 @@ describe('Stream', () => {
       dispose();
       expect(close).toHaveBeenCalled();
     });
+
+    it('forwards data through the stream', () => {
+      const { stream } = setup(push => {
+        push(1);
+        push(2);
+        push(3);
+      });
+
+      const some = stream.some(value => value === 3);
+      const callback = jest.fn();
+      some.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(2);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
   });
 });

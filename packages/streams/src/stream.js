@@ -29,18 +29,25 @@ type StreamEvent<Data, Result> =
   | StreamTerminationEvent<Result>;
 
 type Dispose = () => void;
-type Observer<Data, Result> = (StreamEvent<Data, Result>, Dispose) => any;
 type ResultTranformer<Result, Output> = (?Error, data?: Result) => Output;
+type Observer<Data, Result> = (StreamEvent<Data, Result>, Dispose) => any;
+type ObserverRecord<Data, Result> = {
+  observer: Observer<Data, Result>,
+  dispose: Dispose,
+};
 
 const noop = () => {};
 
 // Locates the splice-friendly index of a subscriber in an array.
 // .findIndex() is unsupported in IE.
-const findSubscriber = (arr: Function[], subscriber: Function) => {
+const findObserver = <Data, Result>(
+  arr: ObserverRecord<Data, Result>[],
+  observer: Observer<Data, Result>,
+) => {
   let index = arr.length;
 
-  arr.some((sub, idx) => {
-    const foundSubscriber = sub === subscriber;
+  arr.some((record, idx) => {
+    const foundSubscriber = record.observer === observer;
 
     if (foundSubscriber) {
       index = idx;
@@ -73,7 +80,7 @@ const defer = (deferred: Object = {}) => {
 /** Creates a lazy pipe-driven event stream (cacheless). */
 export default class Stream<Message, Result = void> {
   _closeStreamHandler: CloseStreamHandler;
-  _observers: Observer<Message, Result>[];
+  _observers: ObserverRecord<Message, Result>[];
   _publisher: Publisher<Message, Result>;
   _deferredResult: Deferred<Result>;
   _hasPromiseObservers: boolean;
@@ -218,7 +225,7 @@ export default class Stream<Message, Result = void> {
    * @return {void}
    */
   _notifyObservers(msg: StreamEvent<Message, Result>) {
-    this._observers.forEach(observer => observer(msg));
+    this._observers.forEach(record => record.observer(msg, record.dispose));
   }
 
   /**
@@ -265,13 +272,13 @@ export default class Stream<Message, Result = void> {
 
     let handler = noop;
     const dispose = this._createUnsubscribeCallback(() => {
-      const index = findSubscriber(this._observers, handler);
+      const index = findObserver(this._observers, handler);
       this._observers.splice(index, 1);
       this._closeIfNoListenersExist();
     });
 
     handler = event => observer(event, dispose);
-    this._observers.push(handler);
+    this._observers.push({ observer: handler, dispose });
 
     this._openStream();
 
@@ -423,7 +430,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} predicate - Indicates whether the value matches.
    * @return {Stream} - Indicates whether the predicate was satisfied.
    */
-  some(predicate: Message => boolean): Stream<Result, boolean> {
+  some(predicate: Message => boolean): Stream<Message, boolean> {
     let terminated = false;
 
     return new Stream((push, resolve) => {
@@ -433,6 +440,7 @@ export default class Stream<Message, Result = void> {
           return;
         }
 
+        push(event.value);
         const satisfied = predicate(event.value);
 
         if (satisfied) {
