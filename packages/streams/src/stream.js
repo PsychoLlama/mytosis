@@ -89,6 +89,21 @@ export default class Stream<Message, Result = void> {
   closed: boolean = false;
 
   /**
+   * Generates a stream from an iterable.
+   * @param  {Iterable} iterable - Any iterable value.
+   * @return {Stream} - A stream containing those values.
+   */
+  static from<Type>(iterable: Iterable<Type>): Stream<Type> {
+    return new Stream((push, resolve) => {
+      for (const value of iterable) {
+        push(value);
+      }
+
+      resolve();
+    });
+  }
+
+  /**
    * @param  {Function} publisher - Responsible for publishing events.
    */
   constructor(publisher: Publisher<Message, Result>) {

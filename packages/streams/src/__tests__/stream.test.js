@@ -94,6 +94,42 @@ describe('Stream', () => {
     expect(publisher).toHaveBeenCalledTimes(2);
   });
 
+  describe('static from()', () => {
+    it('returns a new stream', () => {
+      const result = Stream.from([]);
+
+      expect(result).toEqual(expect.any(Stream));
+    });
+
+    it('adds every value from the stream', () => {
+      const result = Stream.from([1, 2, 3]);
+      const callback = jest.fn();
+      result.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(2);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
+
+    it('terminates the stream with no value', async () => {
+      const stream = Stream.from([1, 2, 3]);
+
+      await expect(stream).resolves.toBeUndefined();
+    });
+
+    it('works on generic iterables', () => {
+      const values = new Set([5, 10]);
+      const stream = Stream.from(values);
+      const callback = jest.fn();
+      stream.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledWith(5);
+      expect(callback).toHaveBeenCalledWith(10);
+    });
+  });
+
   describe('observe()', () => {
     it('returns a function', () => {
       const stream = new Stream(jest.fn());
