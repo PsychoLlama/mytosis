@@ -1,0 +1,40 @@
+{
+  "name": "@mytosis/streams",
+  "version": "0.1.0",
+  "description": "Cache-free lazy observables for modelling async event streams",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "transpile": "babel src/ -d dist/ --ignore __tests__",
+    "build": "yarn transpile && flow-copy-source src dist --ignore __tests__",
+    "prepare": "yarn build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsychoLlama/mytosis.git"
+  },
+  "keywords": [
+    "stream",
+    "async",
+    "cacheless",
+    "emitter",
+    "pipe",
+    "pipeline"
+  ],
+  "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PsychoLlama/mytosis/issues"
+  },
+  "homepage": "https://github.com/PsychoLlama/mytosis#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-runtime": "^6.26.0",
+    "flow-copy-source": "^1.2.1",
+    "jest": "^21.2.1"
+  },
+  "dependencies": {
+    "minimalistic-assert": "^1.0.0"
+  }
+}
