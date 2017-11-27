@@ -355,6 +355,26 @@ export default class Stream<Message, Result = void> {
   }
 
   /**
+   * Outputs a new stream which tracks every event.
+   * @return {Stream} - Resolves as an array of every emitted value.
+   */
+  toArray(): Stream<Message, Message[]> {
+    const result = [];
+
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (event.done) {
+          resolve(result);
+          return;
+        }
+
+        push(event.value);
+        result.push(event.value);
+      }),
+    );
+  }
+
+  /**
    * Basically Array#map, but for streams.
    * @param  {Function} transform - Applied to every message.
    * @return {Stream} - A new event stream.

@@ -130,6 +130,46 @@ describe('Stream', () => {
     });
   });
 
+  describe('toArray()', () => {
+    it('returns a stream', () => {
+      const stream = Stream.from([]);
+      const result = stream.toArray();
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('resolves with all the stream data', async () => {
+      const source = [1, 2, 3];
+      const stream = Stream.from(source);
+      const array = stream.toArray();
+
+      await expect(array).resolves.toEqual(source);
+    });
+
+    it('terminates both streams if unsubscribed', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const array = stream.toArray();
+      const dispose = array.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('re-emits all values', () => {
+      const stream = Stream.from([1, 2, 3]).toArray();
+      const callback = jest.fn();
+      stream.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(2);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
+  });
+
   describe('observe()', () => {
     it('returns a function', () => {
       const stream = new Stream(jest.fn());
