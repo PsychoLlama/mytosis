@@ -118,10 +118,13 @@ describe('Stream', () => {
       stream.observe(callback);
 
       expect(callback).toHaveBeenCalledTimes(1);
-      expect(callback).toHaveBeenCalledWith({
-        done: false,
-        value: msg,
-      });
+      expect(callback).toHaveBeenCalledWith(
+        {
+          done: false,
+          value: msg,
+        },
+        expect.any(Function),
+      );
     });
 
     it('invokes the callback when successfully terminated', () => {
@@ -129,10 +132,13 @@ describe('Stream', () => {
       const callback = jest.fn();
       stream.observe(callback);
 
-      expect(callback).toHaveBeenCalledWith({
-        done: true,
-        value: 10,
-      });
+      expect(callback).toHaveBeenCalledWith(
+        {
+          done: true,
+          value: 10,
+        },
+        expect.any(Function),
+      );
     });
 
     it('invokes the callback on failed termination', async () => {
@@ -141,10 +147,13 @@ describe('Stream', () => {
       const callback = jest.fn();
       stream.observe(callback);
 
-      expect(callback).toHaveBeenCalledWith({
-        done: true,
-        error,
-      });
+      expect(callback).toHaveBeenCalledWith(
+        {
+          done: true,
+          error,
+        },
+        expect.any(Function),
+      );
 
       await stream.catch(jest.fn());
     });
@@ -211,6 +220,20 @@ describe('Stream', () => {
       dispose();
 
       expect(dispose).toThrow(/listener/i);
+    });
+
+    it('passes the dispose handler to observers', () => {
+      const stream = new Stream(push => {
+        push(1);
+        push(2);
+        push(3);
+      });
+
+      const observer = jest.fn((value, dispose) => dispose());
+      const dispose = stream.observe(observer);
+
+      expect(observer).toHaveBeenCalledWith(expect.anything(), dispose);
+      expect(observer).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -627,6 +650,73 @@ describe('Stream', () => {
       const { stream } = setup(() => close);
       const reduced = stream.reduce(value => value + 2, 0);
       const dispose = reduced.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
+  describe('some()', () => {
+    const setup = (publisher = jest.fn()) => ({
+      stream: new Stream(publisher),
+      publisher,
+    });
+
+    it('returns a new stream', () => {
+      const { stream } = setup();
+      const some = stream.some(value => value === 3);
+
+      expect(some).toEqual(expect.any(Stream));
+      expect(some).not.toBe(stream);
+    });
+
+    it('indicates when the condition was satisfied', async () => {
+      const { stream } = setup((push, resolve) => {
+        push(1);
+        push(2);
+        push(3);
+        resolve();
+      });
+
+      const some = stream.some(value => value === 3);
+
+      await expect(some).resolves.toBe(true);
+    });
+
+    it('indicates when the condition was not satisfied', async () => {
+      const { stream } = setup((push, resolve) => {
+        push(1);
+        push(2);
+        push(3);
+        resolve();
+      });
+
+      const some = stream.some(value => value === 5);
+
+      await expect(some).resolves.toBe(false);
+    });
+
+    it('terminates the stream as soon as the predicate succeeds', async () => {
+      const { stream } = setup((push, resolve) => {
+        push(1);
+        push(2);
+        push(3);
+        resolve();
+      });
+
+      const predicate = jest.fn(() => true);
+      const some = stream.some(predicate);
+
+      await expect(some).resolves.toBe(true);
+      expect(predicate).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes both streams when unobserved', () => {
+      const close = jest.fn();
+      const { stream } = setup(() => close);
+      const result = stream.some(value => value === 2);
+      const dispose = result.observe(jest.fn());
 
       expect(close).not.toHaveBeenCalled();
       dispose();

@@ -28,7 +28,8 @@ type StreamEvent<Data, Result> =
   | StreamDataEvent<Data>
   | StreamTerminationEvent<Result>;
 
-type Observer<Data, Result> = (StreamEvent<Data, Result>) => any;
+type Dispose = () => void;
+type Observer<Data, Result> = (StreamEvent<Data, Result>, Dispose) => any;
 type ResultTranformer<Result, Output> = (?Error, data?: Result) => Output;
 
 const noop = () => {};
@@ -164,6 +165,10 @@ export default class Stream<Message, Result = void> {
    * @return {void}
    */
   _terminateStream() {
+    if (this.closed) {
+      return;
+    }
+
     this.closed = true;
     this._closeStream();
 
@@ -253,19 +258,24 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} observer - Called for every event.
    * @return {Function} - Invoke to unsubscribe.
    */
-  observe(observer: Observer<Message, Result>): () => void {
+  observe(observer: Observer<Message, Result>): Dispose {
     if (this.closed) {
       return noop;
     }
 
-    this._observers.push(observer);
-    this._openStream();
-
-    return this._createUnsubscribeCallback(() => {
-      const index = findSubscriber(this._observers, observer);
+    let handler = noop;
+    const dispose = this._createUnsubscribeCallback(() => {
+      const index = findSubscriber(this._observers, handler);
       this._observers.splice(index, 1);
       this._closeIfNoListenersExist();
     });
+
+    handler = event => observer(event, dispose);
+    this._observers.push(handler);
+
+    this._openStream();
+
+    return dispose;
   }
 
   /**
@@ -406,5 +416,40 @@ export default class Stream<Message, Result = void> {
         push(lastValue);
       }),
     );
+  }
+
+  /**
+   * Indicates whether one of the stream values satisfies the predicate.
+   * @param  {Function} predicate - Indicates whether the value matches.
+   * @return {Stream} - Indicates whether the predicate was satisfied.
+   */
+  some(predicate: Message => boolean): Stream<Result, boolean> {
+    let terminated = false;
+
+    return new Stream((push, resolve) => {
+      const dispose = this.observe((event, dispose) => {
+        if (event.done) {
+          resolve(false);
+          return;
+        }
+
+        const satisfied = predicate(event.value);
+
+        if (satisfied) {
+          resolve(true);
+
+          // Early termination prevents synchronous producers
+          // from calling this observer multiple times after unsubscribing.
+          terminated = true;
+          dispose();
+        }
+      });
+
+      return () => {
+        if (!terminated) {
+          dispose();
+        }
+      };
+    });
   }
 }
