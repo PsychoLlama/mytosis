@@ -495,4 +495,44 @@ export default class Stream<Message, Result = void> {
       };
     });
   }
+
+  /**
+   * Truncates the stream at a maximum. Has no resolve value.
+   * @param  {Number} amount - A maximum number of elements to use.
+   * @return {Stream} a stream containing those values, but without the resolve value.
+   */
+  take(amount: number): Stream<Message, void> {
+    assert(amount >= 0, `.take expects a positive number, got ${amount}.`);
+
+    // The real question is why.
+    if (amount === 0) {
+      return Stream.from([]);
+    }
+
+    let available = amount;
+    let terminated = false;
+
+    return new Stream((push, resolve) => {
+      const dispose = this.observe((event, dispose) => {
+        if (event.done) {
+          resolve();
+          return;
+        }
+
+        push(event.value);
+        available -= 1;
+        if (available <= 0) {
+          resolve();
+          terminated = true;
+          dispose();
+        }
+      });
+
+      return () => {
+        if (!terminated) {
+          dispose();
+        }
+      };
+    });
+  }
 }

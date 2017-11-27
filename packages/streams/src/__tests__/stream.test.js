@@ -816,4 +816,61 @@ describe('Stream', () => {
       expect(callback).toHaveBeenCalledWith(3);
     });
   });
+
+  describe('take()', () => {
+    it('returns a new stream', () => {
+      const stream = Stream.from([1, 2, 3, 4, 5]);
+      const result = stream.take(3);
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('contains all values when possible', async () => {
+      const stream = Stream.from([1]);
+      const result = stream.take(3).toArray();
+
+      await expect(result).resolves.toEqual([1]);
+    });
+
+    it('terminates early if the stream is too large', async () => {
+      const stream = Stream.from([1, 2, 3]);
+      const result = stream.take(2).toArray();
+
+      await expect(result).resolves.toEqual([1, 2]);
+    });
+
+    it('throws if the value is negative', () => {
+      const stream = Stream.from([1, 2, 3]);
+      const fail = () => stream.take(-1);
+
+      expect(fail).toThrow(/(negative|positive)/i);
+    });
+
+    it('has no resolve value', async () => {
+      const stream = Stream.from([1, 2, 3]).take(5);
+
+      await expect(stream).resolves.toBeUndefined();
+    });
+
+    it('returns an empty stream if the amount is zero', async () => {
+      const stream = Stream.from([1, 2, 3])
+        .take(0)
+        .toArray();
+
+      await expect(stream).resolves.toEqual([]);
+    });
+
+    it('closes the stream if observers lose interest', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const taken = stream.take(3);
+      const callback = jest.fn();
+      const dispose = taken.forEach(callback);
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
 });
