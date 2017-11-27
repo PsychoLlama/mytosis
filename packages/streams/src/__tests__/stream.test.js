@@ -94,6 +94,82 @@ describe('Stream', () => {
     expect(publisher).toHaveBeenCalledTimes(2);
   });
 
+  describe('static from()', () => {
+    it('returns a new stream', () => {
+      const result = Stream.from([]);
+
+      expect(result).toEqual(expect.any(Stream));
+    });
+
+    it('adds every value from the stream', () => {
+      const result = Stream.from([1, 2, 3]);
+      const callback = jest.fn();
+      result.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(2);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
+
+    it('terminates the stream with no value', async () => {
+      const stream = Stream.from([1, 2, 3]);
+
+      await expect(stream).resolves.toBeUndefined();
+    });
+
+    it('works on generic iterables', () => {
+      const values = new Set([5, 10]);
+      const stream = Stream.from(values);
+      const callback = jest.fn();
+      stream.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledWith(5);
+      expect(callback).toHaveBeenCalledWith(10);
+    });
+  });
+
+  describe('toArray()', () => {
+    it('returns a stream', () => {
+      const stream = Stream.from([]);
+      const result = stream.toArray();
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('resolves with all the stream data', async () => {
+      const source = [1, 2, 3];
+      const stream = Stream.from(source);
+      const array = stream.toArray();
+
+      await expect(array).resolves.toEqual(source);
+    });
+
+    it('terminates both streams if unsubscribed', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const array = stream.toArray();
+      const dispose = array.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('re-emits all values', () => {
+      const stream = Stream.from([1, 2, 3]).toArray();
+      const callback = jest.fn();
+      stream.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(2);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
+  });
+
   describe('observe()', () => {
     it('returns a function', () => {
       const stream = new Stream(jest.fn());
@@ -118,10 +194,13 @@ describe('Stream', () => {
       stream.observe(callback);
 
       expect(callback).toHaveBeenCalledTimes(1);
-      expect(callback).toHaveBeenCalledWith({
-        done: false,
-        value: msg,
-      });
+      expect(callback).toHaveBeenCalledWith(
+        {
+          done: false,
+          value: msg,
+        },
+        expect.any(Function),
+      );
     });
 
     it('invokes the callback when successfully terminated', () => {
@@ -129,10 +208,13 @@ describe('Stream', () => {
       const callback = jest.fn();
       stream.observe(callback);
 
-      expect(callback).toHaveBeenCalledWith({
-        done: true,
-        value: 10,
-      });
+      expect(callback).toHaveBeenCalledWith(
+        {
+          done: true,
+          value: 10,
+        },
+        expect.any(Function),
+      );
     });
 
     it('invokes the callback on failed termination', async () => {
@@ -141,10 +223,13 @@ describe('Stream', () => {
       const callback = jest.fn();
       stream.observe(callback);
 
-      expect(callback).toHaveBeenCalledWith({
-        done: true,
-        error,
-      });
+      expect(callback).toHaveBeenCalledWith(
+        {
+          done: true,
+          error,
+        },
+        expect.any(Function),
+      );
 
       await stream.catch(jest.fn());
     });
@@ -211,6 +296,20 @@ describe('Stream', () => {
       dispose();
 
       expect(dispose).toThrow(/listener/i);
+    });
+
+    it('passes the dispose handler to observers', () => {
+      const stream = new Stream(push => {
+        push(1);
+        push(2);
+        push(3);
+      });
+
+      const observer = jest.fn((value, dispose) => dispose());
+      const dispose = stream.observe(observer);
+
+      expect(observer).toHaveBeenCalledWith(expect.anything(), dispose);
+      expect(observer).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -567,6 +666,207 @@ describe('Stream', () => {
       publisher.mockReturnValue(close);
       const filtered = stream.filter(() => false);
       const dispose = filtered.observe(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
+  describe('reduce()', () => {
+    const publishRange = max => (push, resolve) => {
+      const values = Array(max)
+        .fill()
+        .map((value, index) => index + 1);
+
+      values.forEach(push);
+      resolve();
+    };
+
+    const setup = (handler = publishRange(10)) => {
+      const publisher = jest.fn(handler);
+
+      return {
+        stream: new Stream(publisher),
+        publisher,
+      };
+    };
+
+    it('returns a new stream', () => {
+      const { stream } = setup();
+      const result = stream.reduce(jest.fn());
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('streams reduction values', () => {
+      const { stream } = setup(publishRange(3));
+      const reduced = stream.reduce((sum, value) => sum + value, 0);
+      const callback = jest.fn();
+      reduced.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(3);
+      expect(callback).toHaveBeenCalledWith(6);
+    });
+
+    it('resolves with the end result on stream termination', async () => {
+      const { stream } = setup(publishRange(5));
+      const reduced = stream.reduce((sum, value) => sum + value, 0);
+
+      // 1 + 2 + 3 + 4 + 5
+      // 1,  3,  6, 10, 15
+      await expect(reduced).resolves.toBe(15);
+    });
+
+    it('terminates both streams if unobserved', () => {
+      const close = jest.fn();
+      const { stream } = setup(() => close);
+      const reduced = stream.reduce(value => value + 2, 0);
+      const dispose = reduced.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
+  describe('some()', () => {
+    const setup = (publisher = jest.fn()) => ({
+      stream: new Stream(publisher),
+      publisher,
+    });
+
+    it('returns a new stream', () => {
+      const { stream } = setup();
+      const some = stream.some(value => value === 3);
+
+      expect(some).toEqual(expect.any(Stream));
+      expect(some).not.toBe(stream);
+    });
+
+    it('indicates when the condition was satisfied', async () => {
+      const { stream } = setup((push, resolve) => {
+        push(1);
+        push(2);
+        push(3);
+        resolve();
+      });
+
+      const some = stream.some(value => value === 3);
+
+      await expect(some).resolves.toBe(true);
+    });
+
+    it('indicates when the condition was not satisfied', async () => {
+      const { stream } = setup((push, resolve) => {
+        push(1);
+        push(2);
+        push(3);
+        resolve();
+      });
+
+      const some = stream.some(value => value === 5);
+
+      await expect(some).resolves.toBe(false);
+    });
+
+    it('terminates the stream as soon as the predicate succeeds', async () => {
+      const { stream } = setup((push, resolve) => {
+        push(1);
+        push(2);
+        push(3);
+        resolve();
+      });
+
+      const predicate = jest.fn(() => true);
+      const some = stream.some(predicate);
+
+      await expect(some).resolves.toBe(true);
+      expect(predicate).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes both streams when unobserved', () => {
+      const close = jest.fn();
+      const { stream } = setup(() => close);
+      const result = stream.some(value => value === 2);
+      const dispose = result.observe(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+
+    it('forwards data through the stream', () => {
+      const { stream } = setup(push => {
+        push(1);
+        push(2);
+        push(3);
+      });
+
+      const some = stream.some(value => value === 3);
+      const callback = jest.fn();
+      some.forEach(callback);
+
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(2);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
+  });
+
+  describe('take()', () => {
+    it('returns a new stream', () => {
+      const stream = Stream.from([1, 2, 3, 4, 5]);
+      const result = stream.take(3);
+
+      expect(result).toEqual(expect.any(Stream));
+      expect(result).not.toBe(stream);
+    });
+
+    it('contains all values when possible', async () => {
+      const stream = Stream.from([1]);
+      const result = stream.take(3).toArray();
+
+      await expect(result).resolves.toEqual([1]);
+    });
+
+    it('terminates early if the stream is too large', async () => {
+      const stream = Stream.from([1, 2, 3]);
+      const result = stream.take(2).toArray();
+
+      await expect(result).resolves.toEqual([1, 2]);
+    });
+
+    it('throws if the value is negative', () => {
+      const stream = Stream.from([1, 2, 3]);
+      const fail = () => stream.take(-1);
+
+      expect(fail).toThrow(/(negative|positive)/i);
+    });
+
+    it('has no resolve value', async () => {
+      const stream = Stream.from([1, 2, 3]).take(5);
+
+      await expect(stream).resolves.toBeUndefined();
+    });
+
+    it('returns an empty stream if the amount is zero', async () => {
+      const stream = Stream.from([1, 2, 3])
+        .take(0)
+        .toArray();
+
+      await expect(stream).resolves.toEqual([]);
+    });
+
+    it('closes the stream if observers lose interest', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const taken = stream.take(3);
+      const callback = jest.fn();
+      const dispose = taken.forEach(callback);
 
       expect(close).not.toHaveBeenCalled();
       dispose();

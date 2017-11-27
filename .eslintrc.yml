@@ -13,6 +13,10 @@ extends:
   - llama
   - prettier
 
+globals:
+  Generator: true
+  Iterable: true
+
 parser: babel-eslint
 parserOptions:
   sourceType: module

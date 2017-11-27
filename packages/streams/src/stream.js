@@ -28,18 +28,26 @@ type StreamEvent<Data, Result> =
   | StreamDataEvent<Data>
   | StreamTerminationEvent<Result>;
 
-type Observer<Data, Result> = (StreamEvent<Data, Result>) => any;
+type Dispose = () => void;
 type ResultTranformer<Result, Output> = (?Error, data?: Result) => Output;
+type Observer<Data, Result> = (StreamEvent<Data, Result>, Dispose) => any;
+type ObserverRecord<Data, Result> = {
+  observer: Observer<Data, Result>,
+  dispose: Dispose,
+};
 
 const noop = () => {};
 
 // Locates the splice-friendly index of a subscriber in an array.
 // .findIndex() is unsupported in IE.
-const findSubscriber = (arr: Function[], subscriber: Function) => {
+const findObserver = <Data, Result>(
+  arr: ObserverRecord<Data, Result>[],
+  observer: Observer<Data, Result>,
+) => {
   let index = arr.length;
 
-  arr.some((sub, idx) => {
-    const foundSubscriber = sub === subscriber;
+  arr.some((record, idx) => {
+    const foundSubscriber = record.observer === observer;
 
     if (foundSubscriber) {
       index = idx;
@@ -72,13 +80,28 @@ const defer = (deferred: Object = {}) => {
 /** Creates a lazy pipe-driven event stream (cacheless). */
 export default class Stream<Message, Result = void> {
   _closeStreamHandler: CloseStreamHandler;
-  _observers: Observer<Message, Result>[];
+  _observers: ObserverRecord<Message, Result>[];
   _publisher: Publisher<Message, Result>;
   _deferredResult: Deferred<Result>;
   _hasPromiseObservers: boolean;
   _open: boolean;
 
   closed: boolean = false;
+
+  /**
+   * Generates a stream from an iterable.
+   * @param  {Iterable} iterable - Any iterable value.
+   * @return {Stream} - A stream containing those values.
+   */
+  static from<Type>(iterable: Iterable<Type>): Stream<Type> {
+    return new Stream((push, resolve) => {
+      for (const value of iterable) {
+        push(value);
+      }
+
+      resolve();
+    });
+  }
 
   /**
    * @param  {Function} publisher - Responsible for publishing events.
@@ -164,6 +187,10 @@ export default class Stream<Message, Result = void> {
    * @return {void}
    */
   _terminateStream() {
+    if (this.closed) {
+      return;
+    }
+
     this.closed = true;
     this._closeStream();
 
@@ -213,7 +240,7 @@ export default class Stream<Message, Result = void> {
    * @return {void}
    */
   _notifyObservers(msg: StreamEvent<Message, Result>) {
-    this._observers.forEach(observer => observer(msg));
+    this._observers.forEach(record => record.observer(msg, record.dispose));
   }
 
   /**
@@ -253,19 +280,24 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} observer - Called for every event.
    * @return {Function} - Invoke to unsubscribe.
    */
-  observe(observer: Observer<Message, Result>): () => void {
+  observe(observer: Observer<Message, Result>): Dispose {
     if (this.closed) {
       return noop;
     }
 
-    this._observers.push(observer);
-    this._openStream();
-
-    return this._createUnsubscribeCallback(() => {
-      const index = findSubscriber(this._observers, observer);
+    let handler = noop;
+    const dispose = this._createUnsubscribeCallback(() => {
+      const index = findObserver(this._observers, handler);
       this._observers.splice(index, 1);
       this._closeIfNoListenersExist();
     });
+
+    handler = event => observer(event, dispose);
+    this._observers.push({ observer: handler, dispose });
+
+    this._openStream();
+
+    return dispose;
   }
 
   /**
@@ -320,6 +352,26 @@ export default class Stream<Message, Result = void> {
    */
   catch(errorHandler: Error => any) {
     this.then(undefined, errorHandler);
+  }
+
+  /**
+   * Outputs a new stream which tracks every event.
+   * @return {Stream} - Resolves as an array of every emitted value.
+   */
+  toArray(): Stream<Message, Message[]> {
+    const result = [];
+
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (event.done) {
+          resolve(result);
+          return;
+        }
+
+        push(event.value);
+        result.push(event.value);
+      }),
+    );
   }
 
   /**
@@ -381,5 +433,106 @@ export default class Stream<Message, Result = void> {
     stream._deferredResult = this._deferredResult;
 
     return stream;
+  }
+
+  /**
+   * Similar to Array#reduce, except the initial value is required.
+   * @param  {Function} reducer - Combines two values into a new one.
+   * @param  {Any} initialValue - A value to start with.
+   * @return {Stream} - Emits each reduction and resolves with the final result.
+   */
+  reduce<Result>(
+    reducer: (Result, Message) => Result,
+    initialValue: Result,
+  ): Stream<Result, Result> {
+    let lastValue = initialValue;
+
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (event.done) {
+          resolve(lastValue);
+          return;
+        }
+
+        lastValue = reducer(lastValue, event.value);
+        push(lastValue);
+      }),
+    );
+  }
+
+  /**
+   * Indicates whether one of the stream values satisfies the predicate.
+   * @param  {Function} predicate - Indicates whether the value matches.
+   * @return {Stream} - Indicates whether the predicate was satisfied.
+   */
+  some(predicate: Message => boolean): Stream<Message, boolean> {
+    let terminated = false;
+
+    return new Stream((push, resolve) => {
+      const dispose = this.observe((event, dispose) => {
+        if (event.done) {
+          resolve(false);
+          return;
+        }
+
+        push(event.value);
+        const satisfied = predicate(event.value);
+
+        if (satisfied) {
+          resolve(true);
+
+          // Early termination prevents synchronous producers
+          // from calling this observer multiple times after unsubscribing.
+          terminated = true;
+          dispose();
+        }
+      });
+
+      return () => {
+        if (!terminated) {
+          dispose();
+        }
+      };
+    });
+  }
+
+  /**
+   * Truncates the stream at a maximum. Has no resolve value.
+   * @param  {Number} amount - A maximum number of elements to use.
+   * @return {Stream} a stream containing those values, but without the resolve value.
+   */
+  take(amount: number): Stream<Message, void> {
+    assert(amount >= 0, `.take expects a positive number, got ${amount}.`);
+
+    // The real question is why.
+    if (amount === 0) {
+      return Stream.from([]);
+    }
+
+    let available = amount;
+    let terminated = false;
+
+    return new Stream((push, resolve) => {
+      const dispose = this.observe((event, dispose) => {
+        if (event.done) {
+          resolve();
+          return;
+        }
+
+        push(event.value);
+        available -= 1;
+        if (available <= 0) {
+          resolve();
+          terminated = true;
+          dispose();
+        }
+      });
+
+      return () => {
+        if (!terminated) {
+          dispose();
+        }
+      };
+    });
   }
 }

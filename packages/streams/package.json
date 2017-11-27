@@ -2,7 +2,7 @@
   "name": "@mytosis/streams",
   "version": "0.1.0",
   "description": "Cache-free lazy observables for modelling async event streams",
-  "main": "dist/index.js",
+  "main": "dist/stream.js",
   "scripts": {
     "test": "jest",
     "transpile": "babel src/ -d dist/ --ignore __tests__",
