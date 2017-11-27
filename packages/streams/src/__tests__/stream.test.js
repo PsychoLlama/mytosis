@@ -521,4 +521,56 @@ describe('Stream', () => {
       expect(close).toHaveBeenCalled();
     });
   });
+
+  describe('filter()', () => {
+    const setup = (publisher = jest.fn()) => ({
+      stream: new Stream(publisher),
+      publisher,
+    });
+
+    it('returns a new stream', () => {
+      const { stream } = setup();
+      const mapped = stream.filter(value => value % 2 === 0);
+
+      expect(mapped).toEqual(expect.any(Stream));
+      expect(mapped).not.toBe(stream);
+    });
+
+    it('filters unwanted values', () => {
+      const { stream, publisher } = setup();
+      const filtered = stream.filter(value => (value - 1) % 2 === 0);
+      const callback = jest.fn();
+      filtered.forEach(callback);
+
+      publisher.mock.calls[0][0](1);
+      publisher.mock.calls[0][0](2);
+      publisher.mock.calls[0][0](3);
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledWith(1);
+      expect(callback).toHaveBeenCalledWith(3);
+    });
+
+    it('borrows the result from upstream', async () => {
+      const { stream, publisher } = setup();
+      const filtered = stream.filter(value => Boolean(value));
+      filtered.observe(jest.fn());
+      const result = { resolved: true };
+      publisher.mock.calls[0][1](result);
+
+      await expect(filtered).resolves.toBe(result);
+    });
+
+    it('closes both streams when no listeners exist', () => {
+      const { stream, publisher } = setup();
+      const close = jest.fn();
+      publisher.mockReturnValue(close);
+      const filtered = stream.filter(() => false);
+      const dispose = filtered.observe(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
 });

@@ -362,4 +362,24 @@ export default class Stream<Message, Result = void> {
       }),
     );
   }
+
+  /**
+   * Filters values out of a stream before passing them onward.
+   * @param  {Function} predicate - Determines whether to keep the value.
+   * @return {Stream} - A new stream missing inadequate values.
+   */
+  filter(predicate: Message => boolean): Stream<Message, Result> {
+    const stream = new Stream(push =>
+      this.observe(event => {
+        if (!event.done && predicate(event.value)) {
+          push(event.value);
+        }
+      }),
+    );
+
+    // Stream maps cannot affect the promise. Sharing here is safe.
+    stream._deferredResult = this._deferredResult;
+
+    return stream;
+  }
 }
