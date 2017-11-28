@@ -1,4 +1,6 @@
 // @flow
+import Stream from '@mytosis/streams';
+
 import { create as createConfig } from '../config-utils';
 import DBContext from '../database-context';
 
@@ -66,6 +68,37 @@ describe('Database context', () => {
       const read = context.createReadDescriptor(keys, { network });
 
       expect(read.network.router).toEqual(network.router);
+    });
+
+    it('throws if the key set is empty', () => {
+      const context = setup();
+      const fail = () => context.createReadDescriptor([]);
+
+      expect(fail).toThrow(/(empty|key)/i);
+    });
+  });
+
+  describe('createReadStream()', () => {
+    const setup = (config = createConfig(), keys = ['user1', 'user2']) => {
+      const context = new DBContext(config);
+      const read = context.createReadDescriptor(keys);
+
+      return { context, read };
+    };
+
+    it('returns a stream', () => {
+      const { context, read } = setup();
+      const stream = context.createReadStream(read);
+
+      expect(stream).toEqual(expect.any(Stream));
+    });
+
+    it('returns an array of null if there are no plugins', async () => {
+      const { context, read } = setup();
+      const stream = context.createReadStream(read).toArray();
+
+      const expected = Array(read.keys.length).fill(null);
+      await expect(stream).resolves.toEqual(expected);
     });
   });
 });
