@@ -1,7 +1,7 @@
 // @flow
 import { Primitive } from '@mytosis/types';
 
-import { string, number, boolean } from '../primitives';
+import { string, number, boolean, buffer } from '../primitives';
 
 describe('string', () => {
   it('exists', () => {
@@ -181,6 +181,89 @@ describe('boolean', () => {
       expect(boolean.coerce(({}: any))).toBe(true);
       expect(boolean.coerce(([]: any))).toBe(true);
       expect(boolean.coerce((new ArrayBuffer(0): any))).toBe(true);
+    });
+  });
+});
+
+describe('buffer', () => {
+  it('exists', () => {
+    expect(buffer).toEqual(expect.any(Primitive));
+    expect(buffer.name).toBe('buffer');
+  });
+
+  it('marks non-buffers as invalid', () => {
+    expect(buffer.isValid({})).toBe(false);
+    expect(buffer.isValid([1, 0, 1])).toBe(false);
+    expect(buffer.isValid(5)).toBe(false);
+    expect(buffer.isValid(-Infinity)).toBe(false);
+    expect(buffer.isValid(NaN)).toBe(false);
+    expect(buffer.isValid(null)).toBe(false);
+    expect(buffer.isValid(undefined)).toBe(false);
+    expect(buffer.isValid('contents')).toBe(false);
+  });
+
+  it('allows valid values', () => {
+    const buf = new ArrayBuffer(8);
+    expect(buffer.isValid(buf)).toBe(true);
+    expect(buffer.isValid(new Uint8Array(buf))).toBe(true);
+    expect(buffer.isValid(new Uint8ClampedArray(buf))).toBe(true);
+    expect(buffer.isValid(new Uint16Array(buf))).toBe(true);
+    expect(buffer.isValid(new Uint32Array(buf))).toBe(true);
+    expect(buffer.isValid(new Int8Array(buf))).toBe(true);
+    expect(buffer.isValid(new Int16Array(buf))).toBe(true);
+    expect(buffer.isValid(new Int32Array(buf))).toBe(true);
+    expect(buffer.isValid(new Float32Array(buf))).toBe(true);
+    expect(buffer.isValid(new Float64Array(buf))).toBe(true);
+  });
+
+  describe('coercion', () => {
+    it('returns the buffer if already valid', () => {
+      const buf = new ArrayBuffer(8);
+      expect(buffer.coerce(buf)).toBe(buf);
+      expect(buffer.coerce(new Uint8Array(buf))).toEqual(
+        expect.any(Uint8Array),
+      );
+      expect(buffer.coerce(new Uint8ClampedArray(buf))).toEqual(
+        expect.any(Uint8ClampedArray),
+      );
+      expect(buffer.coerce(new Uint16Array(buf))).toEqual(
+        expect.any(Uint16Array),
+      );
+      expect(buffer.coerce(new Uint32Array(buf))).toEqual(
+        expect.any(Uint32Array),
+      );
+      expect(buffer.coerce(new Int8Array(buf))).toEqual(expect.any(Int8Array));
+      expect(buffer.coerce(new Int16Array(buf))).toEqual(
+        expect.any(Int16Array),
+      );
+      expect(buffer.coerce(new Int32Array(buf))).toEqual(
+        expect.any(Int32Array),
+      );
+      expect(buffer.coerce(new Int32Array(buf))).toEqual(
+        expect.any(Int32Array),
+      );
+      expect(buffer.coerce(new Float32Array(buf))).toEqual(
+        expect.any(Float32Array),
+      );
+      expect(buffer.coerce(new Float64Array(buf))).toEqual(
+        expect.any(Float64Array),
+      );
+    });
+
+    // Lossless coercion would be too weird. Let's hope nobody wants it.
+    it('returns an empty array buffer if the value is invalid', () => {
+      expect(buffer.coerce(5)).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce('contents')).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(null)).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(undefined)).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(([]: any))).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(({}: any))).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(-Infinity)).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(NaN)).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(false)).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce(true)).toEqual(new ArrayBuffer(0));
+
+      expect(buffer.coerce(undefined).byteLength).toBe(0);
     });
   });
 });
