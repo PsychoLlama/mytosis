@@ -1,7 +1,7 @@
 // @flow
 import { Primitive } from '@mytosis/types';
 
-import { string } from '../primitives';
+import { string, number } from '../primitives';
 
 describe('string', () => {
   it('exists', () => {
@@ -68,10 +68,59 @@ describe('string', () => {
       expect(string.coerce(stringable)).toBe('#yolo');
     });
 
-    it('returns empty string when given undefined', () => {
-      const result = string.coerce(undefined);
+    it('coerces unexpected values', () => {
+      expect(string.coerce(undefined)).toBe('');
+      expect(string.coerce(null)).toBe('');
+    });
+  });
+});
 
-      expect(result).toBe('');
+describe('number', () => {
+  it('exists', () => {
+    expect(number).toEqual(expect.any(Primitive));
+    expect(number.name).toBe('number');
+  });
+
+  it('declares numbers as valid', () => {
+    expect(number.isValid(0)).toBe(true);
+    expect(number.isValid(-10000)).toBe(true);
+    expect(number.isValid(345689)).toBe(true);
+  });
+
+  it('marks invalid values', () => {
+    expect(number.isValid('')).toBe(false);
+    expect(number.isValid('contents')).toBe(false);
+    expect(number.isValid(false)).toBe(false);
+    expect(number.isValid(true)).toBe(false);
+    expect(number.isValid(Symbol('number'))).toBe(false);
+    expect(number.isValid({})).toBe(false);
+    expect(number.isValid([])).toBe(false);
+    expect(number.isValid(null)).toBe(false);
+
+    // Unusual exceptions.
+    expect(number.isValid(NaN)).toBe(false);
+    expect(number.isValid(Infinity)).toBe(false);
+    expect(number.isValid(-Infinity)).toBe(false);
+  });
+
+  describe('coercion', () => {
+    it('returns a number', () => {
+      expect(number.coerce(5)).toBe(5);
+      expect(number.coerce(-60)).toBe(-60);
+
+      expect(number.coerce('0')).toBe(0);
+      expect(number.coerce('-15')).toBe(-15);
+
+      expect(number.coerce(true)).toBe(1);
+      expect(number.coerce(false)).toBe(0);
+
+      // Special cases.
+      expect(number.coerce('invalid number')).toBe(0);
+      expect(number.coerce('-Infinity')).toBe(0);
+      expect(number.coerce('Infinity')).toBe(0);
+      expect(number.coerce('NaN')).toBe(0);
+      expect(number.coerce(undefined)).toBe(0);
+      expect(number.coerce(null)).toBe(0);
     });
   });
 });
