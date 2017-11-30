@@ -1,9 +1,11 @@
 // @flow
-import { Primitive } from '@mytosis/types';
+import { Primitive, Derivation } from '@mytosis/types';
 
 // I am a bad person.
 const Uint8Proto = Object.getPrototypeOf(new Uint8Array(new ArrayBuffer(0)));
 const TypedArray = Object.getPrototypeOf(Uint8Proto).constructor;
+
+const identity = value => value;
 
 export const string = new Primitive('string', {
   isValid: (value): boolean => typeof value === 'string',
@@ -43,4 +45,10 @@ export const buffer = new Primitive('buffer', {
 
   isValid: (value): boolean =>
     value instanceof ArrayBuffer || value instanceof TypedArray,
+});
+
+export const pointer = new Derivation('pointer', string, {
+  isValid: value => string.isValid(value),
+  dehydrate: identity,
+  hydrate: identity,
 });

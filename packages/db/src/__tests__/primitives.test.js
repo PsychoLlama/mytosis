@@ -1,7 +1,7 @@
 // @flow
-import { Primitive } from '@mytosis/types';
+import { Primitive, Derivation } from '@mytosis/types';
 
-import { string, number, boolean, buffer } from '../primitives';
+import { string, number, boolean, buffer, pointer } from '../primitives';
 
 describe('string', () => {
   it('exists', () => {
@@ -265,5 +265,31 @@ describe('buffer', () => {
 
       expect(buffer.coerce(undefined).byteLength).toBe(0);
     });
+  });
+});
+
+describe('pointer', () => {
+  it('exists', () => {
+    expect(pointer).toEqual(expect.any(Derivation));
+    expect(pointer.subtype).toBe(string);
+    expect(pointer.name).toBe('pointer');
+  });
+
+  it('borrows the validation from string', () => {
+    expect(pointer.isValid(5)).toBe(false);
+    expect(pointer.isValid(false)).toBe(false);
+
+    expect(pointer.isValid('')).toBe(true);
+    expect(pointer.isValid('with contents')).toBe(true);
+  });
+
+  it('dehydrates to the same value', () => {
+    expect(pointer.dehydrate('')).toBe('');
+    expect(pointer.dehydrate('value')).toBe('value');
+  });
+
+  it('hydrates to the same value', () => {
+    expect(pointer.hydrate('')).toBe('');
+    expect(pointer.hydrate('value')).toBe('value');
   });
 });
