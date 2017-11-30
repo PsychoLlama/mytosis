@@ -34,8 +34,9 @@
     "jest": "^21.2.1"
   },
   "dependencies": {
-    "babel-runtime": "^6.26.0",
     "@mytosis/crdts": "^0.1.0",
-    "@mytosis/types": "^0.1.0"
+    "@mytosis/streams": "^0.1.0",
+    "@mytosis/types": "^0.1.0",
+    "babel-runtime": "^6.26.0"
   }
 }
