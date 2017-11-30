@@ -1,7 +1,7 @@
 // @flow
 import { Primitive } from '@mytosis/types';
 
-import { string, number } from '../primitives';
+import { string, number, boolean } from '../primitives';
 
 describe('string', () => {
   it('exists', () => {
@@ -121,6 +121,66 @@ describe('number', () => {
       expect(number.coerce('NaN')).toBe(0);
       expect(number.coerce(undefined)).toBe(0);
       expect(number.coerce(null)).toBe(0);
+    });
+
+    it('respects valueOf() interfaces', () => {
+      const coercible: any = {
+        valueOf: () => 15,
+      };
+
+      const result = number.coerce(coercible);
+
+      expect(result).toBe(15);
+    });
+  });
+});
+
+describe('boolean', () => {
+  it('exists', () => {
+    expect(boolean).toEqual(expect.any(Primitive));
+    expect(boolean.name).toBe('boolean');
+  });
+
+  it('marks booleans as valid', () => {
+    expect(boolean.isValid(true)).toBe(true);
+    expect(boolean.isValid(false)).toBe(true);
+  });
+
+  it('marks non-booleans as invalid', () => {
+    expect(boolean.isValid(5)).toBe(false);
+    expect(boolean.isValid(-Infinity)).toBe(false);
+    expect(boolean.isValid(NaN)).toBe(false);
+    expect(boolean.isValid({})).toBe(false);
+    expect(boolean.isValid([])).toBe(false);
+    expect(boolean.isValid(/yolo/)).toBe(false);
+    expect(boolean.isValid('contents')).toBe(false);
+    expect(boolean.isValid(Symbol())).toBe(false);
+    expect(boolean.isValid(new ArrayBuffer(8))).toBe(false);
+  });
+
+  describe('coercion', () => {
+    it('returns a boolean', () => {
+      expect(boolean.coerce(true)).toBe(true);
+    });
+
+    it('uses truthiness', () => {
+      // Falsy
+      expect(boolean.coerce('')).toBe(false);
+      expect(boolean.coerce(0)).toBe(false);
+      expect(boolean.coerce(false)).toBe(false);
+      expect(boolean.coerce(NaN)).toBe(false);
+      expect(boolean.coerce(undefined)).toBe(false);
+      expect(boolean.coerce(null)).toBe(false);
+
+      // Truthy
+      expect(boolean.coerce(true)).toBe(true);
+      expect(boolean.coerce(1)).toBe(true);
+      expect(boolean.coerce(Infinity)).toBe(true);
+      expect(boolean.coerce('contents')).toBe(true);
+      expect(boolean.coerce((/yolo/: any))).toBe(true);
+      expect(boolean.coerce(({}: any))).toBe(true);
+      expect(boolean.coerce(([]: any))).toBe(true);
+      expect(boolean.coerce((new ArrayBuffer(0): any))).toBe(true);
     });
   });
 });

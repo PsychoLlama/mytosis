@@ -21,3 +21,8 @@ export const number = new Primitive('number', {
     return isFinite(result) ? result : 0;
   },
 });
+
+export const boolean = new Primitive('boolean', {
+  isValid: (value): boolean => value === true || value === false,
+  coerce: (value): boolean => !!value,
+});
