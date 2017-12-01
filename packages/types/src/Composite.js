@@ -11,13 +11,13 @@ import type {
   Add,
 } from './migrations';
 
+export type Field = Primitive | Derivation;
+export type CRDT = { import(any): Object };
+export type FieldSet = { [field: string]: Field };
 type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
-type Field = Primitive | Derivation;
-type FieldSet = { [field: string]: Field };
 type ValidationTarget = { [string]: string | number | boolean };
 type MigrationInterceptor = ?(Migration[]) => Migration[];
 
-export type CRDT = { import(any): Object };
 export type Definition = {
   migrationInterceptor?: MigrationInterceptor,
   initialFieldSet?: FieldSet,

@@ -1,27 +1,25 @@
 // @flow
 import assert from 'minimalistic-assert';
 
-import type Composite from './Composite';
+import type Composite, { Field, FieldSet } from './Composite';
 import Derivation from './Derivation';
 import Primitive from './Primitive';
 
-type AnyType = Primitive | Derivation;
-
 type CompositeTypeMap = {
-  definition: { [string]: AnyType },
-  defaultType: ?AnyType,
+  definition: FieldSet,
+  defaultType: ?Field,
 };
 
 /** Represents an ADD migration. */
 export class Add {
   field: string;
-  type: AnyType;
+  type: Field;
 
   /**
    * @param  {String} field - The name of the field to create.
    * @param  {Type} type - The type to use.
    */
-  constructor(field: string, type: AnyType) {
+  constructor(field: string, type: Field) {
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -111,13 +109,13 @@ export class Remove {
 /** Changes the type of a field. */
 export class TypeChange {
   field: string;
-  type: AnyType;
+  type: Field;
 
   /**
    * @param  {String} field - The field to change.
    * @param  {Type} type - Any type.
    */
-  constructor(field: string, type: AnyType) {
+  constructor(field: string, type: Field) {
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -232,12 +230,12 @@ export class Move {
 
 /** Changes the implied type of a composite */
 export class DefaultTypeChange {
-  type: ?AnyType;
+  type: ?Field;
 
   /**
    * @param  {Type} type - Any type.
    */
-  constructor(type: ?AnyType) {
+  constructor(type: ?Field) {
     Object.defineProperty(this, 'type', { value: type });
   }
 
