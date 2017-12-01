@@ -198,7 +198,14 @@ export class Move {
 
     const target = definition[this.to];
     const source = definition[this.from];
-    const isSameType = target === source;
+
+    const targetComparison =
+      target instanceof Derivation ? target.subtype : target;
+    const sourceComparison =
+      source instanceof Derivation ? source.subtype : source;
+
+    const isSameType = targetComparison === sourceComparison;
+
     assert(
       isSameType,
       `Can't move ${source.name} into ${target.name} ` +

@@ -2,6 +2,7 @@
 import Derivation from '../Derivation';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
+import Pointer from '../Pointer';
 import {
   DefaultTypeChange,
   TypeChange,
@@ -161,9 +162,6 @@ describe('Migration', () => {
 
       expect(result).toEqual({ ...input, score: '500' });
     });
-
-    // Requires an implementation of Pointer.
-    it('migrates composite types');
   });
 
   describe('Move', () => {
@@ -189,6 +187,23 @@ describe('Migration', () => {
       const fail = () => migration.migrateType(type);
 
       expect(fail).toThrow(/number/i);
+    });
+
+    it('allows similar derivations to move between themselves', () => {
+      const migration = new Move('user', 'member');
+      const Member = new Composite('Member', { context });
+      const User = new Composite('User', { context });
+      const type = new Composite('Team', {
+        context,
+        initialFieldSet: {
+          member: new Pointer(string, Member),
+          user: new Pointer(string, User),
+        },
+      });
+
+      const pass = () => migration.migrateType(type);
+
+      expect(pass).not.toThrow();
     });
 
     it('returns the same type data', () => {
