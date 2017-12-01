@@ -284,6 +284,39 @@ describe('Composite', () => {
       expect(v2.firstComposite).toBe(v1);
       expect(v3.firstComposite).toBe(v1);
     });
+
+    it('uses the migration preprocessor', () => {
+      const migrationInterceptor = jest.fn(() => [
+        new migrations.Add('intercepted', string),
+      ]);
+      const v1 = new Composite('User', { migrationInterceptor, CRDT });
+      const operations = [new migrations.Add('shouldBeIntercepted', string)];
+      const v2 = v1.migrate(operations);
+
+      expect(migrationInterceptor).toHaveBeenCalledWith(operations);
+      expect(v2.definition).toEqual({ intercepted: string });
+    });
+
+    it('passes the migration preprocessor through versions', () => {
+      const migrationInterceptor = ([operation]) => {
+        if (operation instanceof migrations.Add) {
+          return [
+            new migrations.Add(`prefixed-${operation.field}`, operation.type),
+          ];
+        }
+
+        return [];
+      };
+
+      const v1 = new Composite('User', { CRDT, migrationInterceptor });
+      const v2 = v1.migrate([new migrations.Add('address', string)]);
+      const v3 = v2.migrate([new migrations.Add('name', string)]);
+
+      expect(v3.definition).toEqual({
+        'prefixed-address': string,
+        'prefixed-name': string,
+      });
+    });
   });
 
   describe('toString()', () => {

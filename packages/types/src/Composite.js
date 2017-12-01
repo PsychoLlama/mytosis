@@ -15,9 +15,11 @@ type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
 type Field = Primitive | Derivation;
 type FieldSet = { [field: string]: Field };
 type ValidationTarget = { [string]: string | number | boolean };
+type MigrationInterceptor = ?(Migration[]) => Migration[];
 
 export type CRDT = { import(any): Object };
 export type Definition = {
+  migrationInterceptor?: MigrationInterceptor,
   initialFieldSet?: FieldSet,
   defaultType?: ?Field,
   CRDT: CRDT,
@@ -41,6 +43,7 @@ export default class Composite {
   lastComposite: ?Composite;
   nextComposite: ?Composite;
 
+  migrationInterceptor: MigrationInterceptor;
   migration: ?Migration;
 
   /**
@@ -95,6 +98,9 @@ export default class Composite {
         writable: true,
         value: null,
       },
+      migrationInterceptor: {
+        value: def.migrationInterceptor || null,
+      },
       migration: {
         writable: true,
         value: null,
@@ -139,6 +145,10 @@ export default class Composite {
    * @return {Composite} - A new composite with the changes applied.
    */
   migrate(operations: Migration[]): Composite {
+    if (this.migrationInterceptor) {
+      operations = this.migrationInterceptor(operations);
+    }
+
     assert(!this.migration, `Can't migrate the same ${this.name} type twice.`);
     assert(operations.length, 'Migration list is empty.');
 
@@ -148,6 +158,7 @@ export default class Composite {
       composite.migration = migration;
 
       const result = new Composite(composite.name, {
+        migrationInterceptor: composite.migrationInterceptor,
         initialFieldSet: definition,
         CRDT: composite.CRDT,
         defaultType,
