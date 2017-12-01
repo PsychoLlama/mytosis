@@ -1,5 +1,10 @@
 // @flow
-import { Primitive, Derivation } from '@mytosis/types';
+import type {
+  Definition as CompositeDefinition,
+  CRDT,
+} from '@mytosis/types/dist/Composite';
+import { Primitive, Derivation, Composite } from '@mytosis/types';
+import { Atom } from '@mytosis/crdts';
 
 // I am a bad person.
 const Uint8Proto = Object.getPrototypeOf(new Uint8Array(new ArrayBuffer(0)));
@@ -52,3 +57,12 @@ export const pointer = new Derivation('pointer', string, {
   dehydrate: identity,
   hydrate: identity,
 });
+
+export const atom = (
+  name: string,
+  definition: $Rest<CompositeDefinition, { CRDT: CRDT }>,
+) =>
+  new Composite(name, {
+    ...definition,
+    CRDT: Atom,
+  });

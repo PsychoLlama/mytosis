@@ -141,9 +141,9 @@ export default class Composite {
 type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
 type Field = Primitive | Derivation;
 type FieldSet = { [field: string]: Field };
-type CRDT = { import(data: Object): Object };
+export type CRDT = { import(any): Object };
 type ValidationTarget = { [string]: string | number | boolean };
-type Definition = {
+export type Definition = {
   initialFieldSet?: FieldSet,
   defaultType?: ?Field,
   CRDT: CRDT,

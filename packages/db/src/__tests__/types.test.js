@@ -1,7 +1,8 @@
 // @flow
-import { Primitive, Derivation } from '@mytosis/types';
+import { Primitive, Derivation, Composite } from '@mytosis/types';
+import { Atom } from '@mytosis/crdts';
 
-import { string, number, boolean, buffer, pointer } from '../types';
+import { string, number, boolean, buffer, pointer, atom } from '../types';
 
 describe('string', () => {
   it('exists', () => {
@@ -291,5 +292,36 @@ describe('pointer', () => {
   it('hydrates to the same value', () => {
     expect(pointer.hydrate('')).toBe('');
     expect(pointer.hydrate('value')).toBe('value');
+  });
+});
+
+describe('atom', () => {
+  it('returns a composite', () => {
+    const User = atom('User', {
+      initialFieldSet: {},
+    });
+
+    expect(User).toEqual(expect.any(Composite));
+    expect(User.name).toBe('User');
+  });
+
+  it('attaches the Atom CRDT', () => {
+    const User = atom('User', {
+      initialFieldSet: {},
+    });
+
+    expect(User.CRDT).toBe(Atom);
+  });
+
+  it('passes type information', () => {
+    const User = atom('Leaderboard', {
+      defaultType: pointer,
+      initialFieldSet: {
+        highScore: number,
+      },
+    });
+
+    expect(User.definition.highScore).toBe(number);
+    expect(User.defaultType).toBe(pointer);
   });
 });

@@ -7,15 +7,13 @@ env:
 
 plugins:
   - import
+  - flowtype
 
 extends:
   - eslint:recommended
+  - plugin:flowtype/recommended
   - llama
   - prettier
-
-globals:
-  Generator: true
-  Iterable: true
 
 parser: babel-eslint
 parserOptions:
