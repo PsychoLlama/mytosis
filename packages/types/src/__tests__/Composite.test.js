@@ -223,17 +223,19 @@ describe('Composite', () => {
 
     it('tracks the version', () => {
       const v1 = new Composite('User', { CRDT });
-      expect(v1.lastVersion).toBe(null);
-      expect(v1.nextVersion).toBe(null);
+      const v2 = v1.migrate([new migrations.Add('firstName', string)]);
+      const v3 = v2.migrate([new migrations.Add('lastName', string)]);
+      const v4 = v3.migrate([new migrations.Add('invited', string)]);
 
-      const v2 = v1.migrate([
-        new migrations.Add('firstName', string),
-        new migrations.Add('lastName', string),
-        new migrations.Add('joined', string),
-      ]);
+      expect(v1.nextVersion).toBe(v2);
+      expect(v2.nextVersion).toBe(v3);
+      expect(v3.nextVersion).toBe(v4);
+      expect(v4.nextVersion).toBe(null);
 
+      expect(v4.lastVersion).toBe(v3);
+      expect(v3.lastVersion).toBe(v2);
       expect(v2.lastVersion).toBe(v1);
-      expect(v2.nextVersion).toBe(null);
+      expect(v1.lastVersion).toBe(null);
     });
 
     it('keeps a reference to each migration', () => {

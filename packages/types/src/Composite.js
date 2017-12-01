@@ -151,6 +151,8 @@ export default class Composite {
       return composite.lastComposite;
     }, migrated);
 
+    this.nextVersion = migrated;
+
     return Object.assign(migrated, {
       version: this.version + 1,
       lastVersion: this,
