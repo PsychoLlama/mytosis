@@ -1,7 +1,7 @@
 // @flow
 import { Primitive, Derivation } from '@mytosis/types';
 
-import { string, number, boolean, buffer, pointer } from '../primitives';
+import { string, number, boolean, buffer, pointer } from '../types';
 
 describe('string', () => {
   it('exists', () => {
