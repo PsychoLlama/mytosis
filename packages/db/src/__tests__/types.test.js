@@ -1,5 +1,5 @@
 // @flow
-import { Primitive, Composite, Pointer } from '@mytosis/types';
+import { Primitive, Composite, Pointer, migration } from '@mytosis/types';
 import { Atom } from '@mytosis/crdts';
 
 import { string, number, boolean, buffer, atom } from '../types';
@@ -308,5 +308,47 @@ describe('atom', () => {
 
     expect(Company.defaultType.to).toBe(Employee);
     expect(Company.definition.engineering.to).toBe(Team);
+  });
+
+  it('swaps composites for pointers in add migrations', () => {
+    const Team = atom('Team');
+    const Employee = atom('Employee');
+    const Company = atom('Company').migrate([
+      new migration.Add('team', Team),
+      new migration.Add('employee', Employee),
+    ]);
+
+    expect(Company.definition.employee).toEqual(expect.any(Pointer));
+    expect(Company.definition.employee.to).toBe(Employee);
+  });
+
+  it('swaps composites for pointers in type change migrations', () => {
+    const Team1 = atom('Team');
+    const Team2 = Team1.migrate([new migration.Add('title', string)]);
+
+    const Company = atom('Company')
+      .migrate([new migration.Add('team', Team1)])
+      .migrate([new migration.TypeChange('team', Team2)])
+      .migrate([new migration.DefaultTypeChange(Team1)]);
+
+    expect(Company.definition.team).toEqual(expect.any(Pointer));
+    expect(Company.definition.team.to).toBe(Team2);
+
+    expect(Company.defaultType).toEqual(expect.any(Pointer));
+    expect(Company.defaultType.to).toBe(Team1);
+  });
+
+  it('does not affect move migrations', () => {
+    const Member = atom('Member');
+    const Team = atom('Team').migrate([
+      new migration.Add('user', Member),
+      new migration.Add('member', Member),
+      new migration.Move('user', 'member'),
+      new migration.Remove('user'),
+    ]);
+
+    expect(Team.definition).toEqual({
+      member: new Pointer(string, Member),
+    });
   });
 });

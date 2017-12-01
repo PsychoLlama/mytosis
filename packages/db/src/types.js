@@ -3,8 +3,10 @@ import type {
   Definition as CompositeDefinition,
   Context,
 } from '@mytosis/types/dist/Composite';
-import { Primitive, Pointer, Composite } from '@mytosis/types';
+import { Primitive, Pointer, Composite, migration } from '@mytosis/types';
 import { Atom } from '@mytosis/crdts';
+
+const { Add, TypeChange, DefaultTypeChange } = migration;
 
 export const string = new Primitive('string', {
   isValid: (value): boolean => typeof value === 'string',
@@ -46,12 +48,32 @@ export const buffer = new Primitive('buffer', {
     ArrayBuffer.isView(value) || value instanceof ArrayBuffer,
 });
 
+// Atom types can't contain other composites, only pointers.
+const injectCompositePointers = migrations =>
+  migrations.map(migration => {
+    if (!(migration.type instanceof Composite)) {
+      return migration;
+    }
+
+    const pointer = new Pointer(string, migration.type);
+    if (migration instanceof Add) {
+      return new Add(migration.field, pointer);
+    } else if (migration instanceof TypeChange) {
+      return new TypeChange(migration.field, pointer);
+    } else if (migration instanceof DefaultTypeChange) {
+      return new DefaultTypeChange(pointer);
+    }
+
+    return migration;
+  });
+
 export const atom = (
   name: string,
   options?: $Rest<CompositeDefinition, { context: Context }> = {},
 ) => {
   const definition = {
     ...options,
+    migrationInterceptor: injectCompositePointers,
     context: Atom,
   };
 
