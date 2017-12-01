@@ -73,4 +73,45 @@ describe('Schema', () => {
     expect(v2).toBe(User.lastVersion);
     expect(v3).toBe(User);
   });
+
+  // Types removed in later versions.
+  it('indexes obsolesced types', () => {
+    const Friend = type.atom('Friend');
+    const schema = new Schema({
+      user: type
+        .atom('User')
+        .migrate([new migration.Add('friend', Friend)])
+        .migrate([new migration.Remove('friend')]),
+    });
+
+    const id = String(Friend);
+    const result = schema.findType(id);
+
+    expect(result).toBe(Friend);
+  });
+
+  // Types which have always existed, not added through a migration.
+  it('indexes types from the initial type definition', () => {
+    const Team = type.atom('Team');
+    const Employee = type.atom('Employee');
+    const schema = new Schema({
+      company: type
+        .atom('Company', {
+          defaultType: Employee,
+          initialFieldSet: {
+            team: Team,
+          },
+        })
+        .migrate([
+          new migration.Remove('team'),
+          new migration.RemoveDefaultType(),
+        ]),
+    });
+
+    const teamId = String(Team);
+    const employeeId = String(Employee);
+
+    expect(schema.findType(teamId)).toBe(Team);
+    expect(schema.findType(employeeId)).toBe(Employee);
+  });
 });

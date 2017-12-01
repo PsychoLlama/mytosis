@@ -14,23 +14,30 @@ export default class Schema {
    */
   constructor(types: GraphEntryPoints) {
     const searchForTypes = (composite: Composite) => {
-      for (const type of Composite.toMigrationIterable(composite)) {
-        const id = String(type);
-        this._types.set(id, type);
-      }
+      const originalComposite = composite.firstComposite;
 
       // Follow type pointers.
-      if (composite.defaultType instanceof Pointer) {
-        searchForTypes(composite.defaultType.to);
+      if (originalComposite.defaultType instanceof Pointer) {
+        searchForTypes(originalComposite.defaultType.to);
       }
 
-      Object.keys(composite.definition).forEach(key => {
-        const type = composite.definition[key];
+      Object.keys(originalComposite.definition).forEach(key => {
+        const type = originalComposite.definition[key];
 
         if (type instanceof Pointer) {
           searchForTypes(type.to);
         }
       });
+
+      for (const type of Composite.toMigrationIterable(composite)) {
+        const id = String(type);
+        this._types.set(id, type);
+
+        if (type.migration && type.migration.type instanceof Pointer) {
+          const pointer = type.migration.type;
+          searchForTypes(pointer.to);
+        }
+      }
     };
 
     Object.keys(types).forEach(key => {
