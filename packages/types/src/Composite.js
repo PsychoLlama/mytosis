@@ -37,10 +37,25 @@ export default class Composite {
   nextVersion: ?Composite;
   version: number;
 
+  firstComposite: Composite;
   lastComposite: ?Composite;
   nextComposite: ?Composite;
 
   migration: ?Migration;
+
+  /**
+   * Iterates over every migration, both past and future.
+   * @param  {Composite} composite - Something to iterate over.
+   * @return {Generator} - Yields every migration.
+   */
+  static *toMigrationIterable(composite: Composite) {
+    let ctx = composite.firstComposite;
+
+    while (ctx) {
+      yield ctx;
+      ctx = ctx.nextComposite;
+    }
+  }
 
   /**
    * @param  {String} name - A name for the type.
@@ -53,6 +68,7 @@ export default class Composite {
     );
 
     this.name = name;
+    this.version = 1;
     Object.defineProperties(this, {
       definition: {
         value: def.initialFieldSet || {},
@@ -83,9 +99,9 @@ export default class Composite {
         writable: true,
         value: null,
       },
-      version: {
+      firstComposite: {
         writable: true,
-        value: 1,
+        value: this,
       },
     });
   }
@@ -154,6 +170,7 @@ export default class Composite {
     this.nextVersion = migrated;
 
     return Object.assign(migrated, {
+      firstComposite: this.firstComposite,
       version: this.version + 1,
       lastVersion: this,
     });

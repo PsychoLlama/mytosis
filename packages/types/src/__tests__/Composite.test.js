@@ -149,7 +149,7 @@ describe('Composite', () => {
     });
   });
 
-  describe('migrations', () => {
+  describe('migration', () => {
     it('throws if the migration set is empty', () => {
       const Product = new Composite('Product', { CRDT });
       const fail = () => Product.migrate([]);
@@ -274,6 +274,16 @@ describe('Composite', () => {
       expect(v2.version).toBe(2);
       expect(v3.version).toBe(3);
     });
+
+    it('keeps a reference to the original composite', () => {
+      const v1 = new Composite('User', { CRDT });
+      const v2 = v1.migrate([new migrations.Add('fullName', string)]);
+      const v3 = v2.migrate([new migrations.Add('status', string)]);
+
+      expect(v1.firstComposite).toBe(v1);
+      expect(v2.firstComposite).toBe(v1);
+      expect(v3.firstComposite).toBe(v1);
+    });
   });
 
   describe('toString()', () => {
@@ -282,6 +292,48 @@ describe('Composite', () => {
       const id = String(Product);
 
       expect(id).toBe('Product@1');
+    });
+  });
+
+  describe('static toMigrationIterable()', () => {
+    it('returns an iterable', () => {
+      const User = new Composite('User', { CRDT });
+      const result = Composite.toMigrationIterable(User);
+
+      expect(result[Symbol.iterator]).toEqual(expect.any(Function));
+    });
+
+    it('yields every migrated composite', () => {
+      const v1 = new Composite('User', { CRDT });
+      const v2 = v1.migrate([new migrations.Add('firstName', string)]);
+      const v3 = v2.migrate([new migrations.Add('lastName', string)]);
+      const v4 = v3.migrate([new migrations.Add('invited', string)]);
+      const result = [...Composite.toMigrationIterable(v1)];
+
+      expect(result).toEqual([v1, v2, v3, v4]);
+    });
+
+    it('shows migrations between versions', () => {
+      const v1 = new Composite('User', { CRDT });
+      const v2 = v1.migrate([
+        new migrations.Add('firstName', string),
+        new migrations.Add('lastName', string),
+      ]);
+      const v3 = v2.migrate([new migrations.Add('status', string)]);
+      const result = [...Composite.toMigrationIterable(v1)];
+
+      expect(result).toEqual([v1, v2.lastComposite, v2, v3]);
+    });
+
+    // Previous tests always pass v1. What happens if we pass v3?
+    it('includes past migrations', () => {
+      const v1 = new Composite('User', { CRDT });
+      const v2 = v1.migrate([new migrations.Add('firstName', string)]);
+      const v3 = v2.migrate([new migrations.Add('lastName', string)]);
+      const v4 = v3.migrate([new migrations.Add('invited', string)]);
+      const result = [...Composite.toMigrationIterable(v3)];
+
+      expect(result).toEqual([v1, v2, v3, v4]);
     });
   });
 });
