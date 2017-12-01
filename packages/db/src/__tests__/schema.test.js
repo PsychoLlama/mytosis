@@ -114,4 +114,22 @@ describe('Schema', () => {
     expect(schema.findType(teamId)).toBe(Team);
     expect(schema.findType(employeeId)).toBe(Employee);
   });
+
+  it('throws if different implementations of the same type exist', () => {
+    const Employee1 = type.atom('Employee');
+    const Employee2 = type.atom('Employee');
+
+    const fail = () =>
+      new Schema({
+        employee: Employee1,
+        concealed: type
+          .atom('Concealer')
+          .migrate([
+            new migration.Add('employee', Employee2),
+            new migration.Remove('employee'),
+          ]),
+      });
+
+    expect(fail).toThrow(/Employee/);
+  });
 });
