@@ -3,10 +3,8 @@ import type {
   Definition as CompositeDefinition,
   CRDT,
 } from '@mytosis/types/dist/Composite';
-import { Primitive, Derivation, Composite } from '@mytosis/types';
+import { Primitive, Pointer, Composite } from '@mytosis/types';
 import { Atom } from '@mytosis/crdts';
-
-const identity = value => value;
 
 export const string = new Primitive('string', {
   isValid: (value): boolean => typeof value === 'string',
@@ -48,17 +46,27 @@ export const buffer = new Primitive('buffer', {
     ArrayBuffer.isView(value) || value instanceof ArrayBuffer,
 });
 
-export const pointer = new Derivation('pointer', string, {
-  isValid: value => string.isValid(value),
-  dehydrate: identity,
-  hydrate: identity,
-});
-
 export const atom = (
   name: string,
-  definition: $Rest<CompositeDefinition, { CRDT: CRDT }>,
-) =>
-  new Composite(name, {
-    ...definition,
+  options?: $Rest<CompositeDefinition, { CRDT: CRDT }> = {},
+) => {
+  const definition = {
+    ...options,
     CRDT: Atom,
+  };
+
+  // Swap composite references with pointers.
+  if (options.defaultType instanceof Composite) {
+    definition.defaultType = new Pointer(string, options.defaultType);
+  }
+
+  Object.keys(definition.initialFieldSet || {}).forEach(key => {
+    const type = definition.initialFieldSet[key];
+
+    if (type instanceof Composite) {
+      definition.initialFieldSet[key] = new Pointer(string, type);
+    }
   });
+
+  return new Composite(name, definition);
+};

@@ -1,8 +1,8 @@
 // @flow
-import { Primitive, Derivation, Composite } from '@mytosis/types';
+import { Primitive, Composite, Pointer } from '@mytosis/types';
 import { Atom } from '@mytosis/crdts';
 
-import { string, number, boolean, buffer, pointer, atom } from '../types';
+import { string, number, boolean, buffer, atom } from '../types';
 
 describe('string', () => {
   it('exists', () => {
@@ -269,59 +269,44 @@ describe('buffer', () => {
   });
 });
 
-describe('pointer', () => {
-  it('exists', () => {
-    expect(pointer).toEqual(expect.any(Derivation));
-    expect(pointer.subtype).toBe(string);
-    expect(pointer.name).toBe('pointer');
-  });
-
-  it('borrows the validation from string', () => {
-    expect(pointer.isValid(5)).toBe(false);
-    expect(pointer.isValid(false)).toBe(false);
-
-    expect(pointer.isValid('')).toBe(true);
-    expect(pointer.isValid('with contents')).toBe(true);
-  });
-
-  it('dehydrates to the same value', () => {
-    expect(pointer.dehydrate('')).toBe('');
-    expect(pointer.dehydrate('value')).toBe('value');
-  });
-
-  it('hydrates to the same value', () => {
-    expect(pointer.hydrate('')).toBe('');
-    expect(pointer.hydrate('value')).toBe('value');
-  });
-});
-
 describe('atom', () => {
   it('returns a composite', () => {
-    const User = atom('User', {
-      initialFieldSet: {},
-    });
+    const User = atom('User');
 
     expect(User).toEqual(expect.any(Composite));
     expect(User.name).toBe('User');
   });
 
   it('attaches the Atom CRDT', () => {
-    const User = atom('User', {
-      initialFieldSet: {},
-    });
+    const User = atom('User');
 
     expect(User.CRDT).toBe(Atom);
   });
 
   it('passes type information', () => {
-    const User = atom('Leaderboard', {
-      defaultType: pointer,
+    const Leaderboard = atom('Leaderboard', {
+      defaultType: string,
       initialFieldSet: {
         highScore: number,
       },
     });
 
-    expect(User.definition.highScore).toBe(number);
-    expect(User.defaultType).toBe(pointer);
+    expect(Leaderboard.definition.highScore).toBe(number);
+    expect(Leaderboard.defaultType).toBe(string);
+  });
+
+  it('swaps composite references for pointers', () => {
+    const Employee = atom('Employee');
+    const Team = atom('Team');
+    const Company = atom('Company', {
+      initialFieldSet: { engineering: Team },
+      defaultType: Employee,
+    });
+
+    expect(Company.defaultType).toEqual(expect.any(Pointer));
+    expect(Company.definition.engineering).toEqual(expect.any(Pointer));
+
+    expect(Company.defaultType.to).toBe(Employee);
+    expect(Company.definition.engineering.to).toBe(Team);
   });
 });
