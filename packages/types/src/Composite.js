@@ -172,7 +172,11 @@ export default class Composite {
         defaultType,
       });
 
-      return Object.assign(result, { lastComposite: composite });
+      return Object.assign(result, {
+        firstComposite: this.firstComposite,
+        lastComposite: composite,
+        lastVersion: this,
+      });
     }, this);
 
     // Go back and add a successor reference to each composite.

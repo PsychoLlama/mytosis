@@ -225,7 +225,10 @@ describe('Composite', () => {
       const v1 = new Composite('User', { context });
       const v2 = v1.migrate([new migration.Add('firstName', string)]);
       const v3 = v2.migrate([new migration.Add('lastName', string)]);
-      const v4 = v3.migrate([new migration.Add('invited', string)]);
+      const v4 = v3.migrate([
+        new migration.Add('invited', string),
+        new migration.Add('status', string),
+      ]);
 
       expect(v1.nextVersion).toBe(v2);
       expect(v2.nextVersion).toBe(v3);
@@ -236,6 +239,16 @@ describe('Composite', () => {
       expect(v3.lastVersion).toBe(v2);
       expect(v2.lastVersion).toBe(v1);
       expect(v1.lastVersion).toBe(null);
+
+      expect(v3.nextComposite).toBe(v4.lastComposite);
+      expect(v4.lastComposite.lastVersion).toBe(v3);
+
+      expect(v1.nextComposite.nextComposite.nextComposite.nextComposite).toBe(
+        v4,
+      );
+      expect(v4.lastComposite.lastComposite.lastComposite.lastComposite).toBe(
+        v1,
+      );
     });
 
     it('keeps a reference to each migration', () => {
@@ -278,10 +291,16 @@ describe('Composite', () => {
       const v1 = new Composite('User', { context });
       const v2 = v1.migrate([new migration.Add('fullName', string)]);
       const v3 = v2.migrate([new migration.Add('status', string)]);
+      const v4 = v3.migrate([
+        new migration.Add('lat', number),
+        new migration.Add('long', number),
+      ]);
 
       expect(v1.firstComposite).toBe(v1);
       expect(v2.firstComposite).toBe(v1);
       expect(v3.firstComposite).toBe(v1);
+      expect(v4.firstComposite).toBe(v1);
+      expect(v4.lastComposite.firstComposite).toBe(v1);
     });
 
     it('uses the migration preprocessor', () => {
