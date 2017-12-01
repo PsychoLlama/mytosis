@@ -10,7 +10,7 @@ import {
   Add,
 } from '../migrations';
 
-const CRDT = { import: data => data };
+const context = { import: data => data };
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
   coerce: String,
@@ -35,7 +35,7 @@ const time = new Derivation('time', string, {
 describe('Migration', () => {
   const createType = () =>
     new Composite('Player', {
-      CRDT,
+      context,
       initialFieldSet: {
         firstName: string,
         gamertag: string,
@@ -243,7 +243,7 @@ describe('Migration', () => {
     });
 
     it('migrates all data', () => {
-      const type = new Composite('Counter', { CRDT, defaultType: number });
+      const type = new Composite('Counter', { context, defaultType: number });
       const migration = new DefaultTypeChange(string);
       const result = migration.migrateData(type, {
         abc: 2,
@@ -259,7 +259,7 @@ describe('Migration', () => {
     });
 
     it('works with derivations', () => {
-      const type = new Composite('Counter', { CRDT, defaultType: number });
+      const type = new Composite('Counter', { context, defaultType: number });
       const migration = new DefaultTypeChange(time);
       const result = migration.migrateData(type, {
         id: 5,
@@ -273,7 +273,7 @@ describe('Migration', () => {
       const type = new Composite('Counter', {
         initialFieldSet: { tombstone: boolean },
         defaultType: number,
-        CRDT,
+        context,
       });
 
       const result = migration.migrateData(type, {
@@ -294,7 +294,7 @@ describe('Migration', () => {
       const type = new Composite('Counter', {
         initialFieldSet: { tombstone: boolean },
         defaultType: number,
-        CRDT,
+        context,
       });
 
       const result = migration.migrateData(type, {

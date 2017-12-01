@@ -1,7 +1,7 @@
 // @flow
 import type {
   Definition as CompositeDefinition,
-  CRDT,
+  Context,
 } from '@mytosis/types/dist/Composite';
 import { Primitive, Pointer, Composite } from '@mytosis/types';
 import { Atom } from '@mytosis/crdts';
@@ -48,11 +48,11 @@ export const buffer = new Primitive('buffer', {
 
 export const atom = (
   name: string,
-  options?: $Rest<CompositeDefinition, { CRDT: CRDT }> = {},
+  options?: $Rest<CompositeDefinition, { context: Context }> = {},
 ) => {
   const definition = {
     ...options,
-    CRDT: Atom,
+    context: Atom,
   };
 
   // Swap composite references with pointers.

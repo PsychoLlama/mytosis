@@ -11,8 +11,8 @@ import type {
   Add,
 } from './migrations';
 
+export interface Context {}
 export type Field = Primitive | Derivation;
-export type CRDT = { import(any): Object };
 export type FieldSet = { [field: string]: Field };
 type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
 type ValidationTarget = { [string]: string | number | boolean };
@@ -22,7 +22,7 @@ export type Definition = {
   migrationInterceptor?: MigrationInterceptor,
   initialFieldSet?: FieldSet,
   defaultType?: ?Field,
-  CRDT: CRDT,
+  context: Context,
 };
 
 /**
@@ -33,7 +33,7 @@ export default class Composite {
   defaultType: ?Field;
 
   name: string;
-  CRDT: CRDT;
+  context: Context;
 
   lastVersion: ?Composite;
   nextVersion: ?Composite;
@@ -79,8 +79,8 @@ export default class Composite {
       defaultType: {
         value: def.defaultType || null,
       },
-      CRDT: {
-        value: def.CRDT,
+      context: {
+        value: def.context,
       },
       lastComposite: {
         writable: true,
@@ -160,7 +160,7 @@ export default class Composite {
       const result = new Composite(composite.name, {
         migrationInterceptor: composite.migrationInterceptor,
         initialFieldSet: definition,
-        CRDT: composite.CRDT,
+        context: composite.context,
         defaultType,
       });
 

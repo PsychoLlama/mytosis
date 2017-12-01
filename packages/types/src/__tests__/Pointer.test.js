@@ -8,8 +8,8 @@ const string = new Primitive('string', {
   coerce: String,
 });
 
-const CRDT = { import: data => data };
-const Product = new Composite('Product', { CRDT });
+const context = { import: data => data };
+const Product = new Composite('Product', { context });
 
 describe('Pointer', () => {
   it('works', () => {

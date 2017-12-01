@@ -280,7 +280,7 @@ describe('atom', () => {
   it('attaches the Atom CRDT', () => {
     const User = atom('User');
 
-    expect(User.CRDT).toBe(Atom);
+    expect(User.context).toBe(Atom);
   });
 
   it('passes type information', () => {
