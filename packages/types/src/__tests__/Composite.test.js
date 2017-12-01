@@ -259,5 +259,27 @@ describe('Composite', () => {
       expect(migrate).not.toThrow();
       expect(migrate).toThrow(/(migrate|migration)/i);
     });
+
+    it('increments the version', () => {
+      const v1 = new Composite('User', { CRDT });
+      const v2 = v1.migrate([new migrations.Add('fullName', string)]);
+      const v3 = v2.migrate([
+        new migrations.Add('accountStatus', string),
+        new migrations.Add('someNumberField', number),
+      ]);
+
+      expect(v1.version).toBe(1);
+      expect(v2.version).toBe(2);
+      expect(v3.version).toBe(3);
+    });
+  });
+
+  describe('toString()', () => {
+    it('returns the type ID', () => {
+      const Product = new Composite('Product', { CRDT });
+      const id = String(Product);
+
+      expect(id).toBe('Product@1');
+    });
   });
 });

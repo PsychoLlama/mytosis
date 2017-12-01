@@ -11,6 +11,18 @@ import type {
   Add,
 } from './migrations';
 
+type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
+type Field = Primitive | Derivation;
+type FieldSet = { [field: string]: Field };
+type ValidationTarget = { [string]: string | number | boolean };
+
+export type CRDT = { import(any): Object };
+export type Definition = {
+  initialFieldSet?: FieldSet,
+  defaultType?: ?Field,
+  CRDT: CRDT,
+};
+
 /**
  * Creates object-style types.
  */
@@ -23,6 +35,7 @@ export default class Composite {
 
   lastVersion: ?Composite;
   nextVersion: ?Composite;
+  version: number;
 
   lastComposite: ?Composite;
   nextComposite: ?Composite;
@@ -69,6 +82,10 @@ export default class Composite {
       migration: {
         writable: true,
         value: null,
+      },
+      version: {
+        writable: true,
+        value: 1,
       },
     });
   }
@@ -134,17 +151,17 @@ export default class Composite {
       return composite.lastComposite;
     }, migrated);
 
-    return Object.assign(migrated, { lastVersion: this });
+    return Object.assign(migrated, {
+      version: this.version + 1,
+      lastVersion: this,
+    });
+  }
+
+  /**
+   * Creates a type ID using the name and version number.
+   * @return {String} - Type ID.
+   */
+  toString() {
+    return `${this.name}@${this.version}`;
   }
 }
-
-type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
-type Field = Primitive | Derivation;
-type FieldSet = { [field: string]: Field };
-export type CRDT = { import(any): Object };
-type ValidationTarget = { [string]: string | number | boolean };
-export type Definition = {
-  initialFieldSet?: FieldSet,
-  defaultType?: ?Field,
-  CRDT: CRDT,
-};
