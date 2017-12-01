@@ -5,6 +5,7 @@ import Primitive from '../Primitive';
 import Pointer from '../Pointer';
 import {
   DefaultTypeChange,
+  RemoveDefaultType,
   TypeChange,
   Remove,
   Move,
@@ -319,6 +320,72 @@ describe('Migration', () => {
       });
 
       expect(result).toEqual({ tombstone: true });
+    });
+  });
+
+  describe('RemoveDefaultType', () => {
+    it('removes the default type', () => {
+      const migration = new RemoveDefaultType();
+      const type = new Composite('Type', {
+        defaultType: number,
+        context,
+      });
+
+      const result = migration.migrateType(type);
+
+      expect(result.defaultType).toBe(null);
+    });
+
+    it('throws if the type has no default type', () => {
+      const type = new Composite('User', { context });
+      const migration = new RemoveDefaultType();
+      const fail = () => migration.migrateType(type);
+
+      expect(fail).toThrow(/type/i);
+    });
+
+    it('keeps the existing fields', () => {
+      const migration = new RemoveDefaultType();
+      const type = new Composite('User', {
+        defaultType: number,
+        context,
+        initialFieldSet: {
+          status: string,
+          name: string,
+        },
+      });
+
+      const result = migration.migrateType(type);
+
+      expect(result.definition).toBe(type.definition);
+    });
+
+    it('drops unknown fields from data', () => {
+      const type = new Composite('User', {
+        defaultType: string,
+        context,
+        initialFieldSet: {
+          status: string,
+          name: string,
+        },
+      });
+
+      const migration = new RemoveDefaultType();
+      const data = {
+        name: 'Yolo Swaggins',
+        status: 'invited',
+
+        additional: 'field',
+        useless: 'metadata',
+        stuff: 'enabled',
+      };
+
+      const result = migration.migrateData(type, data);
+
+      expect(result).toEqual({
+        status: data.status,
+        name: data.name,
+      });
     });
   });
 });

@@ -283,3 +283,43 @@ export class DefaultTypeChange {
     return copy;
   }
 }
+
+/** Unsets the default type and drops unknown fields. */
+export class RemoveDefaultType {
+  /**
+   * Drops the defaultType.
+   * @throws {Error} - If there is no default type.
+   * @param  {Composite} type - Any composite.
+   * @return {Object} - The updated fields.
+   */
+  migrateType(type: Composite): CompositeTypeMap {
+    assert(
+      type.defaultType,
+      `Can't remove the default type from ${type.name}. It doesn't have one.`,
+    );
+
+    return {
+      definition: type.definition,
+      defaultType: null,
+    };
+  }
+
+  /**
+   * Drops any data not defined explicitly by the type.
+   * @param  {Composite} type - The type representing the data.
+   * @param  {Object} data - Key-value map.
+   * @return {Object} - The same data, but less of it.
+   */
+  migrateData({ definition }: Composite, data: Object) {
+    const result = {};
+
+    // Filter by keys with explicit composite definitions.
+    for (const key in data) {
+      if (data.hasOwnProperty(key) && definition.hasOwnProperty(key)) {
+        result[key] = data[key];
+      }
+    }
+
+    return result;
+  }
+}

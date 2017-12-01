@@ -5,6 +5,7 @@ import Derivation from './Derivation';
 import Primitive from './Primitive';
 import type {
   DefaultTypeChange,
+  RemoveDefaultType,
   TypeChange,
   Remove,
   Move,
@@ -14,7 +15,14 @@ import type {
 export interface Context {}
 export type Field = Primitive | Derivation;
 export type FieldSet = { [field: string]: Field };
-type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
+type Migration =
+  | Add
+  | Remove
+  | Move
+  | TypeChange
+  | DefaultTypeChange
+  | RemoveDefaultType;
+
 type ValidationTarget = { [string]: string | number | boolean };
 type MigrationInterceptor = ?(Migration[]) => Migration[];
 
