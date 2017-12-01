@@ -24,10 +24,10 @@ describe('Schema', () => {
     });
 
     it('finds types down other defaultType fields', () => {
-      const C1 = type.atom('C_one', {});
-      const C2 = type.atom('C_two', { defaultType: C1 });
+      const C1 = type.atom('C1', {});
+      const C2 = type.atom('C2', { defaultType: C1 });
       const schema = new Schema({
-        root: type.atom('C_three', { defaultType: C2 }),
+        root: type.atom('C3', { defaultType: C2 }),
       });
 
       const id = String(C1);

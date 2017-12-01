@@ -48,7 +48,7 @@ export default class Composite {
    */
   constructor(name: string, def: Definition) {
     assert(
-      /^[A-Z][_a-zA-Z:]*$/.test(name),
+      /^[A-Z][_a-zA-Z:0-9]*$/.test(name),
       `Invalid composite name "${name}".`,
     );
 

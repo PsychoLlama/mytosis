@@ -6,10 +6,6 @@ import type {
 import { Primitive, Derivation, Composite } from '@mytosis/types';
 import { Atom } from '@mytosis/crdts';
 
-// I am a bad person.
-const Uint8Proto = Object.getPrototypeOf(new Uint8Array(new ArrayBuffer(0)));
-const TypedArray = Object.getPrototypeOf(Uint8Proto).constructor;
-
 const identity = value => value;
 
 export const string = new Primitive('string', {
@@ -49,7 +45,7 @@ export const buffer = new Primitive('buffer', {
   },
 
   isValid: (value): boolean =>
-    value instanceof ArrayBuffer || value instanceof TypedArray,
+    ArrayBuffer.isView(value) || value instanceof ArrayBuffer,
 });
 
 export const pointer = new Derivation('pointer', string, {

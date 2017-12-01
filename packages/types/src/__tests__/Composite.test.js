@@ -31,12 +31,12 @@ describe('Composite', () => {
     expect(() => new Composite('lowercase', def)).toThrow(/name/);
     expect(() => new Composite(' Spaced', def)).toThrow(/name/);
     expect(() => new Composite('Trailing ', def)).toThrow(/name/);
-    expect(() => new Composite('Numb3rs', def)).toThrow(/name/);
     expect(() => new Composite('Sym&ols', def)).toThrow(/name/);
     expect(() => new Composite('kebab-case', def)).toThrow(/name/);
 
     expect(() => new Composite('SNAKE_CASE', def)).not.toThrow(/name/);
     expect(() => new Composite('Product', def)).not.toThrow();
+    expect(() => new Composite('Product3', def)).not.toThrow();
   });
 
   it('allows names with colons in them', () => {
