@@ -2,7 +2,9 @@
 import Stream from '@mytosis/streams';
 
 import { create as createConfig } from '../config-utils';
+import { MockStorage } from '../mocks/storage';
 import DBContext from '../database-context';
+import Schema from '../schema';
 
 describe('Database context', () => {
   it('is a function', () => {
@@ -28,6 +30,7 @@ describe('Database context', () => {
         storage: context.config.storage,
         network: context.config.network,
         hooks: context.config.hooks,
+        schema: new Schema({}),
         keys,
       });
     });
@@ -35,10 +38,7 @@ describe('Database context', () => {
     it('uses storage when provided', () => {
       const context = setup();
       const keys = ['user'];
-      const storage = {
-        write: () => Promise.resolve({}),
-        read: () => Promise.resolve({}),
-      };
+      const storage = new MockStorage();
 
       const read = context.createReadDescriptor(keys, { storage });
 
@@ -79,11 +79,13 @@ describe('Database context', () => {
   });
 
   describe('createReadStream()', () => {
-    const setup = (config = createConfig(), keys = ['user1', 'user2']) => {
+    const setup = (options, keys = ['user1', 'user2']) => {
+      // Hack: avoids all those "possibly undefined" flow errors.
+      const config: any = createConfig(options);
       const context = new DBContext(config);
       const read = context.createReadDescriptor(keys);
 
-      return { context, read };
+      return { context, read, config };
     };
 
     it('returns a stream', () => {
@@ -99,6 +101,16 @@ describe('Database context', () => {
 
       const expected = Array(read.keys.length).fill(null);
       await expect(stream).resolves.toEqual(expected);
+    });
+
+    it('reads from storage', async () => {
+      const { context, read, config } = setup({
+        storage: new MockStorage(),
+      });
+
+      await context.createReadStream(read);
+
+      expect(config.storage.read).toHaveBeenCalledWith(read);
     });
   });
 });

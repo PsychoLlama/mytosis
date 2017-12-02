@@ -857,6 +857,10 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
+bin-json@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/bin-json/-/bin-json-0.3.1.tgz#7e3d40f6b6da63afaf84b6edb1ea00b2ff98a4d2"
+
 binary-extensions@^1.0.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.10.0.tgz#9aeb9a6c5e88638aad171e167f5900abe24835d0"

@@ -1,9 +1,12 @@
 // @flow
+import type Stream from '@mytosis/streams';
+
+import type { ReadDescriptor } from './database-context';
 import Schema from './schema';
 
 type StoragePlugin = {
   write(Object): Promise<Object>,
-  read(Object): Promise<Object>,
+  read(ReadDescriptor): Stream<?Object>,
 };
 
 type Hook = Object => Object;

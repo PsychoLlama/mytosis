@@ -4,7 +4,7 @@ import Stream from '@mytosis/streams';
 
 import type { Options, Config } from './config-utils';
 
-type ReadDescriptor = Config & {
+export type ReadDescriptor = Config & {
   keys: string[],
 };
 
@@ -42,6 +42,10 @@ export default class DatabaseContext {
    */
   createReadStream(descriptor: ReadDescriptor): Stream<null> {
     const result = descriptor.keys.map(() => null);
+
+    if (descriptor.storage) {
+      descriptor.storage.read(descriptor);
+    }
 
     return Stream.from(result);
   }

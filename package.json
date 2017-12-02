@@ -8,7 +8,7 @@
   "lint-staged": {
     "*.js": [
       "yarn prettier --write",
-      "eslint",
+      "eslint --fix",
       "git add"
     ]
   },

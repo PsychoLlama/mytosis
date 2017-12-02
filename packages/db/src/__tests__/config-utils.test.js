@@ -1,5 +1,6 @@
 // @flow
 import { create as createConfig } from '../config-utils';
+import { MockStorage } from '../mocks/storage';
 import * as type from '../types';
 import Schema from '../schema';
 
@@ -25,11 +26,7 @@ describe('Config creator', () => {
   });
 
   it('uses the storage engine if provided', () => {
-    const storage = {
-      write: () => Promise.resolve({}),
-      read: () => Promise.resolve({}),
-    };
-
+    const storage = new MockStorage();
     const config = createConfig({ storage });
 
     expect(config.storage).toBe(storage);
