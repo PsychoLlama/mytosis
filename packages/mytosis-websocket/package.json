@@ -4,7 +4,6 @@
   "description": "Mytosis WebSocket plugin",
   "main": "client.js",
   "scripts": {
-    "test": "jest",
     "test:watch": "npm run test -- --watch",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "build:watch": "npm run build -- --watch",
@@ -32,9 +31,7 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-jest": "^20.0.3",
     "babel-preset-env": "^1.6.1",
-    "jest": "^20.0.4",
     "mytosis": "^1.11.0"
   },
   "dependencies": {

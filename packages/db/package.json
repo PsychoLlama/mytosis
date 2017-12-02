@@ -4,7 +4,6 @@
   "description": "Real-time p2p database",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "prepare": "yarn build"
   },
@@ -29,9 +28,7 @@
   "homepage": "https://github.com/PsychoLlama/mytosis#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-jest": "^21.2.0",
-    "babel-preset-env": "^1.6.1",
-    "jest": "^21.2.1"
+    "babel-preset-env": "^1.6.1"
   },
   "dependencies": {
     "@mytosis/crdts": "^0.1.0",
