@@ -1,4 +1,4 @@
-// @flow
+//
 import Composite from '../Composite';
 import Primitive from '../Primitive';
 import Pointer from '../Pointer';

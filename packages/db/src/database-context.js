@@ -1,21 +1,13 @@
-// @flow
+//
 import assert from 'minimalistic-assert';
 import Stream from '@mytosis/streams';
 
-import type { Options, Config } from './config-utils';
-
-export type ReadDescriptor = Config & {
-  keys: string[],
-};
-
 /** Low-level plugin interface layer. */
 export default class DatabaseContext {
-  config: Config;
-
   /**
    * @param  {Config} config - A database configuration object.
    */
-  constructor(config: Config) {
+  constructor(config) {
     this.config = config;
   }
 
@@ -25,7 +17,7 @@ export default class DatabaseContext {
    * @param  {Object} options - How to read them.
    * @return {Object} - Instructions on how to read a set of keys.
    */
-  createReadDescriptor(keys: string[], options?: Options): ReadDescriptor {
+  createReadDescriptor(keys, options) {
     assert(keys.length, 'A list of keys is required, but this one is empty.');
 
     return {
@@ -40,7 +32,7 @@ export default class DatabaseContext {
    * @param  {ReadDescriptor} descriptor - Parameters describing the read.
    * @return {Stream} - Outputs every node as it finds it.
    */
-  createReadStream(descriptor: ReadDescriptor): Stream<null> {
+  createReadStream(descriptor) {
     const result = descriptor.keys.map(() => null);
 
     if (descriptor.storage) {

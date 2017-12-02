@@ -1,4 +1,4 @@
-// @flow
+//
 import { create as createConfig } from '../config-utils';
 import { MockStorage } from '../mocks/storage';
 import * as type from '../types';

@@ -1,4 +1,4 @@
-// @flow
+//
 import Derivation from '../Derivation';
 import Primitive from '../Primitive';
 import Union from '../Union';

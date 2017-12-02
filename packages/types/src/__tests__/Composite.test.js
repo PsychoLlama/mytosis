@@ -1,4 +1,4 @@
-// @flow
+//
 import * as migration from '../migrations';
 import Composite from '../Composite';
 import Primitive from '../Primitive';

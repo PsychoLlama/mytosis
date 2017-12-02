@@ -1,4 +1,4 @@
-// @flow
+//
 import { migration } from '@mytosis/types';
 
 import * as type from '../types';

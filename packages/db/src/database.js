@@ -1,16 +1,13 @@
-// @flow
+//
 import { create as createConfig } from './config-utils';
 import DatabaseContext from './database-context';
-import type { Options } from './config-utils';
 
 /** Graph read entry point. */
 export class Database {
-  _context: DatabaseContext;
-
   /**
    * @param  {Object} options - DB config options.
    */
-  constructor(options?: Options) {
+  constructor(options) {
     const config = createConfig(options);
 
     Object.defineProperty(this, '_context', {
@@ -25,6 +22,6 @@ export class Database {
  * @param  {Options} options - Database configuration options.
  * @return {Database} - Brand new DB.
  */
-export default function database(options?: Options) {
+export default function database(options) {
   return new Database(options);
 }

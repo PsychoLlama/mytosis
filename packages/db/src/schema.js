@@ -1,16 +1,7 @@
-// @flow
+//
 import { Composite, Pointer } from '@mytosis/types';
 
-type GraphEntryPoints = {
-  [title: string]: Composite,
-};
-
-type Index = {
-  path: Composite[],
-  type: Composite,
-};
-
-const fmtPath = (path: Composite[]) => path.map(type => type.name).join(' -> ');
+const fmtPath = path => path.map(type => type.name).join(' -> ');
 
 const assertNoDuplicate = (type, indexed, path) => {
   if (!indexed || indexed.type.firstComposite === type.firstComposite) {
@@ -27,13 +18,13 @@ const assertNoDuplicate = (type, indexed, path) => {
 
 /** Validates and indexes a collection of types. */
 export default class Schema {
-  _types: Map<string, Index> = new Map();
+  _types = new Map();
 
   /**
    * @param  {Object} types - A map of root-level types.
    */
-  constructor(types: GraphEntryPoints) {
-    const searchForTypes = (composite: Composite, path: Composite[]) => {
+  constructor(types) {
+    const searchForTypes = (composite, path) => {
       const originalComposite = composite.firstComposite;
       const id = String(originalComposite);
       const indexed = this._types.get(id);
@@ -82,7 +73,7 @@ export default class Schema {
    * @param  {String} id - Any type ID, like Product@version.
    * @return {?Composite} - An object type.
    */
-  findType(id: string): ?Composite {
+  findType(id) {
     const result = this._types.get(id);
 
     return result ? result.type : null;

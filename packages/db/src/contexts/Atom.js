@@ -1,40 +1,15 @@
-// @flow
-import type Primitive, { JsonPrimitive } from '@mytosis/types/dist/Primitive';
-import type { Composite, Derivation } from '@mytosis/types';
-import type { Dehydrated } from '@mytosis/crdts/dist/Atom';
+//
+
 import { Atom } from '@mytosis/crdts';
-
-import type DatabaseContext from '../database-context';
-
-type Definition = {
-  context: DatabaseContext,
-  type: Composite,
-  id: string,
-};
-
-type DataImport = Definition & {
-  data: Dehydrated,
-};
-
-type FieldMetadata = {
-  type: Primitive | Derivation,
-  value: JsonPrimitive,
-};
 
 /** Developer-facing atom CRDT interface. */
 export default class AtomContext {
-  _context: DatabaseContext;
-  _atom: Atom;
-
-  type: Composite;
-  id: string;
-
   /**
    * Imports data into a new atom.
    * @param  {Object} definition - Describes the new atom.
    * @return {Atom} - New atom with the initial state.
    */
-  static import({ id, type, data, context }: DataImport) {
+  static import({ id, type, data, context }) {
     const atom = new AtomContext({ id, type, context });
     const crdt = Atom.import(data);
     Object.defineProperty(atom, '_atom', { value: crdt });
@@ -49,7 +24,7 @@ export default class AtomContext {
    * @param  {Composite} definition.type - Composite describing atom structure.
    * @return {Atom} - Shiny new atom.
    */
-  static new({ id, type, context }: Definition) {
+  static new({ id, type, context }) {
     const atom = new AtomContext({ id, type, context });
 
     Object.defineProperty(atom, '_atom', {
@@ -64,7 +39,7 @@ export default class AtomContext {
    * @param  {Object} definition - Describes the atom.
    * @private
    */
-  constructor({ id, type, context }: Definition) {
+  constructor({ id, type, context }) {
     Object.defineProperty(this, '_context', { value: context });
     this.type = type;
     this.id = id;
@@ -75,7 +50,7 @@ export default class AtomContext {
    * @param  {String} field - Field to describe.
    * @return {Object} - Metadata.
    */
-  getFieldMetadata(field: string): FieldMetadata {
+  getFieldMetadata(field) {
     const { definition, defaultType } = this.type;
     const hasPreciseDefinition = definition.hasOwnProperty(field);
     const type = hasPreciseDefinition ? definition[field] : defaultType;

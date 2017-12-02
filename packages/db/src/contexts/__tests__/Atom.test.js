@@ -1,4 +1,4 @@
-// @flow
+//
 import { create as createConfig } from '../../config-utils';
 import DatabaseContext from '../../database-context';
 import * as type from '../../types';

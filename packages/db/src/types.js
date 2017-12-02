@@ -1,16 +1,13 @@
-// @flow
-import type {
-  Definition as CompositeDefinition,
-  Context,
-} from '@mytosis/types/dist/Composite';
+//
+
 import { Primitive, Pointer, Composite, migration } from '@mytosis/types';
 import Atom from './contexts/Atom';
 
 const { Add, TypeChange, DefaultTypeChange } = migration;
 
 export const string = new Primitive('string', {
-  isValid: (value): boolean => typeof value === 'string',
-  coerce: (value): string => {
+  isValid: value => typeof value === 'string',
+  coerce: value => {
     if (value === null || value === undefined) {
       return '';
     }
@@ -21,8 +18,8 @@ export const string = new Primitive('string', {
 
 // Excludes NaN and ±Infinity.
 export const number = new Primitive('number', {
-  isValid: (value): boolean => typeof value === 'number' && isFinite(value),
-  coerce: (value): number => {
+  isValid: value => typeof value === 'number' && isFinite(value),
+  coerce: value => {
     const result = Number(value);
 
     return isFinite(result) ? result : 0;
@@ -30,8 +27,8 @@ export const number = new Primitive('number', {
 });
 
 export const boolean = new Primitive('boolean', {
-  isValid: (value): boolean => value === true || value === false,
-  coerce: (value): boolean => !!value,
+  isValid: value => value === true || value === false,
+  coerce: value => !!value,
 });
 
 // Represents typed arrays (binary values).
@@ -44,8 +41,7 @@ export const buffer = new Primitive('buffer', {
     return new ArrayBuffer(0);
   },
 
-  isValid: (value): boolean =>
-    ArrayBuffer.isView(value) || value instanceof ArrayBuffer,
+  isValid: value => ArrayBuffer.isView(value) || value instanceof ArrayBuffer,
 });
 
 // Atom types can't contain other composites, only pointers.
@@ -67,10 +63,7 @@ const injectCompositePointers = migrations =>
     return migration;
   });
 
-export const atom = (
-  name: string,
-  options?: $Rest<CompositeDefinition, { context: Context }> = {},
-) => {
+export const atom = (name, options = {}) => {
   const definition = {
     ...options,
     migrationInterceptor: injectCompositePointers,

@@ -1,65 +1,19 @@
-// @flow
+//
 import assert from 'minimalistic-assert';
 
 import Derivation from './Derivation';
 import Primitive from './Primitive';
-import type {
-  DefaultTypeChange,
-  RemoveDefaultType,
-  TypeChange,
-  Remove,
-  Move,
-  Add,
-} from './migrations';
-
-export interface Context {}
-export type Field = Primitive | Derivation;
-export type FieldSet = { [field: string]: Field };
-type Migration =
-  | Add
-  | Remove
-  | Move
-  | TypeChange
-  | DefaultTypeChange
-  | RemoveDefaultType;
-
-type ValidationTarget = { [string]: string | number | boolean };
-type MigrationInterceptor = ?(Migration[]) => Migration[];
-
-export type Definition = {
-  migrationInterceptor?: MigrationInterceptor,
-  initialFieldSet?: FieldSet,
-  defaultType?: ?Field,
-  context: Context,
-};
 
 /**
  * Creates object-style types.
  */
 export default class Composite {
-  definition: FieldSet;
-  defaultType: ?Field;
-
-  name: string;
-  context: Context;
-
-  lastVersion: ?Composite;
-  nextVersion: ?Composite;
-  version: number;
-
-  firstComposite: Composite;
-  lastComposite: ?Composite;
-  nextComposite: ?Composite;
-
-  migrationInterceptor: MigrationInterceptor;
-  migration: ?Migration;
-
   /**
    * Iterates over every migration, both past and future.
    * @param  {Composite} composite - Something to iterate over.
    * @return {Generator} - Yields every migration.
    */
-  static *toMigrationIterable(composite: Composite) {
+  static *toMigrationIterable(composite) {
     let ctx = composite.firstComposite;
 
     while (ctx) {
@@ -72,7 +26,7 @@ export default class Composite {
    * @param  {String} name - A name for the type.
    * @param  {Definition} def - A description of the type.
    */
-  constructor(name: string, def: Definition) {
+  constructor(name, def) {
     assert(
       /^[A-Z][_a-zA-Z:0-9]*$/.test(name),
       `Invalid composite name "${name}".`,
@@ -126,7 +80,7 @@ export default class Composite {
    * @throws {Error} - If the data is invalid.
    * @return {void}
    */
-  validate(data: ValidationTarget): void {
+  validate(data) {
     for (const field in data) {
       if (!data.hasOwnProperty(field)) {
         continue;
@@ -152,7 +106,7 @@ export default class Composite {
    * @param  {Migration[]} operations - A list of type changes.
    * @return {Composite} - A new composite with the changes applied.
    */
-  migrate(operations: Migration[]): Composite {
+  migrate(operations) {
     if (this.migrationInterceptor) {
       operations = this.migrationInterceptor(operations);
     }

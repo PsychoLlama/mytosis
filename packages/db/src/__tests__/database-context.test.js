@@ -1,4 +1,4 @@
-// @flow
+//
 import Stream from '@mytosis/streams';
 
 import { create as createConfig } from '../config-utils';
@@ -81,7 +81,7 @@ describe('Database context', () => {
   describe('createReadStream()', () => {
     const setup = (options, keys = ['user1', 'user2']) => {
       // Hack: avoids all those "possibly undefined" flow errors.
-      const config: any = createConfig(options);
+      const config = createConfig(options);
       const context = new DBContext(config);
       const read = context.createReadDescriptor(keys);
 
