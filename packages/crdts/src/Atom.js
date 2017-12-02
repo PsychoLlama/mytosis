@@ -1,6 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-//
-
 import assert from 'minimalistic-assert';
 
 /**

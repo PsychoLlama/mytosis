@@ -1,4 +1,3 @@
-//
 import assert from 'minimalistic-assert';
 
 const invalidNameMsg = name =>

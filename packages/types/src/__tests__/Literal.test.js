@@ -1,4 +1,3 @@
-//
 import Literal from '../Literal';
 
 describe('Literal', () => {

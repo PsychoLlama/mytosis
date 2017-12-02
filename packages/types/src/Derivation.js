@@ -1,4 +1,3 @@
-//
 import assert from 'minimalistic-assert';
 
 import { nameRegex } from './Primitive';

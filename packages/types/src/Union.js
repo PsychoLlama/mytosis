@@ -1,4 +1,3 @@
-//
 import assert from 'minimalistic-assert';
 
 import Derivation from './Derivation';

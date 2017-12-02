@@ -1,5 +1,4 @@
 /* eslint-disable require-jsdoc */
-//
 import Stream from '@mytosis/streams';
 
 export class MockStorage {

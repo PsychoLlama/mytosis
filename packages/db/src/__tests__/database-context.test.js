@@ -1,4 +1,3 @@
-//
 import Stream from '@mytosis/streams';
 
 import { create as createConfig } from '../config-utils';

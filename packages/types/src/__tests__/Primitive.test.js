@@ -1,4 +1,3 @@
-//
 import Primitive from '../Primitive';
 
 describe('Primitive', () => {

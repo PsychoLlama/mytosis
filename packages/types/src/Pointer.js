@@ -1,5 +1,3 @@
-//
-
 import Derivation from './Derivation';
 
 /** Represents a foreign key to a composite instance. */

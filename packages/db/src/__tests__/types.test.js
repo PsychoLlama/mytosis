@@ -1,4 +1,3 @@
-//
 import { Primitive, Composite, Pointer, migration } from '@mytosis/types';
 import Atom from '../contexts/Atom';
 

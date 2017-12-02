@@ -1,4 +1,3 @@
-//
 import { create as createConfig } from '../config-utils';
 import database, { Database } from '../database';
 import Context from '../database-context';

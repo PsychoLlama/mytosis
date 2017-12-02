@@ -1,5 +1,3 @@
-//
-
 import Schema from './schema';
 
 /**

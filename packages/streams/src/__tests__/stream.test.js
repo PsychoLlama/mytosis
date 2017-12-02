@@ -1,4 +1,3 @@
-//
 import Stream from '../stream';
 
 describe('Stream', () => {

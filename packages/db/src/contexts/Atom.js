@@ -1,5 +1,3 @@
-//
-
 import { Atom } from '@mytosis/crdts';
 
 /** Developer-facing atom CRDT interface. */
