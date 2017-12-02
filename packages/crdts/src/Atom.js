@@ -1,10 +1,10 @@
 /* eslint-disable no-underscore-dangle */
 // @flow
+import type { JsonPrimitive } from '@mytosis/types/dist/Primitive';
 import assert from 'minimalistic-assert';
 
-type primitive = number | string | boolean;
-type DehydratedMap = { [string]: primitive };
-type Dehydrated = [number, DehydratedMap];
+type DehydratedMap = { [string]: JsonPrimitive };
+export type Dehydrated = [number, DehydratedMap];
 
 /**
  * Sorts an entries array by key (descending).
@@ -48,7 +48,7 @@ const compare = (current, update) => {
  * The only supported action is essentially a PUT.
  */
 export default class Atom {
-  __crdt__: Map<string, primitive>;
+  __crdt__: Map<string, JsonPrimitive>;
   version: number;
 
   /**

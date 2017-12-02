@@ -5,7 +5,7 @@ const invalidNameMsg = name =>
   `Invalid primitive name "${name}".` +
   '\nNames must begin lowercase and contain no special characters.';
 
-type Binary =
+export type Binary =
   | ArrayBuffer
   | Uint8Array
   | Uint8ClampedArray
@@ -17,7 +17,7 @@ type Binary =
   | Float32Array
   | Float64Array;
 
-type JsonPrimitive = ?(number | string | boolean | Binary);
+export type JsonPrimitive = ?(number | string | boolean | Binary);
 type TypeDefinition = {
   coerce(value: JsonPrimitive): JsonPrimitive,
   isValid(data: mixed): boolean,

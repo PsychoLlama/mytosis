@@ -44,7 +44,14 @@ export default class DatabaseContext {
     const result = descriptor.keys.map(() => null);
 
     if (descriptor.storage) {
-      descriptor.storage.read(descriptor);
+      descriptor.storage.read(descriptor).map(node => {
+        if (!node) {
+          return null;
+        }
+
+        const { type, id, data } = node;
+        return type.context.import({ type, id, data, context: this });
+      });
     }
 
     return Stream.from(result);

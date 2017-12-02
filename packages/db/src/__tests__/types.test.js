@@ -1,6 +1,6 @@
 // @flow
 import { Primitive, Composite, Pointer, migration } from '@mytosis/types';
-import { Atom } from '@mytosis/crdts';
+import Atom from '../contexts/Atom';
 
 import { string, number, boolean, buffer, atom } from '../types';
 

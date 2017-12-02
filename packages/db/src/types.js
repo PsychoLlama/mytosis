@@ -4,7 +4,7 @@ import type {
   Context,
 } from '@mytosis/types/dist/Composite';
 import { Primitive, Pointer, Composite, migration } from '@mytosis/types';
-import { Atom } from '@mytosis/crdts';
+import Atom from './contexts/Atom';
 
 const { Add, TypeChange, DefaultTypeChange } = migration;
 
