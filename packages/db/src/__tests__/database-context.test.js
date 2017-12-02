@@ -80,7 +80,6 @@ describe('Database context', () => {
 
   describe('createReadStream()', () => {
     const setup = (options, keys = ['user1', 'user2']) => {
-      // Hack: avoids all those "possibly undefined" flow errors.
       const config = createConfig(options);
       const context = new DBContext(config);
       const read = context.createReadDescriptor(keys);

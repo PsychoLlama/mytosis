@@ -19,7 +19,6 @@ export default class Union extends Primitive {
     assert(types.length, 'List of union values is empty.');
     const typeSet = new Set(types);
 
-    // Flow doesn't catch these. I'm probably making a n00b mistake.
     types.forEach(type => {
       const notComposite = !(type instanceof Composite);
       const notUnion = !(type instanceof Union);

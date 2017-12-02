@@ -22,9 +22,9 @@ const findObserver = (arr, observer) => {
   return index;
 };
 
-// Creates an externally managed promise. Be warned, Flow is pretty
-// upset about this function. Avoid changing it.
-const defer = (deferred = {}) => {
+const defer = () => {
+  const deferred = {};
+
   deferred.promise = new Promise((res, rej) => {
     deferred.resolve = res;
     deferred.reject = rej;
