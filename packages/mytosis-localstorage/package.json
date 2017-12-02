@@ -4,7 +4,6 @@
   "description": "Browser LocalStorage plugin for Mytosis DB",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
     "test:watch": "npm test -- --watch",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "prepublish": "npm run build"
@@ -26,10 +25,8 @@
   "homepage": "https://github.com/PsychoLlama/mytosis#readme",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-jest": "^20.0.3",
     "babel-preset-env": "^1.6.1",
     "graph-crdt": "^0.7.0",
-    "jest": "^20.0.4",
     "regenerator-runtime": "^0.10.5"
   },
   "dependencies": {

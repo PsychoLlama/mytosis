@@ -4,7 +4,6 @@
   "description": "Experimental evolutional type system for CRDTs",
   "main": "dist/index.js",
   "scripts": {
-    "test": "jest",
     "transpile": "babel src/ -d dist/ --ignore __tests__",
     "build": "yarn transpile && flow-copy-source src dist --ignore __tests__",
     "prepare": "yarn build"
@@ -26,8 +25,7 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
-    "flow-copy-source": "^1.2.1",
-    "jest": "^21.2.1"
+    "flow-copy-source": "^1.2.1"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",

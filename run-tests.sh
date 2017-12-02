@@ -41,15 +41,14 @@ function run_script_in_packages {
 }
 
 run_script_in_packages build BUILD_FAIL
-run_script_in_packages test TEST_FAIL
+
+yarn test || {
+  echo Tests failed.
+  FAIL=1
+}
 
 if [[ ! -z "$BUILD_FAIL" ]]; then
   echo Compilation failed.
-  FAIL=1
-fi
-
-if [[ ! -z "$TEST_FAIL" ]]; then
-  echo Tests failed.
   FAIL=1
 fi
 

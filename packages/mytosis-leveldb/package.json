@@ -4,7 +4,6 @@
   "description": "Mytosis backend using LevelDB and its ecosystem",
   "version": "0.3.0",
   "scripts": {
-    "test": "jest",
     "test:watch": "npm run test -- --watch",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "build:watch": "npm run build -- --watch",
@@ -20,10 +19,8 @@
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-jest": "^20.0.3",
     "babel-preset-env": "^1.6.1",
-    "graph-crdt": "^0.7.0",
-    "jest": "^20.0.4"
+    "graph-crdt": "^0.7.0"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0"
