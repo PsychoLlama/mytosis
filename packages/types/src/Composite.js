@@ -5,11 +5,33 @@ import Derivation from './Derivation';
 import Primitive from './Primitive';
 import type {
   DefaultTypeChange,
+  RemoveDefaultType,
   TypeChange,
   Remove,
   Move,
   Add,
 } from './migrations';
+
+export interface Context {}
+export type Field = Primitive | Derivation;
+export type FieldSet = { [field: string]: Field };
+type Migration =
+  | Add
+  | Remove
+  | Move
+  | TypeChange
+  | DefaultTypeChange
+  | RemoveDefaultType;
+
+type ValidationTarget = { [string]: string | number | boolean };
+type MigrationInterceptor = ?(Migration[]) => Migration[];
+
+export type Definition = {
+  migrationInterceptor?: MigrationInterceptor,
+  initialFieldSet?: FieldSet,
+  defaultType?: ?Field,
+  context: Context,
+};
 
 /**
  * Creates object-style types.
@@ -19,15 +41,32 @@ export default class Composite {
   defaultType: ?Field;
 
   name: string;
-  CRDT: CRDT;
+  context: Context;
 
   lastVersion: ?Composite;
   nextVersion: ?Composite;
+  version: number;
 
+  firstComposite: Composite;
   lastComposite: ?Composite;
   nextComposite: ?Composite;
 
+  migrationInterceptor: MigrationInterceptor;
   migration: ?Migration;
+
+  /**
+   * Iterates over every migration, both past and future.
+   * @param  {Composite} composite - Something to iterate over.
+   * @return {Generator} - Yields every migration.
+   */
+  static *toMigrationIterable(composite: Composite) {
+    let ctx = composite.firstComposite;
+
+    while (ctx) {
+      yield ctx;
+      ctx = ctx.nextComposite;
+    }
+  }
 
   /**
    * @param  {String} name - A name for the type.
@@ -35,11 +74,12 @@ export default class Composite {
    */
   constructor(name: string, def: Definition) {
     assert(
-      /^[A-Z][_a-zA-Z:]*$/.test(name),
+      /^[A-Z][_a-zA-Z:0-9]*$/.test(name),
       `Invalid composite name "${name}".`,
     );
 
     this.name = name;
+    this.version = 1;
     Object.defineProperties(this, {
       definition: {
         value: def.initialFieldSet || {},
@@ -47,8 +87,8 @@ export default class Composite {
       defaultType: {
         value: def.defaultType || null,
       },
-      CRDT: {
-        value: def.CRDT,
+      context: {
+        value: def.context,
       },
       lastComposite: {
         writable: true,
@@ -66,9 +106,16 @@ export default class Composite {
         writable: true,
         value: null,
       },
+      migrationInterceptor: {
+        value: def.migrationInterceptor || null,
+      },
       migration: {
         writable: true,
         value: null,
+      },
+      firstComposite: {
+        writable: true,
+        value: this,
       },
     });
   }
@@ -106,6 +153,10 @@ export default class Composite {
    * @return {Composite} - A new composite with the changes applied.
    */
   migrate(operations: Migration[]): Composite {
+    if (this.migrationInterceptor) {
+      operations = this.migrationInterceptor(operations);
+    }
+
     assert(!this.migration, `Can't migrate the same ${this.name} type twice.`);
     assert(operations.length, 'Migration list is empty.');
 
@@ -115,12 +166,17 @@ export default class Composite {
       composite.migration = migration;
 
       const result = new Composite(composite.name, {
+        migrationInterceptor: composite.migrationInterceptor,
         initialFieldSet: definition,
-        CRDT: composite.CRDT,
+        context: composite.context,
         defaultType,
       });
 
-      return Object.assign(result, { lastComposite: composite });
+      return Object.assign(result, {
+        firstComposite: this.firstComposite,
+        lastComposite: composite,
+        lastVersion: this,
+      });
     }, this);
 
     // Go back and add a successor reference to each composite.
@@ -134,17 +190,20 @@ export default class Composite {
       return composite.lastComposite;
     }, migrated);
 
-    return Object.assign(migrated, { lastVersion: this });
+    this.nextVersion = migrated;
+
+    return Object.assign(migrated, {
+      firstComposite: this.firstComposite,
+      version: this.version + 1,
+      lastVersion: this,
+    });
+  }
+
+  /**
+   * Creates a type ID using the name and version number.
+   * @return {String} - Type ID.
+   */
+  toString() {
+    return `${this.name}@${this.version}`;
   }
 }
-
-type Migration = Add | Remove | Move | TypeChange | DefaultTypeChange;
-type Field = Primitive | Derivation;
-type FieldSet = { [field: string]: Field };
-type CRDT = { import(data: Object): Object };
-type ValidationTarget = { [string]: string | number | boolean };
-type Definition = {
-  initialFieldSet?: FieldSet,
-  defaultType?: ?Field,
-  CRDT: CRDT,
-};

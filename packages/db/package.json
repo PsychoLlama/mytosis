@@ -38,5 +38,11 @@
     "@mytosis/streams": "^0.1.0",
     "@mytosis/types": "^0.1.0",
     "babel-runtime": "^6.26.0"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules",
+      "<rootDir>/dist"
+    ]
   }
 }

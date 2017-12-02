@@ -2,15 +2,17 @@
 import Derivation from '../Derivation';
 import Composite from '../Composite';
 import Primitive from '../Primitive';
+import Pointer from '../Pointer';
 import {
   DefaultTypeChange,
+  RemoveDefaultType,
   TypeChange,
   Remove,
   Move,
   Add,
 } from '../migrations';
 
-const CRDT = { import: data => data };
+const context = { import: data => data };
 const string = new Primitive('string', {
   isValid: value => typeof value === 'string',
   coerce: String,
@@ -35,7 +37,7 @@ const time = new Derivation('time', string, {
 describe('Migration', () => {
   const createType = () =>
     new Composite('Player', {
-      CRDT,
+      context,
       initialFieldSet: {
         firstName: string,
         gamertag: string,
@@ -161,9 +163,6 @@ describe('Migration', () => {
 
       expect(result).toEqual({ ...input, score: '500' });
     });
-
-    // Requires an implementation of Pointer.
-    it('migrates composite types');
   });
 
   describe('Move', () => {
@@ -189,6 +188,23 @@ describe('Migration', () => {
       const fail = () => migration.migrateType(type);
 
       expect(fail).toThrow(/number/i);
+    });
+
+    it('allows similar derivations to move between themselves', () => {
+      const migration = new Move('user', 'member');
+      const Member = new Composite('Member', { context });
+      const User = new Composite('User', { context });
+      const type = new Composite('Team', {
+        context,
+        initialFieldSet: {
+          member: new Pointer(string, Member),
+          user: new Pointer(string, User),
+        },
+      });
+
+      const pass = () => migration.migrateType(type);
+
+      expect(pass).not.toThrow();
     });
 
     it('returns the same type data', () => {
@@ -243,7 +259,7 @@ describe('Migration', () => {
     });
 
     it('migrates all data', () => {
-      const type = new Composite('Counter', { CRDT, defaultType: number });
+      const type = new Composite('Counter', { context, defaultType: number });
       const migration = new DefaultTypeChange(string);
       const result = migration.migrateData(type, {
         abc: 2,
@@ -259,7 +275,7 @@ describe('Migration', () => {
     });
 
     it('works with derivations', () => {
-      const type = new Composite('Counter', { CRDT, defaultType: number });
+      const type = new Composite('Counter', { context, defaultType: number });
       const migration = new DefaultTypeChange(time);
       const result = migration.migrateData(type, {
         id: 5,
@@ -273,7 +289,7 @@ describe('Migration', () => {
       const type = new Composite('Counter', {
         initialFieldSet: { tombstone: boolean },
         defaultType: number,
-        CRDT,
+        context,
       });
 
       const result = migration.migrateData(type, {
@@ -294,7 +310,7 @@ describe('Migration', () => {
       const type = new Composite('Counter', {
         initialFieldSet: { tombstone: boolean },
         defaultType: number,
-        CRDT,
+        context,
       });
 
       const result = migration.migrateData(type, {
@@ -304,6 +320,72 @@ describe('Migration', () => {
       });
 
       expect(result).toEqual({ tombstone: true });
+    });
+  });
+
+  describe('RemoveDefaultType', () => {
+    it('removes the default type', () => {
+      const migration = new RemoveDefaultType();
+      const type = new Composite('Type', {
+        defaultType: number,
+        context,
+      });
+
+      const result = migration.migrateType(type);
+
+      expect(result.defaultType).toBe(null);
+    });
+
+    it('throws if the type has no default type', () => {
+      const type = new Composite('User', { context });
+      const migration = new RemoveDefaultType();
+      const fail = () => migration.migrateType(type);
+
+      expect(fail).toThrow(/type/i);
+    });
+
+    it('keeps the existing fields', () => {
+      const migration = new RemoveDefaultType();
+      const type = new Composite('User', {
+        defaultType: number,
+        context,
+        initialFieldSet: {
+          status: string,
+          name: string,
+        },
+      });
+
+      const result = migration.migrateType(type);
+
+      expect(result.definition).toBe(type.definition);
+    });
+
+    it('drops unknown fields from data', () => {
+      const type = new Composite('User', {
+        defaultType: string,
+        context,
+        initialFieldSet: {
+          status: string,
+          name: string,
+        },
+      });
+
+      const migration = new RemoveDefaultType();
+      const data = {
+        name: 'Yolo Swaggins',
+        status: 'invited',
+
+        additional: 'field',
+        useless: 'metadata',
+        stuff: 'enabled',
+      };
+
+      const result = migration.migrateData(type, data);
+
+      expect(result).toEqual({
+        status: data.status,
+        name: data.name,
+      });
     });
   });
 });

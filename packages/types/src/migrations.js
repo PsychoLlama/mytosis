@@ -1,27 +1,25 @@
 // @flow
 import assert from 'minimalistic-assert';
 
-import type Composite from './Composite';
+import type Composite, { Field, FieldSet } from './Composite';
 import Derivation from './Derivation';
 import Primitive from './Primitive';
 
-type AnyType = Primitive | Derivation;
-
 type CompositeTypeMap = {
-  definition: { [string]: AnyType },
-  defaultType: ?AnyType,
+  definition: FieldSet,
+  defaultType: ?Field,
 };
 
 /** Represents an ADD migration. */
 export class Add {
   field: string;
-  type: AnyType;
+  type: Field;
 
   /**
    * @param  {String} field - The name of the field to create.
    * @param  {Type} type - The type to use.
    */
-  constructor(field: string, type: AnyType) {
+  constructor(field: string, type: Field) {
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -111,13 +109,13 @@ export class Remove {
 /** Changes the type of a field. */
 export class TypeChange {
   field: string;
-  type: AnyType;
+  type: Field;
 
   /**
    * @param  {String} field - The field to change.
    * @param  {Type} type - Any type.
    */
-  constructor(field: string, type: AnyType) {
+  constructor(field: string, type: Field) {
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -200,7 +198,14 @@ export class Move {
 
     const target = definition[this.to];
     const source = definition[this.from];
-    const isSameType = target === source;
+
+    const targetComparison =
+      target instanceof Derivation ? target.subtype : target;
+    const sourceComparison =
+      source instanceof Derivation ? source.subtype : source;
+
+    const isSameType = targetComparison === sourceComparison;
+
     assert(
       isSameType,
       `Can't move ${source.name} into ${target.name} ` +
@@ -232,12 +237,12 @@ export class Move {
 
 /** Changes the implied type of a composite */
 export class DefaultTypeChange {
-  type: ?AnyType;
+  type: ?Field;
 
   /**
    * @param  {Type} type - Any type.
    */
-  constructor(type: ?AnyType) {
+  constructor(type: ?Field) {
     Object.defineProperty(this, 'type', { value: type });
   }
 
@@ -276,5 +281,45 @@ export class DefaultTypeChange {
     });
 
     return copy;
+  }
+}
+
+/** Unsets the default type and drops unknown fields. */
+export class RemoveDefaultType {
+  /**
+   * Drops the defaultType.
+   * @throws {Error} - If there is no default type.
+   * @param  {Composite} type - Any composite.
+   * @return {Object} - The updated fields.
+   */
+  migrateType(type: Composite): CompositeTypeMap {
+    assert(
+      type.defaultType,
+      `Can't remove the default type from ${type.name}. It doesn't have one.`,
+    );
+
+    return {
+      definition: type.definition,
+      defaultType: null,
+    };
+  }
+
+  /**
+   * Drops any data not defined explicitly by the type.
+   * @param  {Composite} type - The type representing the data.
+   * @param  {Object} data - Key-value map.
+   * @return {Object} - The same data, but less of it.
+   */
+  migrateData({ definition }: Composite, data: Object) {
+    const result = {};
+
+    // Filter by keys with explicit composite definitions.
+    for (const key in data) {
+      if (data.hasOwnProperty(key) && definition.hasOwnProperty(key)) {
+        result[key] = data[key];
+      }
+    }
+
+    return result;
   }
 }
