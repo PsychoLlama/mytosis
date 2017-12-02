@@ -35,6 +35,14 @@ export default class Schema {
   constructor(types: GraphEntryPoints) {
     const searchForTypes = (composite: Composite, path: Composite[]) => {
       const originalComposite = composite.firstComposite;
+      const id = String(originalComposite);
+      const indexed = this._types.get(id);
+
+      // Prevent infinite recursion.
+      if (indexed) {
+        assertNoDuplicate(composite, indexed, path);
+        return;
+      }
 
       // Follow type pointers.
       if (originalComposite.defaultType instanceof Pointer) {
@@ -50,14 +58,10 @@ export default class Schema {
         }
       });
 
+      // Look through all migration history for other types.
       for (const type of Composite.toMigrationIterable(composite)) {
         const id = String(type);
-        assertNoDuplicate(type, this._types.get(id), path);
-
-        this._types.set(id, {
-          path,
-          type,
-        });
+        this._types.set(id, { path, type });
 
         if (type.migration && type.migration.type instanceof Pointer) {
           const pointer = type.migration.type;

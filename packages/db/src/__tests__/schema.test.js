@@ -132,4 +132,13 @@ describe('Schema', () => {
 
     expect(fail).toThrow(/Employee/);
   });
+
+  // Ensures the schema doesn't infinitely traverse the same timeline.
+  it('allows self-referential types', () => {
+    const User = type.atom('User');
+    User.migrate([new migration.Add('self', User)]);
+    const pass = () => new Schema({ user: User });
+
+    expect(pass).not.toThrow();
+  });
 });
