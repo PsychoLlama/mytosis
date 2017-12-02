@@ -1,4 +1,6 @@
 // @flow
+import Schema from './schema';
+
 type StoragePlugin = {
   write(Object): Promise<Object>,
   read(Object): Promise<Object>,
@@ -14,11 +16,13 @@ type NetworkConfiguration = {
 export type Options = {|
   +network?: NetworkConfiguration,
   +storage?: StoragePlugin,
+  +schema?: Object,
   +hooks?: Hook[],
 |};
 
 export type Config = {
   +storage: ?StoragePlugin,
+  +schema: Schema,
   +hooks: Hook[],
   +network: {
     +connections: Object[],
@@ -32,12 +36,15 @@ export type Config = {
  * @return {Config} - Properly formatted db config.
  */
 export const create = (options?: Options): Config => {
-  const { hooks = [], network = {}, storage = null } = options || {};
+  const { hooks = [], network = {}, storage = null, schema = {} } =
+    options || {};
+
   const { connections = [], router = null } = network;
 
   return {
-    hooks,
+    schema: new Schema(schema),
     storage,
+    hooks,
     network: {
       connections,
       router,
