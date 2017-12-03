@@ -100,12 +100,16 @@ describe('Database context', () => {
     const setupWithStorage = ({ responses, keys }) => {
       keys = keys || responses.map(result => result.id);
 
-      const schema = responses.reduce(
-        (schema, { type }) => ({
+      const schema = responses.reduce((schema, { type }) => {
+        if (!type) {
+          return schema;
+        }
+
+        return {
+          ...schema,
           [type.name]: type,
-        }),
-        {},
-      );
+        };
+      }, {});
 
       const result = setup(
         {
@@ -166,12 +170,12 @@ describe('Database context', () => {
 
       expect.assertions(5);
       context.createReadStream(read).forEach(result => {
-        expect(result.value).toEqual(expect.any(AtomContext));
+        expect(result.data).toEqual(expect.any(AtomContext));
         expect(result.type).toBe(User);
         expect(result.id).toBe('Bacon');
         expect(result.source).toBe(config.storage);
 
-        expect(result.value.getFieldMetadata('name')).toEqual({
+        expect(result.data.getFieldMetadata('name')).toEqual({
           type: type.string,
           value: 'Steve',
         });
@@ -200,6 +204,30 @@ describe('Database context', () => {
       expect(result[1]).toMatchObject({
         type: User,
         id: 'two',
+      });
+    });
+
+    it('re-emits keys which had no result', async () => {
+      const { context, read, config } = setupWithStorage({
+        responses: [
+          {
+            data: null,
+            type: null,
+            id: 'nope',
+          },
+        ],
+      });
+
+      const stream = context.createReadStream(read);
+      const consumer = jest.fn();
+      stream.forEach(consumer);
+      expect(await stream).toEqual([null]);
+
+      expect(consumer).toHaveBeenCalledWith({
+        source: config.storage,
+        data: null,
+        type: null,
+        id: 'nope',
       });
     });
   });

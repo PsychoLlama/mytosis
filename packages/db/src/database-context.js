@@ -39,30 +39,36 @@ export default class DatabaseContext {
 
       return descriptor.storage
         .read(descriptor)
-        .filter(result => Boolean(result.type))
         .map(result => {
-          const type = this.config.schema.findType(result.type);
-
-          const value = type.context.import({
-            data: result.data,
-            context: this,
-            id: result.id,
-            type,
-          });
-
-          return (nodes[result.id] = {
+          const processed = {
             source: result.source,
             id: result.id,
-            value,
-            type,
-          });
+            data: null,
+            type: null,
+          };
+
+          // `null` is a valid data response.
+          if (result.type && result.data) {
+            processed.type = this.config.schema.findType(result.type);
+
+            processed.data = processed.type.context.import({
+              type: processed.type,
+              data: result.data,
+              context: this,
+              id: result.id,
+            });
+
+            nodes[result.id] = processed;
+          }
+
+          return processed;
         })
         .mapResult(error => {
           if (error) {
             throw error;
           }
 
-          return descriptor.keys.map(key => nodes[key]);
+          return descriptor.keys.map(key => nodes[key] || null);
         });
     }
 
