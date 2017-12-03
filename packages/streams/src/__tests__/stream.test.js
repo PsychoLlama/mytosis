@@ -289,12 +289,17 @@ describe('Stream', () => {
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('throws if you unsubscribe twice', () => {
-      const stream = new Stream(jest.fn());
-      const dispose = stream.observe(jest.fn());
+    it('only unsubscribes the function once', () => {
+      const close = jest.fn();
+      const stream = new Stream(() => close);
+      const observer = jest.fn();
+      const dispose = stream.observe(observer);
+      stream.observe(observer);
+
+      dispose();
       dispose();
 
-      expect(dispose).toThrow(/listener/i);
+      expect(close).not.toHaveBeenCalled();
     });
 
     it('passes the dispose handler to observers', () => {

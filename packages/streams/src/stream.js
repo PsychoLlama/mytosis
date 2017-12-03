@@ -193,27 +193,6 @@ export default class Stream {
   }
 
   /**
-   * Ensures the given function is never invoked more than once.
-   * @throws {Error} - If invoked more than once.
-   * @param  {Function} fn - Unsubscribe handler.
-   * @return {Function} - Invoked at most once.
-   * @private
-   */
-  _createUnsubscribeCallback(fn) {
-    let unsubscribed = false;
-
-    return () => {
-      assert(
-        !unsubscribed,
-        `Listener had already been removed. dispose() should only be called once.`,
-      );
-
-      unsubscribed = true;
-      fn();
-    };
-  }
-
-  /**
    * Closes the stream, but only if nobody's watching.
    * @private
    * @return {void}
@@ -235,11 +214,11 @@ export default class Stream {
     }
 
     let handler = noop;
-    const dispose = this._createUnsubscribeCallback(() => {
+    const dispose = () => {
       const index = findObserver(this._observers, handler);
       this._observers.splice(index, 1);
       this._closeIfNoListenersExist();
-    });
+    };
 
     handler = event => observer(event, dispose);
     this._observers.push({ observer: handler, dispose });
@@ -410,10 +389,8 @@ export default class Stream {
    * @return {Stream} - Indicates whether the predicate was satisfied.
    */
   some(predicate) {
-    let terminated = false;
-
-    return new Stream((push, resolve) => {
-      const dispose = this.observe((event, dispose) => {
+    return new Stream((push, resolve) =>
+      this.observe((event, dispose) => {
         if (event.done) {
           resolve(false);
           return;
@@ -424,20 +401,10 @@ export default class Stream {
 
         if (satisfied) {
           resolve(true);
-
-          // Early termination prevents synchronous producers
-          // from calling this observer multiple times after unsubscribing.
-          terminated = true;
           dispose();
         }
-      });
-
-      return () => {
-        if (!terminated) {
-          dispose();
-        }
-      };
-    });
+      }),
+    );
   }
 
   /**
@@ -454,10 +421,8 @@ export default class Stream {
     }
 
     let available = amount;
-    let terminated = false;
-
-    return new Stream((push, resolve) => {
-      const dispose = this.observe((event, dispose) => {
+    return new Stream((push, resolve) =>
+      this.observe((event, dispose) => {
         if (event.done) {
           resolve();
           return;
@@ -467,16 +432,9 @@ export default class Stream {
         available -= 1;
         if (available <= 0) {
           resolve();
-          terminated = true;
           dispose();
         }
-      });
-
-      return () => {
-        if (!terminated) {
-          dispose();
-        }
-      };
-    });
+      }),
+    );
   }
 }
