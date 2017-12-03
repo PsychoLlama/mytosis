@@ -35,14 +35,35 @@ export default class DatabaseContext {
     const result = descriptor.keys.map(() => null);
 
     if (descriptor.storage) {
-      descriptor.storage.read(descriptor).map(node => {
-        if (!node) {
-          return null;
-        }
+      const nodes = {};
 
-        const { type, id, data } = node;
-        return type.context.import({ type, id, data, context: this });
-      });
+      return descriptor.storage
+        .read(descriptor)
+        .filter(result => Boolean(result.type))
+        .map(result => {
+          const type = this.config.schema.findType(result.type);
+
+          const value = type.context.import({
+            data: result.data,
+            context: this,
+            id: result.id,
+            type,
+          });
+
+          return (nodes[result.id] = {
+            source: result.source,
+            id: result.id,
+            value,
+            type,
+          });
+        })
+        .mapResult(error => {
+          if (error) {
+            throw error;
+          }
+
+          return descriptor.keys.map(key => nodes[key]);
+        });
     }
 
     return Stream.from(result);
