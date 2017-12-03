@@ -1,5 +1,5 @@
 import { create as createConfig } from '../config-utils';
-import { MockStorage } from '../mocks/storage';
+import MockStorage from '../mocks/storage';
 import * as type from '../types';
 import Schema from '../schema';
 

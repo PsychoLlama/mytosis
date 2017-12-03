@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import Stream from '@mytosis/streams';
 
-export class MockStorage {
+export default class MockStorage {
   constructor() {
     jest.spyOn(this, 'read');
     jest.spyOn(this, 'write');

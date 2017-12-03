@@ -1,9 +1,9 @@
 import Stream from '@mytosis/streams';
 
 import { create as createConfig } from '../config-utils';
-import { MockStorage } from '../mocks/storage';
 import DBContext from '../database-context';
 import AtomContext from '../contexts/Atom';
+import MockStorage from '../mocks/storage';
 import * as type from '../types';
 import Schema from '../schema';
 

@@ -13,6 +13,19 @@ export class Database {
       value: new DatabaseContext(config),
     });
   }
+
+  /**
+   * Does things
+   * @param  {String[]} keys - Any keys to read.
+   * @param  {Object} options - Tweaks to how the keys are read.
+   * @return {Stream} - A stream of results. Usually paired with `await`.
+   */
+  readKeys(keys, options) {
+    const context = this._context;
+    const descriptor = context.createReadDescriptor(keys, options);
+
+    return context.createReadStream(descriptor);
+  }
 }
 
 /**
