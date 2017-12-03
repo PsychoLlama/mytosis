@@ -329,17 +329,17 @@ export default class Stream {
    * @return {Stream} - A new event stream.
    */
   map(transform) {
-    const stream = new Stream(push =>
-      this.forEach(message => {
-        const mapped = transform(message);
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (event.done) {
+          resolve(event.value);
+          return;
+        }
+
+        const mapped = transform(event.value);
         push(mapped);
       }),
     );
-
-    // Stream maps cannot affect the promise. Sharing here is safe.
-    stream._deferredResult = this._deferredResult;
-
-    return stream;
   }
 
   /**
@@ -368,18 +368,18 @@ export default class Stream {
    * @return {Stream} - A new stream missing inadequate values.
    */
   filter(predicate) {
-    const stream = new Stream(push =>
+    return new Stream((push, resolve) =>
       this.observe(event => {
-        if (!event.done && predicate(event.value)) {
+        if (event.done) {
+          resolve(event.value);
+          return;
+        }
+
+        if (predicate(event.value)) {
           push(event.value);
         }
       }),
     );
-
-    // Stream maps cannot affect the promise. Sharing here is safe.
-    stream._deferredResult = this._deferredResult;
-
-    return stream;
   }
 
   /**

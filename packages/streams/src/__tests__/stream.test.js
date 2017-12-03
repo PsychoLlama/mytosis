@@ -551,6 +551,13 @@ describe('Stream', () => {
 
       await expect(mapped).resolves.toBe(value);
     });
+
+    it('terminates the stream when finished', async () => {
+      const { stream } = setup((push, resolve) => resolve(null));
+      const mapped = stream.map(Number).mapResult(Number);
+
+      await expect(mapped).resolves.toBe(0);
+    });
   });
 
   describe('mapResult', () => {
@@ -670,6 +677,14 @@ describe('Stream', () => {
       dispose();
       expect(close).toHaveBeenCalled();
     });
+
+    it('terminates the stream when finished', async () => {
+      const { stream } = setup((push, resolve) => resolve('enabled'));
+
+      const filtered = stream.filter(Boolean).mapResult(Number);
+
+      await expect(filtered).resolves.toBe(0);
+    });
   });
 
   describe('reduce()', () => {
@@ -729,6 +744,20 @@ describe('Stream', () => {
       expect(close).not.toHaveBeenCalled();
       dispose();
       expect(close).toHaveBeenCalled();
+    });
+
+    it('works on complex stream chains', async () => {
+      const { stream } = setup(publishRange(5));
+
+      const pipe = stream
+        .filter(value => value % 2 === 0)
+        .map(value => value * 2)
+        .reduce((sum, value) => sum + value, 0);
+
+      // 0..5 (even) ->
+      // 2, 4 (*2) ->
+      // 4, 8 (a + b) ->
+      await expect(pipe).resolves.toBe(12);
     });
   });
 
