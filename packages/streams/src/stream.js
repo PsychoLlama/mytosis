@@ -53,6 +53,38 @@ export default class Stream {
   }
 
   /**
+   * Combines several streams into a new stream.
+   * @param  {Stream[]} streams - Streams to combine.
+   * @return {Stream} - A combined stream.
+   */
+  static union(streams) {
+    const results = [];
+
+    return new Stream((push, resolve, reject) => {
+      const disposers = streams.map(stream =>
+        stream.observe(event => {
+          if (!event.done) {
+            push(event.value);
+            return;
+          }
+
+          if (event.error) {
+            reject(event.error);
+            return;
+          }
+
+          results.push(event.value);
+          if (results.length === streams.length) {
+            resolve(results);
+          }
+        }),
+      );
+
+      return () => disposers.map(dispose => dispose());
+    });
+  }
+
+  /**
    * @param  {Function} publisher - Responsible for publishing events.
    */
   constructor(publisher) {

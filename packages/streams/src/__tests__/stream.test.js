@@ -129,6 +129,51 @@ describe('Stream', () => {
     });
   });
 
+  describe('static union()', () => {
+    it('combines streams', () => {
+      const stream1 = Stream.from([1, 2]);
+      const stream2 = Stream.from([3, 4]);
+      const stream = Stream.union([stream1, stream2]);
+      const observer = jest.fn();
+      stream.forEach(observer);
+
+      expect(observer).toHaveBeenCalledTimes(4);
+      expect(observer).toHaveBeenCalledWith(1);
+      expect(observer).toHaveBeenCalledWith(2);
+      expect(observer).toHaveBeenCalledWith(3);
+      expect(observer).toHaveBeenCalledWith(4);
+    });
+
+    it('terminates with both values', async () => {
+      const stream1 = Stream.from([1, 2]).mapResult(() => 'one');
+      const stream2 = Stream.from([3, 4]).mapResult(() => 'two');
+      const stream = Stream.union([stream1, stream2]);
+
+      await expect(stream).resolves.toEqual(['one', 'two']);
+    });
+
+    it('fails if any stream terminates', async () => {
+      const error = new Error('Testing Stream.union rejection');
+      const stream1 = Stream.from([1, 2]);
+      const stream2 = new Stream((push, resolve, reject) => reject(error));
+      const stream = Stream.union([stream1, stream2]);
+
+      await expect(stream).rejects.toBe(error);
+    });
+
+    it('closes the stream if nobody is watching', () => {
+      const close = jest.fn();
+      const stream1 = Stream.from([1, 2]);
+      const stream2 = new Stream(() => close);
+      const stream = Stream.union([stream1, stream2]);
+      const dispose = stream.forEach(jest.fn());
+
+      expect(close).not.toHaveBeenCalled();
+      dispose();
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
   describe('toArray()', () => {
     it('returns a stream', () => {
       const stream = Stream.from([]);
