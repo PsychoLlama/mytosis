@@ -1,25 +1,15 @@
-// @flow
 import assert from 'minimalistic-assert';
 
-import type Composite, { Field, FieldSet } from './Composite';
 import Derivation from './Derivation';
 import Primitive from './Primitive';
 
-type CompositeTypeMap = {
-  definition: FieldSet,
-  defaultType: ?Field,
-};
-
 /** Represents an ADD migration. */
 export class Add {
-  field: string;
-  type: Field;
-
   /**
    * @param  {String} field - The name of the field to create.
    * @param  {Type} type - The type to use.
    */
-  constructor(field: string, type: Field) {
+  constructor(field, type) {
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -31,7 +21,7 @@ export class Add {
    * @param  {Composite} type - Any composite.
    * @return {Object} - What the type should look like.
    */
-  migrateType(type: Composite): CompositeTypeMap {
+  migrateType(type) {
     assert(
       !type.definition[this.field],
       `Field "${this.field}" already exists in type ${type.name}.`,
@@ -51,7 +41,7 @@ export class Add {
    * @param  {Object} data - An instance of the composite type.
    * @return {Object} - The data slightly modified.
    */
-  migrateData(data: Object) {
+  migrateData(data) {
     return {
       ...data,
       [this.field]: undefined,
@@ -61,12 +51,10 @@ export class Add {
 
 /** Represents a DROP operation. */
 export class Remove {
-  field: string;
-
   /**
    * @param  {string} field - The field to drop.
    */
-  constructor(field: string) {
+  constructor(field) {
     Object.defineProperties(this, {
       field: { value: field },
     });
@@ -77,7 +65,7 @@ export class Remove {
    * @param  {Composite} type - Any composite type.
    * @return {Object} - What the type should look like.
    */
-  migrateType(type: Composite): CompositeTypeMap {
+  migrateType(type) {
     assert(
       this.field in type.definition,
       `Can't remove field "${this.field}" from type ${type.name}; ` +
@@ -98,7 +86,7 @@ export class Remove {
    * @param  {Object} data - Any object.
    * @return {Object} - The data without the given field.
    */
-  migrateData(data: Object) {
+  migrateData(data) {
     const dropped = { ...data };
     delete dropped[this.field];
 
@@ -108,14 +96,11 @@ export class Remove {
 
 /** Changes the type of a field. */
 export class TypeChange {
-  field: string;
-  type: Field;
-
   /**
    * @param  {String} field - The field to change.
    * @param  {Type} type - Any type.
    */
-  constructor(field: string, type: Field) {
+  constructor(field, type) {
     Object.defineProperties(this, {
       field: { value: field },
       type: { value: type },
@@ -127,7 +112,7 @@ export class TypeChange {
    * @param  {Composite} type - Any composite type.
    * @return {Object} - What the composite should look like.
    */
-  migrateType(type: Composite): CompositeTypeMap {
+  migrateType(type) {
     assert(
       type.definition.hasOwnProperty(this.field),
       `Field "${this.field}" doesn't exist in type ${type.name}.`,
@@ -147,7 +132,7 @@ export class TypeChange {
    * @param  {Object} value - Any object.
    * @return {Object} - The coerced data.
    */
-  migrateData(value: Object) {
+  migrateData(value) {
     const { field, type } = this;
 
     if (!value.hasOwnProperty(field)) {
@@ -167,14 +152,11 @@ export class TypeChange {
 
 /** Moves data from one field to another. */
 export class Move {
-  from: string;
-  to: string;
-
   /**
    * @param  {String} from - The field to migrate from.
    * @param  {String} to - The field to migrate into (destructive).
    */
-  constructor(from: string, to: string) {
+  constructor(from, to) {
     Object.defineProperties(this, {
       from: { value: from },
       to: { value: to },
@@ -187,7 +169,7 @@ export class Move {
    * @param  {Composite} type - Any composite.
    * @return {Composite} - The same type.
    */
-  migrateType(type: Composite): CompositeTypeMap {
+  migrateType(type) {
     const definition = { ...type.definition };
     const sourceExists = definition.hasOwnProperty(this.from);
     const targetExists = definition.hasOwnProperty(this.to);
@@ -223,7 +205,7 @@ export class Move {
    * @param  {Object} data - Any object.
    * @return {Object} - Migrated data.
    */
-  migrateData(data: Object) {
+  migrateData(data) {
     if (!data.hasOwnProperty(this.from)) {
       return data;
     }
@@ -237,12 +219,10 @@ export class Move {
 
 /** Changes the implied type of a composite */
 export class DefaultTypeChange {
-  type: ?Field;
-
   /**
    * @param  {Type} type - Any type.
    */
-  constructor(type: ?Field) {
+  constructor(type) {
     Object.defineProperty(this, 'type', { value: type });
   }
 
@@ -251,7 +231,7 @@ export class DefaultTypeChange {
    * @param  {Composite} type - Any composite.
    * @return {Object} - The new type definition.
    */
-  migrateType(type: Composite): CompositeTypeMap {
+  migrateType(type) {
     return {
       definition: { ...type.definition },
       defaultType: this.type,
@@ -264,7 +244,7 @@ export class DefaultTypeChange {
    * @param  {Object} data - Any object.
    * @return {Object} - The new data composite.
    */
-  migrateData(type: Composite, data: Object) {
+  migrateData(type, data) {
     const copy = { ...data };
 
     const noStrictDefinition = key => !type.definition.hasOwnProperty(key);
@@ -292,7 +272,7 @@ export class RemoveDefaultType {
    * @param  {Composite} type - Any composite.
    * @return {Object} - The updated fields.
    */
-  migrateType(type: Composite): CompositeTypeMap {
+  migrateType(type) {
     assert(
       type.defaultType,
       `Can't remove the default type from ${type.name}. It doesn't have one.`,
@@ -310,7 +290,7 @@ export class RemoveDefaultType {
    * @param  {Object} data - Key-value map.
    * @return {Object} - The same data, but less of it.
    */
-  migrateData({ definition }: Composite, data: Object) {
+  migrateData({ definition }, data) {
     const result = {};
 
     // Filter by keys with explicit composite definitions.

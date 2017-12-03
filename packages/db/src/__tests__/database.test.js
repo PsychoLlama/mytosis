@@ -1,9 +1,7 @@
-// @flow
-import { create as createConfig } from '../config-utils';
-import database, { Database } from '../database';
-import Context from '../database-context';
+import Stream from '@mytosis/streams';
 
-jest.mock('../database-context');
+import database, { Database } from '../database';
+import MockStorage from '../mocks/storage';
 
 describe('Database', () => {
   beforeEach(() => {
@@ -28,23 +26,42 @@ describe('Database', () => {
     });
   });
 
-  it('creates a new context', () => {
-    database();
+  describe('readKeys()', () => {
+    it('returns a stream', () => {
+      const db = database();
+      const result = db.readKeys(['key1', 'key2']);
 
-    expect(Context).toHaveBeenCalledWith(expect.any(Object));
-  });
+      expect(result).toEqual(expect.any(Stream));
+    });
 
-  it('provides a config object to the context', () => {
-    database();
+    it('reads from storage by default', async () => {
+      const storage = new MockStorage();
+      const db = database({ storage });
+      const keys = ['list', 'of', 'keys'];
+      const stream = db.readKeys(keys);
 
-    expect(Context).toHaveBeenCalledWith(createConfig());
-  });
+      await stream;
 
-  it('uses the given options in the new config', () => {
-    const hooks = [read => read];
-    database({ hooks });
-    const expectedConfig = createConfig({ hooks });
+      expect(storage.read).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keys,
+        }),
+      );
+    });
 
-    expect(Context).toHaveBeenCalledWith(expectedConfig);
+    it('uses the storage plugin if provided', async () => {
+      const storage = new MockStorage();
+      const db = database();
+      const keys = ['list', 'of', 'keys'];
+      const stream = db.readKeys(keys, { storage });
+
+      await stream;
+
+      expect(storage.read).toHaveBeenCalledWith(
+        expect.objectContaining({
+          keys,
+        }),
+      );
+    });
   });
 });

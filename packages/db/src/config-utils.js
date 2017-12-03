@@ -1,43 +1,20 @@
-// @flow
-type StoragePlugin = {
-  write(Object): Promise<Object>,
-  read(Object): Promise<Object>,
-};
-
-type Hook = Object => Object;
-
-type NetworkConfiguration = {
-  connections: Object[],
-  router: Object,
-};
-
-export type Options = {|
-  +network?: NetworkConfiguration,
-  +storage?: StoragePlugin,
-  +hooks?: Hook[],
-|};
-
-export type Config = {
-  +storage: ?StoragePlugin,
-  +hooks: Hook[],
-  +network: {
-    +connections: Object[],
-    +router: ?Object,
-  },
-};
+import Schema from './schema';
 
 /**
  * Provides default settings for database configs.
  * @param  {Options} options - User-provided database configuration.
  * @return {Config} - Properly formatted db config.
  */
-export const create = (options?: Options): Config => {
-  const { hooks = [], network = {}, storage = null } = options || {};
+export const create = options => {
+  const { hooks = [], network = {}, storage = null, schema = {} } =
+    options || {};
+
   const { connections = [], router = null } = network;
 
   return {
-    hooks,
+    schema: new Schema(schema),
     storage,
+    hooks,
     network: {
       connections,
       router,

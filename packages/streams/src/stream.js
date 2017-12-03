@@ -1,49 +1,11 @@
 /* eslint-disable no-underscore-dangle */
-// @flow
 import assert from 'minimalistic-assert';
-
-type PublishMessage<Message> = Message => void;
-type CloseStreamHandler = ?() => void;
-type Subscriber<Message> = Message => any;
-type ResolveStream<Result> = Result => void;
-type TerminationCallback<Result> = (?Error, ?Result) => any;
-type Publisher<Message, Result> = (
-  PublishMessage<Message>,
-  ResolveStream<Result>,
-  (Error) => any,
-) => CloseStreamHandler;
-
-type StreamDataEvent<Data> = {
-  done: false,
-  value: Data,
-};
-
-type StreamTerminationEvent<Result> = {
-  done: true,
-  value?: Result,
-  error?: Error,
-};
-
-type StreamEvent<Data, Result> =
-  | StreamDataEvent<Data>
-  | StreamTerminationEvent<Result>;
-
-type Dispose = () => void;
-type ResultTranformer<Result, Output> = (?Error, data?: Result) => Output;
-type Observer<Data, Result> = (StreamEvent<Data, Result>, Dispose) => any;
-type ObserverRecord<Data, Result> = {
-  observer: Observer<Data, Result>,
-  dispose: Dispose,
-};
 
 const noop = () => {};
 
 // Locates the splice-friendly index of a subscriber in an array.
 // .findIndex() is unsupported in IE.
-const findObserver = <Data, Result>(
-  arr: ObserverRecord<Data, Result>[],
-  observer: Observer<Data, Result>,
-) => {
+const findObserver = (arr, observer) => {
   let index = arr.length;
 
   arr.some((record, idx) => {
@@ -59,15 +21,9 @@ const findObserver = <Data, Result>(
   return index;
 };
 
-type Deferred<Result> = {
-  resolve: Result => any,
-  reject: Error => any,
-  promise: Promise<Result>,
-};
+const defer = () => {
+  const deferred = {};
 
-// Creates an externally managed promise. Be warned, Flow is pretty
-// upset about this function. Avoid changing it.
-const defer = (deferred: Object = {}) => {
   deferred.promise = new Promise((res, rej) => {
     deferred.resolve = res;
     deferred.reject = rej;
@@ -78,22 +34,15 @@ const defer = (deferred: Object = {}) => {
 
 // eslint-disable-next-line valid-jsdoc
 /** Creates a lazy pipe-driven event stream (cacheless). */
-export default class Stream<Message, Result = void> {
-  _closeStreamHandler: CloseStreamHandler;
-  _observers: ObserverRecord<Message, Result>[];
-  _publisher: Publisher<Message, Result>;
-  _deferredResult: Deferred<Result>;
-  _hasPromiseObservers: boolean;
-  _open: boolean;
-
-  closed: boolean = false;
+export default class Stream {
+  closed = false;
 
   /**
    * Generates a stream from an iterable.
    * @param  {Iterable} iterable - Any iterable value.
    * @return {Stream} - A stream containing those values.
    */
-  static from<Type>(iterable: Iterable<Type>): Stream<Type> {
+  static from(iterable) {
     return new Stream((push, resolve) => {
       for (const value of iterable) {
         push(value);
@@ -106,7 +55,7 @@ export default class Stream<Message, Result = void> {
   /**
    * @param  {Function} publisher - Responsible for publishing events.
    */
-  constructor(publisher: Publisher<Message, Result>) {
+  constructor(publisher) {
     Object.defineProperties(this, {
       _publisher: {
         value: publisher,
@@ -161,7 +110,7 @@ export default class Stream<Message, Result = void> {
     }
   }
 
-  _resolve: ResolveStream<Result> = (result: Result) => {
+  _resolve = result => {
     this._notifyObservers({
       value: result,
       done: true,
@@ -171,7 +120,7 @@ export default class Stream<Message, Result = void> {
     this._deferredResult.resolve(result);
   };
 
-  _reject = (error: Error) => {
+  _reject = error => {
     this._notifyObservers({
       done: true,
       error,
@@ -224,7 +173,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Object} message - Any message.
    * @return {void}
    */
-  _publishMessage: PublishMessage<Message> = (message: Message) => {
+  _publishMessage = message => {
     assert(!this.closed, `Values can't be emitted after ending a stream.`);
 
     this._notifyObservers({
@@ -239,7 +188,7 @@ export default class Stream<Message, Result = void> {
    * @param  {StreamEvent} msg - Either a data event or termination event.
    * @return {void}
    */
-  _notifyObservers(msg: StreamEvent<Message, Result>) {
+  _notifyObservers(msg) {
     this._observers.forEach(record => record.observer(msg, record.dispose));
   }
 
@@ -250,7 +199,7 @@ export default class Stream<Message, Result = void> {
    * @return {Function} - Invoked at most once.
    * @private
    */
-  _createUnsubscribeCallback(fn: Function) {
+  _createUnsubscribeCallback(fn) {
     let unsubscribed = false;
 
     return () => {
@@ -280,7 +229,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} observer - Called for every event.
    * @return {Function} - Invoke to unsubscribe.
    */
-  observe(observer: Observer<Message, Result>): Dispose {
+  observe(observer) {
     if (this.closed) {
       return noop;
     }
@@ -306,7 +255,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} subscriber - Stream observer called for every message.
    * @return {Function} - Unsubscribes when called.
    */
-  forEach(subscriber: Subscriber<Message>) {
+  forEach(subscriber) {
     return this.observe(event => {
       if (event.done) {
         return;
@@ -321,7 +270,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} callback - Invoked using node-style params on stream termination.
    * @return {Function} - Unsubscribes when invoked.
    */
-  onFinish(callback: TerminationCallback<Result>) {
+  onFinish(callback) {
     return this.observe(event => {
       if (!event.done) {
         return;
@@ -338,7 +287,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} errorHandler - Called if the stream terminates unsuccessfully.
    * @return {void}
    */
-  then(successHandler?: Result => any, errorHandler?: Error => any) {
+  then(successHandler, errorHandler) {
     this._hasPromiseObservers = true;
     this._openStream();
 
@@ -350,7 +299,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} errorHandler - Called if the stream intentionally rejects.
    * @return {void}
    */
-  catch(errorHandler: Error => any) {
+  catch(errorHandler) {
     this.then(undefined, errorHandler);
   }
 
@@ -358,7 +307,7 @@ export default class Stream<Message, Result = void> {
    * Outputs a new stream which tracks every event.
    * @return {Stream} - Resolves as an array of every emitted value.
    */
-  toArray(): Stream<Message, Message[]> {
+  toArray() {
     const result = [];
 
     return new Stream((push, resolve) =>
@@ -379,18 +328,18 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} transform - Applied to every message.
    * @return {Stream} - A new event stream.
    */
-  map<Output>(transform: Message => Output): Stream<Output, Result> {
-    const stream = new Stream(push =>
-      this.forEach(message => {
-        const mapped = transform(message);
+  map(transform) {
+    return new Stream((push, resolve) =>
+      this.observe(event => {
+        if (event.done) {
+          resolve(event.value);
+          return;
+        }
+
+        const mapped = transform(event.value);
         push(mapped);
       }),
     );
-
-    // Stream maps cannot affect the promise. Sharing here is safe.
-    stream._deferredResult = this._deferredResult;
-
-    return stream;
   }
 
   /**
@@ -398,9 +347,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} transform - Result transformer.
    * @return {Stream} - A new stream. All data is drawn from the parent stream.
    */
-  mapResult<Output>(
-    transform: ResultTranformer<Result, Output>,
-  ): Stream<Message, Output> {
+  mapResult(transform) {
     return new Stream((push, resolve) =>
       this.observe(event => {
         if (!event.done) {
@@ -420,19 +367,19 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} predicate - Determines whether to keep the value.
    * @return {Stream} - A new stream missing inadequate values.
    */
-  filter(predicate: Message => boolean): Stream<Message, Result> {
-    const stream = new Stream(push =>
+  filter(predicate) {
+    return new Stream((push, resolve) =>
       this.observe(event => {
-        if (!event.done && predicate(event.value)) {
+        if (event.done) {
+          resolve(event.value);
+          return;
+        }
+
+        if (predicate(event.value)) {
           push(event.value);
         }
       }),
     );
-
-    // Stream maps cannot affect the promise. Sharing here is safe.
-    stream._deferredResult = this._deferredResult;
-
-    return stream;
   }
 
   /**
@@ -441,10 +388,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Any} initialValue - A value to start with.
    * @return {Stream} - Emits each reduction and resolves with the final result.
    */
-  reduce<Result>(
-    reducer: (Result, Message) => Result,
-    initialValue: Result,
-  ): Stream<Result, Result> {
+  reduce(reducer, initialValue) {
     let lastValue = initialValue;
 
     return new Stream((push, resolve) =>
@@ -465,7 +409,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Function} predicate - Indicates whether the value matches.
    * @return {Stream} - Indicates whether the predicate was satisfied.
    */
-  some(predicate: Message => boolean): Stream<Message, boolean> {
+  some(predicate) {
     let terminated = false;
 
     return new Stream((push, resolve) => {
@@ -501,7 +445,7 @@ export default class Stream<Message, Result = void> {
    * @param  {Number} amount - A maximum number of elements to use.
    * @return {Stream} a stream containing those values, but without the resolve value.
    */
-  take(amount: number): Stream<Message, void> {
+  take(amount) {
     assert(amount >= 0, `.take expects a positive number, got ${amount}.`);
 
     // The real question is why.

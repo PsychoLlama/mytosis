@@ -1,28 +1,17 @@
-// @flow
 import assert from 'minimalistic-assert';
 
-import Primitive, { nameRegex } from './Primitive';
-
-type Definition = {
-  isValid(value: mixed): boolean,
-  dehydrate: Function,
-  hydrate: Function,
-};
+import { nameRegex } from './Primitive';
 
 /**
  * Constructs a new primitive from a serialized value.
  */
 export default class Derivation {
-  _definition: Definition;
-  subtype: Primitive;
-  name: string;
-
   /**
    * @param  {String} name - A title for the new type.
    * @param  {Primitive} primitive - Something to derive from.
    * @param  {Object} def - The derivation rule set.
    */
-  constructor(name: string, primitive: Primitive, def: Definition) {
+  constructor(name, primitive, def) {
     assert(nameRegex.test(name), `Invalid derivation name "${name}".`);
 
     this.name = name;
@@ -39,7 +28,7 @@ export default class Derivation {
    * @param  {mixed} hydrated - Anything which makes it past the validator.
    * @return {mixed} - Something belonging to the derived type.
    */
-  dehydrate(hydrated: mixed) {
+  dehydrate(hydrated) {
     const value = this._definition.dehydrate(hydrated);
 
     assert(
@@ -55,7 +44,7 @@ export default class Derivation {
    * @param  {mixed} dehydrated - Something of the derived type.
    * @return {mixed} - The hydrated value.
    */
-  hydrate(dehydrated: mixed) {
+  hydrate(dehydrated) {
     return this._definition.hydrate(dehydrated);
   }
 
@@ -64,7 +53,7 @@ export default class Derivation {
    * @param  {mixed} value - Anything but undefined.
    * @return {Boolean} - Whether the value is valid.
    */
-  isValid(value: mixed): boolean {
+  isValid(value) {
     return this._definition.isValid(value);
   }
 }

@@ -1,4 +1,3 @@
-// @flow
 export { default as Derivation } from './Derivation';
 export { default as Composite } from './Composite';
 export { default as Primitive } from './Primitive';

@@ -4,8 +4,7 @@
   "description": "Cache-free lazy observables for modelling async event streams",
   "main": "dist/stream.js",
   "scripts": {
-    "transpile": "babel src/ -d dist/ --ignore __tests__",
-    "build": "yarn transpile && flow-copy-source src dist --ignore __tests__",
+    "build": "babel src/ -d dist/ --ignore __tests__",
     "prepare": "yarn build"
   },
   "repository": {
@@ -29,8 +28,7 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
-    "babel-runtime": "^6.26.0",
-    "flow-copy-source": "^1.2.1"
+    "babel-runtime": "^6.26.0"
   },
   "dependencies": {
     "minimalistic-assert": "^1.0.0"

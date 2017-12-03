@@ -8,7 +8,7 @@
   "lint-staged": {
     "*.js": [
       "yarn prettier --write",
-      "eslint",
+      "eslint --fix",
       "git add"
     ]
   },
@@ -19,14 +19,11 @@
     "babel-plugin-transform-export-extensions": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-flow": "^6.23.0",
     "babel-runtime": "^6.26.0",
     "eslint": "^4.11.0",
     "eslint-config-llama": "^3.0.0",
     "eslint-config-prettier": "^2.3.0",
-    "eslint-plugin-flowtype": "^2.39.1",
     "eslint-plugin-import": "^2.8.0",
-    "flow-bin": "^0.59.0",
     "husky": "^0.14.3",
     "jest": "^21.2.1",
     "lint-staged": "^4.0.2",

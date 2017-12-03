@@ -14,7 +14,6 @@ Ideal use cases:
 Some fancy distinguishing features:
 - Streams are lazy. They pull inspiration from generators and only publish content when consumers are watching.
 - Using `await` on a stream resolves with the result.
-- Typed with [Flow](https://flow.org/).
 - It's **tiny** (~5.5kb minified, assuming you're already using `babel-runtime`).
 
 **Demo**

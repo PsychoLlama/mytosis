@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-export LINT_FAIL=
-export FLOW_FAIL=
-export TEST_FAIL=
 export BUILD_FAIL=
 
 function command_exists {
@@ -54,11 +51,6 @@ fi
 
 yarn lint || {
   echo Lint failed.
-  FAIL=1
-}
-
-yarn flow || {
-  echo Type checks failed.
   FAIL=1
 }
 

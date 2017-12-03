@@ -1,5 +1,7 @@
-// @flow
 import { create as createConfig } from '../config-utils';
+import MockStorage from '../mocks/storage';
+import * as type from '../types';
+import Schema from '../schema';
 
 describe('Config creator', () => {
   it('returns an object given nothing', () => {
@@ -12,6 +14,7 @@ describe('Config creator', () => {
     const config = createConfig();
 
     expect(config).toEqual({
+      schema: new Schema({}),
       storage: null,
       hooks: [],
       network: {
@@ -22,11 +25,7 @@ describe('Config creator', () => {
   });
 
   it('uses the storage engine if provided', () => {
-    const storage = {
-      write: () => Promise.resolve({}),
-      read: () => Promise.resolve({}),
-    };
-
+    const storage = new MockStorage();
     const config = createConfig({ storage });
 
     expect(config.storage).toBe(storage);
@@ -54,5 +53,16 @@ describe('Config creator', () => {
     const config = createConfig({ network });
 
     expect(config.network).toEqual(network);
+  });
+
+  it('creates a schema', () => {
+    const Lobby = type.atom('Lobby');
+    const config = createConfig({
+      schema: { lobby: Lobby },
+    });
+
+    const id = String(Lobby);
+    expect(config.schema).toEqual(expect.any(Schema));
+    expect(config.schema.findType(id)).toBe(Lobby);
   });
 });

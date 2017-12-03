@@ -1,4 +1,3 @@
-// @flow
 import Derivation from '../Derivation';
 import Composite from '../Composite';
 import Primitive from '../Primitive';

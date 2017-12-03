@@ -7,11 +7,9 @@ env:
 
 plugins:
   - import
-  - flowtype
 
 extends:
   - eslint:recommended
-  - plugin:flowtype/recommended
   - llama
   - prettier
 

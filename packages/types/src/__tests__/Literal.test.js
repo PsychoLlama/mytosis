@@ -1,4 +1,3 @@
-// @flow
 import Literal from '../Literal';
 
 describe('Literal', () => {

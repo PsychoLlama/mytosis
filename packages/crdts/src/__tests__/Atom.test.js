@@ -1,4 +1,3 @@
-// @flow
 import Atom from '../Atom';
 
 describe('Atom', () => {

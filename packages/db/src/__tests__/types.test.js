@@ -1,6 +1,5 @@
-// @flow
 import { Primitive, Composite, Pointer, migration } from '@mytosis/types';
-import { Atom } from '@mytosis/crdts';
+import Atom from '../contexts/Atom';
 
 import { string, number, boolean, buffer, atom } from '../types';
 
@@ -62,7 +61,7 @@ describe('string', () => {
     });
 
     it('allows values to provide specific coercion instructions', () => {
-      const stringable: any = {
+      const stringable = {
         toString: () => '#yolo',
       };
 
@@ -125,7 +124,7 @@ describe('number', () => {
     });
 
     it('respects valueOf() interfaces', () => {
-      const coercible: any = {
+      const coercible = {
         valueOf: () => 15,
       };
 
@@ -178,10 +177,10 @@ describe('boolean', () => {
       expect(boolean.coerce(1)).toBe(true);
       expect(boolean.coerce(Infinity)).toBe(true);
       expect(boolean.coerce('contents')).toBe(true);
-      expect(boolean.coerce((/yolo/: any))).toBe(true);
-      expect(boolean.coerce(({}: any))).toBe(true);
-      expect(boolean.coerce(([]: any))).toBe(true);
-      expect(boolean.coerce((new ArrayBuffer(0): any))).toBe(true);
+      expect(boolean.coerce(/yolo/)).toBe(true);
+      expect(boolean.coerce({})).toBe(true);
+      expect(boolean.coerce([])).toBe(true);
+      expect(boolean.coerce(new ArrayBuffer(0))).toBe(true);
     });
   });
 });
@@ -257,8 +256,8 @@ describe('buffer', () => {
       expect(buffer.coerce('contents')).toEqual(new ArrayBuffer(0));
       expect(buffer.coerce(null)).toEqual(new ArrayBuffer(0));
       expect(buffer.coerce(undefined)).toEqual(new ArrayBuffer(0));
-      expect(buffer.coerce(([]: any))).toEqual(new ArrayBuffer(0));
-      expect(buffer.coerce(({}: any))).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce([])).toEqual(new ArrayBuffer(0));
+      expect(buffer.coerce({})).toEqual(new ArrayBuffer(0));
       expect(buffer.coerce(-Infinity)).toEqual(new ArrayBuffer(0));
       expect(buffer.coerce(NaN)).toEqual(new ArrayBuffer(0));
       expect(buffer.coerce(false)).toEqual(new ArrayBuffer(0));

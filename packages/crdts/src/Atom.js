@@ -1,10 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-// @flow
 import assert from 'minimalistic-assert';
-
-type primitive = number | string | boolean;
-type DehydratedMap = { [string]: primitive };
-type Dehydrated = [number, DehydratedMap];
 
 /**
  * Sorts an entries array by key (descending).
@@ -48,15 +43,12 @@ const compare = (current, update) => {
  * The only supported action is essentially a PUT.
  */
 export default class Atom {
-  __crdt__: Map<string, primitive>;
-  version: number;
-
   /**
    * @param  {Number} version - A lamport timestamp.
    * @param  {Object} data - Data to import.
    * @return {Atom} - A new atom with all the data.
    */
-  static import([version, data]: Dehydrated) {
+  static import([version, data]) {
     const validVersion = isFinite(version) && version > 0;
     assert(validVersion, `Atom given invalid version (${version}).`);
 
@@ -89,7 +81,7 @@ export default class Atom {
    * @param  {String} field - The field to read.
    * @return {any} - Any JSON compatible value.
    */
-  read(field: string) {
+  read(field) {
     return this.__crdt__.get(field);
   }
 
@@ -98,7 +90,7 @@ export default class Atom {
    * @param  {Atom} update - An update.
    * @return {Atom|null} - The minimal update.
    */
-  shake(update: Atom) {
+  shake(update) {
     const crdt = { update: update.__crdt__, current: this.__crdt__ };
     const sameVersion = update.version === this.version;
     const sameSize = crdt.update.size === crdt.current.size;
@@ -130,7 +122,7 @@ export default class Atom {
    * @param  {Atom} update - The value to replace current state.
    * @return {undefined}
    */
-  merge(update: Atom) {
+  merge(update) {
     this.__crdt__ = update.__crdt__;
     this.version = update.version;
   }
@@ -140,7 +132,7 @@ export default class Atom {
    * @param  {Object} update - New fields for the atom.
    * @return {Atom} - A patch which, when applied, will yield the new state.
    */
-  createUpdate(update: DehydratedMap) {
+  createUpdate(update) {
     const version = this.version + 1;
 
     return Atom.import([version, update]);
@@ -150,7 +142,7 @@ export default class Atom {
    * Serializes the atom into a compact package.
    * @return {Array} - The version and data payload.
    */
-  toJSON(): Dehydrated {
+  toJSON() {
     const target = {};
 
     this.__crdt__.forEach((value, key) => {
