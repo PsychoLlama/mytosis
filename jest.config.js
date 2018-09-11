@@ -1,11 +1,11 @@
 module.exports = {
   projects: [
-    '<rootDir>/packages/db',
-    '<rootDir>/packages/crdts',
-    '<rootDir>/packages/types',
-    '<rootDir>/packages/streams',
-    '<rootDir>/packages/mytosis-leveldb',
-    '<rootDir>/packages/mytosis-websocket',
-    '<rootDir>/packages/mytosis-localstorage',
+    '<rootDir>/workspaces/db',
+    '<rootDir>/workspaces/crdts',
+    '<rootDir>/workspaces/types',
+    '<rootDir>/workspaces/streams',
+    '<rootDir>/workspaces/mytosis-leveldb',
+    '<rootDir>/workspaces/mytosis-websocket',
+    '<rootDir>/workspaces/mytosis-localstorage',
   ],
 };

@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "precommit": "lint-staged",
-    "lint": "eslint packages/*/src",
+    "lint": "eslint workspaces/*/src",
     "test": "jest"
   },
   "lint-staged": {
@@ -30,6 +30,6 @@
     "prettier": "^1.5.3"
   },
   "workspaces": [
-    "packages/*"
+    "workspaces/*"
   ]
 }

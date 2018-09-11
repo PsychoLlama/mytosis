@@ -12,8 +12,8 @@ function command_exists {
   return 1
 }
 
-function run_script_in_packages {
-  for pkg in packages/*; do
+function run_script_in_workspaces {
+  for pkg in workspaces/*; do
     if [[ ! -f "$pkg/package.json" ]]; then
       continue
     fi
@@ -37,7 +37,7 @@ function run_script_in_packages {
   done
 }
 
-run_script_in_packages build BUILD_FAIL
+run_script_in_workspaces build BUILD_FAIL
 
 yarn test || {
   echo Tests failed.
