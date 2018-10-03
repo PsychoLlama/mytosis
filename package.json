@@ -3,7 +3,8 @@
   "scripts": {
     "precommit": "lint-staged",
     "lint": "freighter-scripts lint",
-    "test": "freighter-scripts test"
+    "test": "freighter-scripts test",
+    "ci": "freighter-scripts ci"
   },
   "lint-staged": {
     "*.js": [

@@ -33,7 +33,7 @@ export default class Derivation {
 
     assert(
       this.subtype.isValid(value),
-      `Serializer for type "${this.name}" returned an invalid value.`,
+      `Serializer for type "${this.name}" returned an invalid value.`
     );
 
     return value;

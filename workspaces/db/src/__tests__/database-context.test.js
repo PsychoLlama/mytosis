@@ -116,7 +116,7 @@ describe('Database context', () => {
           storage: new MockStorage(),
           schema,
         },
-        keys,
+        keys
       );
 
       const mockResults = responses.map(response => ({

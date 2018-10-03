@@ -234,7 +234,7 @@ describe('Stream', () => {
           done: false,
           value: msg,
         },
-        expect.any(Function),
+        expect.any(Function)
       );
     });
 
@@ -248,7 +248,7 @@ describe('Stream', () => {
           done: true,
           value: 10,
         },
-        expect.any(Function),
+        expect.any(Function)
       );
     });
 
@@ -263,7 +263,7 @@ describe('Stream', () => {
           done: true,
           error,
         },
-        expect.any(Function),
+        expect.any(Function)
       );
 
       await stream.catch(jest.fn());

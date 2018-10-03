@@ -137,7 +137,7 @@ describe('Mytosis websocket server', () => {
 
     expect(socket.removeListener).toHaveBeenCalledWith(
       'message',
-      expect.any(Function),
+      expect.any(Function)
     );
   });
 

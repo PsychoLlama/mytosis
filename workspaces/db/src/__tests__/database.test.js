@@ -45,7 +45,7 @@ describe('Database', () => {
       expect(storage.read).toHaveBeenCalledWith(
         expect.objectContaining({
           keys,
-        }),
+        })
       );
     });
 
@@ -60,7 +60,7 @@ describe('Database', () => {
       expect(storage.read).toHaveBeenCalledWith(
         expect.objectContaining({
           keys,
-        }),
+        })
       );
     });
   });

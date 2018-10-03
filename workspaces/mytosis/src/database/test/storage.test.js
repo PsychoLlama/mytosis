@@ -57,7 +57,7 @@ describe('Storage plugin', () => {
         {},
         {
           potatoes: true,
-        },
+        }
       );
 
       const [action] = write.calls[0].arguments;
@@ -72,7 +72,7 @@ describe('Storage plugin', () => {
         {},
         {
           storage: null,
-        },
+        }
       );
 
       expect(write).toNotHaveBeenCalled();

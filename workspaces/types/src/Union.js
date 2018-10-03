@@ -25,7 +25,7 @@ export default class Union extends Primitive {
       assert(notUnion, `Unions cannot contain other unions.`);
       assert(
         notComposite,
-        `Unions cannot contain composite types (given ${type.name}).`,
+        `Unions cannot contain composite types (given ${type.name}).`
       );
 
       // Ensure types can always be inferred by value.
@@ -34,7 +34,7 @@ export default class Union extends Primitive {
           !typeSet.has(type.subtype),
           `Union contains ambiguous types (${type.name} & ${
             type.subtype.name
-          }).`,
+          }).`
         );
       }
     });

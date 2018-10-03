@@ -97,7 +97,7 @@ describe('Mytosis LevelDB', () => {
 
     expect(backend.batch).toHaveBeenCalledWith(
       expect.any(Array),
-      expect.any(Function),
+      expect.any(Function)
     );
 
     const [update] = backend.batch.mock.calls[0];

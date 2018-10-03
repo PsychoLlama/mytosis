@@ -34,7 +34,7 @@ class Subscription {
 
     // Remove the listener.
     const filtered = this.stream[symbol.callbacks].filter(
-      callback => callback !== this[symbol.handler],
+      callback => callback !== this[symbol.handler]
     );
 
     stream[symbol.callbacks] = filtered;
@@ -98,7 +98,7 @@ export default class Stream {
   constructor(publisher) {
     if (!(publisher instanceof Function)) {
       throw new TypeError(
-        `Stream(...) expects a function, was given "${publisher}"`,
+        `Stream(...) expects a function, was given "${publisher}"`
       );
     }
 
@@ -165,7 +165,7 @@ export default class Stream {
 
     this[symbol.dispose] = this[symbol.openStream](
       this[symbol.push],
-      this[symbol.complete],
+      this[symbol.complete]
     );
 
     this[symbol.isOpen] = true;

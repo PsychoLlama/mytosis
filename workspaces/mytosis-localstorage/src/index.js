@@ -8,7 +8,7 @@ const assert = (value, msg) => {
 const validateBackend = backend => {
   assert(
     typeof backend === 'object' && backend,
-    `Expected a valid backend, got "${backend}"`,
+    `Expected a valid backend, got "${backend}"`
   );
 
   assert(backend.removeItem, 'Backend does not support `removeItem()` method.');

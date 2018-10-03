@@ -77,7 +77,7 @@ export default class Stream {
           if (results.length === streams.length) {
             resolve(results);
           }
-        }),
+        })
       );
 
       return () => disposers.map(dispose => dispose());
@@ -130,7 +130,7 @@ export default class Stream {
     const close = this._publisher(
       this._publishMessage,
       this._resolve,
-      this._reject,
+      this._reject
     );
 
     if (close) {
@@ -330,7 +330,7 @@ export default class Stream {
 
         push(event.value);
         result.push(event.value);
-      }),
+      })
     );
   }
 
@@ -349,7 +349,7 @@ export default class Stream {
 
         const mapped = transform(event.value);
         push(mapped);
-      }),
+      })
     );
   }
 
@@ -369,7 +369,7 @@ export default class Stream {
         const result = transform(error, value);
 
         return resolve(result);
-      }),
+      })
     );
   }
 
@@ -389,7 +389,7 @@ export default class Stream {
         if (predicate(event.value)) {
           push(event.value);
         }
-      }),
+      })
     );
   }
 
@@ -411,7 +411,7 @@ export default class Stream {
 
         lastValue = reducer(lastValue, event.value);
         push(lastValue);
-      }),
+      })
     );
   }
 
@@ -435,7 +435,7 @@ export default class Stream {
           resolve(true);
           dispose();
         }
-      }),
+      })
     );
   }
 
@@ -466,7 +466,7 @@ export default class Stream {
           resolve();
           dispose();
         }
-      }),
+      })
     );
   }
 }

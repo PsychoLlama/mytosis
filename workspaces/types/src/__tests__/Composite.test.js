@@ -206,7 +206,7 @@ describe('Composite', () => {
       expect(v1.nextComposite).toEqual(expect.any(Composite));
       expect(v2.lastComposite.nextComposite).toBe(v2);
       expect(v2.lastComposite.lastComposite.lastComposite.lastComposite).toBe(
-        v1,
+        v1
       );
 
       expect(v2.lastComposite.definition).toEqual({ gamertag: string });
@@ -243,10 +243,10 @@ describe('Composite', () => {
       expect(v4.lastComposite.lastVersion).toBe(v3);
 
       expect(v1.nextComposite.nextComposite.nextComposite.nextComposite).toBe(
-        v4,
+        v4
       );
       expect(v4.lastComposite.lastComposite.lastComposite.lastComposite).toBe(
-        v1,
+        v1
       );
     });
 
@@ -261,7 +261,7 @@ describe('Composite', () => {
 
       expect(user.migration).toEqual(expect.any(migration.Add));
       expect(user.nextComposite.migration).toEqual(
-        expect.any(migration.Remove),
+        expect.any(migration.Remove)
       );
     });
 

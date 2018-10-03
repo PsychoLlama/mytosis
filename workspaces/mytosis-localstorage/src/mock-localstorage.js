@@ -8,7 +8,7 @@ function mockLocalStorage() {
       getItem: { value: jest.fn() },
       setItem: { value: jest.fn() },
       clear: { value: jest.fn() },
-    },
+    }
   );
 }
 

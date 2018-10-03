@@ -78,7 +78,7 @@ describe('Database hook', () => {
         {},
         {
           cool: true,
-        },
+        }
       );
 
       const [write] = hook.calls[0].arguments;

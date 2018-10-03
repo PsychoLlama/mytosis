@@ -55,12 +55,12 @@ describe('Mytosis LocalStorage', () => {
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         String(node),
-        JSON.stringify(node),
+        JSON.stringify(node)
       );
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         String(other),
-        JSON.stringify(other),
+        JSON.stringify(other)
       );
     });
 
@@ -70,7 +70,7 @@ describe('Mytosis LocalStorage', () => {
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         `data-stuff/${String(node)}`,
-        expect.any(String),
+        expect.any(String)
       );
     });
   });

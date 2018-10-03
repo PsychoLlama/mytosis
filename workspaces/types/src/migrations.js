@@ -24,7 +24,7 @@ export class Add {
   migrateType(type) {
     assert(
       !type.definition[this.field],
-      `Field "${this.field}" already exists in type ${type.name}.`,
+      `Field "${this.field}" already exists in type ${type.name}.`
     );
 
     return {
@@ -69,7 +69,7 @@ export class Remove {
     assert(
       this.field in type.definition,
       `Can't remove field "${this.field}" from type ${type.name}; ` +
-        `No such field exists.`,
+        `No such field exists.`
     );
 
     const definition = { ...type.definition };
@@ -115,7 +115,7 @@ export class TypeChange {
   migrateType(type) {
     assert(
       type.definition.hasOwnProperty(this.field),
-      `Field "${this.field}" doesn't exist in type ${type.name}.`,
+      `Field "${this.field}" doesn't exist in type ${type.name}.`
     );
 
     return {
@@ -191,7 +191,7 @@ export class Move {
     assert(
       isSameType,
       `Can't move ${source.name} into ${target.name} ` +
-        `(${type.name} "${this.from}" -> "${this.to}").`,
+        `(${type.name} "${this.from}" -> "${this.to}").`
     );
 
     return {
@@ -275,7 +275,7 @@ export class RemoveDefaultType {
   migrateType(type) {
     assert(
       type.defaultType,
-      `Can't remove the default type from ${type.name}. It doesn't have one.`,
+      `Can't remove the default type from ${type.name}. It doesn't have one.`
     );
 
     return {

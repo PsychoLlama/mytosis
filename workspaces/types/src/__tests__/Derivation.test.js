@@ -35,10 +35,10 @@ describe('Derivation', () => {
 
     expect(() => new Derivation('Capital', number, def)).toThrow(/name/i);
     expect(() => new Derivation('8-leading-number', number, def)).toThrow(
-      /name/i,
+      /name/i
     );
     expect(() => new Derivation('-leading-hyphen', number, def)).toThrow(
-      /name/i,
+      /name/i
     );
     expect(() => new Derivation('sym&ols', number, def)).toThrow(/name/i);
     expect(() => new Derivation('camelCased', number, def)).toThrow(/name/i);

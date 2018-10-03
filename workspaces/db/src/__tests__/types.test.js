@@ -221,32 +221,32 @@ describe('buffer', () => {
       const buf = new ArrayBuffer(8);
       expect(buffer.coerce(buf)).toBe(buf);
       expect(buffer.coerce(new Uint8Array(buf))).toEqual(
-        expect.any(Uint8Array),
+        expect.any(Uint8Array)
       );
       expect(buffer.coerce(new Uint8ClampedArray(buf))).toEqual(
-        expect.any(Uint8ClampedArray),
+        expect.any(Uint8ClampedArray)
       );
       expect(buffer.coerce(new Uint16Array(buf))).toEqual(
-        expect.any(Uint16Array),
+        expect.any(Uint16Array)
       );
       expect(buffer.coerce(new Uint32Array(buf))).toEqual(
-        expect.any(Uint32Array),
+        expect.any(Uint32Array)
       );
       expect(buffer.coerce(new Int8Array(buf))).toEqual(expect.any(Int8Array));
       expect(buffer.coerce(new Int16Array(buf))).toEqual(
-        expect.any(Int16Array),
+        expect.any(Int16Array)
       );
       expect(buffer.coerce(new Int32Array(buf))).toEqual(
-        expect.any(Int32Array),
+        expect.any(Int32Array)
       );
       expect(buffer.coerce(new Int32Array(buf))).toEqual(
-        expect.any(Int32Array),
+        expect.any(Int32Array)
       );
       expect(buffer.coerce(new Float32Array(buf))).toEqual(
-        expect.any(Float32Array),
+        expect.any(Float32Array)
       );
       expect(buffer.coerce(new Float64Array(buf))).toEqual(
-        expect.any(Float64Array),
+        expect.any(Float64Array)
       );
     });
 

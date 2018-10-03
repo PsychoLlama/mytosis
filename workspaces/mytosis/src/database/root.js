@@ -274,7 +274,7 @@ class Database extends Graph {
         .filter(Boolean)
         .map(createContextFromNode(this))
         .filter(isRelevantContext)
-        .forEach(cacheContext(this)),
+        .forEach(cacheContext(this))
     );
 
     // Run the results through the pipeline.

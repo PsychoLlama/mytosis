@@ -56,7 +56,7 @@ export default class AtomContext {
 
     if (!type) {
       throw new Error(
-        `Type ${this.type.name} doesn't define field "${field}".`,
+        `Type ${this.type.name} doesn't define field "${field}".`
       );
     }
 

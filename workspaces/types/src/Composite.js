@@ -28,7 +28,7 @@ export default class Composite {
   constructor(name, def) {
     assert(
       /^[A-Z][_a-zA-Z:0-9]*$/.test(name),
-      `Invalid composite name "${name}".`,
+      `Invalid composite name "${name}".`
     );
 
     this.name = name;
@@ -94,7 +94,7 @@ export default class Composite {
       if (type instanceof Primitive || type instanceof Derivation) {
         assert(
           type.isValid(value),
-          `Invalid type at ${this.name}.${field} (expected ${type.name}).`,
+          `Invalid type at ${this.name}.${field} (expected ${type.name}).`
         );
       }
     }

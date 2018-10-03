@@ -105,7 +105,7 @@ export default class LevelDB {
     assert(config, `Constructor expected an object, was given "${config}"`);
     assert(
       typeof config.backend === 'object' && config.backend,
-      'Invalid "config.backend". A LevelDB interface is required.',
+      'Invalid "config.backend". A LevelDB interface is required.'
     );
 
     const level = (this._level = config.backend);
