@@ -152,15 +152,6 @@ describe('Stream', () => {
       await expect(stream).resolves.toEqual(['one', 'two']);
     });
 
-    it('fails if any stream terminates', async () => {
-      const error = new Error('Testing Stream.union rejection');
-      const stream1 = Stream.from([1, 2]);
-      const stream2 = new Stream((push, resolve, reject) => reject(error));
-      const stream = Stream.union([stream1, stream2]);
-
-      await expect(stream).rejects.toBe(error);
-    });
-
     it('closes the stream if nobody is watching', () => {
       const close = jest.fn();
       const stream1 = Stream.from([1, 2]);
@@ -651,17 +642,6 @@ describe('Stream', () => {
       const mapped = stream.mapResult(() => 'result');
 
       await expect(mapped).resolves.toBe('result');
-    });
-
-    it('rejects if the transformer throws', async () => {
-      const { stream, publisher } = setup();
-      const error = new Error('Testing mapResult() error handling');
-      publisher.mockImplementation((push, resolve) => resolve());
-      const mapped = stream.mapResult(() => {
-        throw error;
-      });
-
-      await expect(mapped).rejects.toBe(error);
     });
 
     it('closes both streams when no listeners exist', () => {

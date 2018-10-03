@@ -1,4 +1,4 @@
-// eslint-disable-next-line
+/* eslint-env jest, node */
 function mockLocalStorage() {
   global.localStorage = Object.defineProperties(
     {},

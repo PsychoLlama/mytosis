@@ -1,4 +1,5 @@
 /* eslint-disable require-jsdoc */
+/* eslint-env jest */
 import Stream from '@mytosis/streams';
 
 export default class MockStorage {

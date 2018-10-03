@@ -1,23 +1,25 @@
+overrides:
+  - files:
+    - '**/test/**/*.js'
+    - '**/test.js'
+    env:
+      mocha: true
+      node: true
+  - files:
+    - '**/__tests__/*.js'
+    env:
+      node: true
+
 env:
   shared-node-browser: true
-  commonjs: true
-  mocha: true
-  jest: true
-  es6: true
 
 plugins:
   - import
 
-extends:
-  - eslint:recommended
-  - llama
-  - prettier
-
-parser: babel-eslint
-parserOptions:
-  sourceType: module
+extends: freighter-repo
 
 rules:
+  flowtype/require-valid-file-annotation: off
   lines-around-comment: off
   no-duplicate-imports: off
   import/no-duplicates: error

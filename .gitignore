@@ -1,9 +1,8 @@
+package-lock.json
+lerna-debug.log
+yarn-error.log
+npm-debug.log
 node_modules/
 .DS_Store
-npm-debug.log
-
-# Built JS files.
+coverage/
 dist/
-
-# Usually notes and concept files.
-*.ignore.*

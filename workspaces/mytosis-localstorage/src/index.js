@@ -1,3 +1,4 @@
+/* eslint-env commonjs */
 const assert = (value, msg) => {
   if (!value) {
     throw new Error(`mytosis-localstorage: ${msg}`);
