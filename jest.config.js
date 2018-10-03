@@ -1,11 +1,15 @@
+// @flow
+const workspace = workspace => `<rootDir>/workspaces/${workspace}`;
+
 module.exports = {
+  preset: '@freighter/scripts',
+  collectCoverage: false,
   projects: [
-    '<rootDir>/packages/db',
-    '<rootDir>/packages/crdts',
-    '<rootDir>/packages/types',
-    '<rootDir>/packages/streams',
-    '<rootDir>/packages/mytosis-leveldb',
-    '<rootDir>/packages/mytosis-websocket',
-    '<rootDir>/packages/mytosis-localstorage',
+    workspace('crdts'),
+    workspace('db'),
+    workspace('mytosis-leveldb'),
+    workspace('mytosis-websocket'),
+    workspace('streams'),
+    workspace('types'),
   ],
 };

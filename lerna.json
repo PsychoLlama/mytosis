@@ -1,0 +1,9 @@
+{
+  "packages": [
+    "workspaces/*"
+  ],
+  "useWorkspaces": true,
+  "loglevel": "success",
+  "npmClient": "yarn",
+  "version": "0.1.0"
+}
