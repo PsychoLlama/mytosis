@@ -8,5 +8,5 @@ before_install:
 - npm i -g yarn@1.3.2
 - yarn config set workspaces-experimental true
 
-script:
-- ./run-tests.sh
+before_script: yarn -s lerna run build
+script: ./run-tests.sh

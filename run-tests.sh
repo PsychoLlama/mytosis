@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-yarn -s lerna run build || FAIL=1
 yarn ci || FAIL=1
+
+# sigh... mocha.
+pushd ./workspaces/mytosis > /dev/null
+yarn test || FAIL=1
+popd > /dev/null
 
 if [[ ! -z "$FAIL" ]]; then
   exit 1
