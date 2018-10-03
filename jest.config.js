@@ -1,4 +1,3 @@
-// @flow
 const workspace = workspace => `<rootDir>/workspaces/${workspace}`;
 const projects = [
   'crdts',
