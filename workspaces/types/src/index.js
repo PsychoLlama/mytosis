@@ -5,4 +5,5 @@ export { default as Literal } from './Literal';
 export { default as Pointer } from './Pointer';
 export { default as Union } from './Union';
 
+export * as primitives from './primitives';
 export * as migration from './migrations';

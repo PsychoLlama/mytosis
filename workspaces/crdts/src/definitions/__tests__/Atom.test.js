@@ -2,7 +2,7 @@
 import { Composite } from '@mytosis/types';
 
 import { define as defineAtom } from '../Atom';
-import Atom from '../../Atom';
+import Atom from '../../implementations/Atom';
 
 describe('Atom definition', () => {
   it('returns a definition', () => {
