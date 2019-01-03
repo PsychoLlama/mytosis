@@ -18,12 +18,11 @@
   "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-preset-env": "^1.6.1",
+    "@babel/cli": "*",
     "graph-crdt": "^0.7.0"
   },
   "dependencies": {
-    "babel-runtime": "^6.26.0"
+    "@babel/runtime": "^7.2.0"
   },
   "repository": {
     "type": "git",
