@@ -8,6 +8,7 @@ type Migration = *;
 type MType = *;
 type CRDT = *;
 
+/* eslint-disable no-undef */
 type Initializers = {
   [typeName: string]: {
     initialMigration: ({ [typeName: string]: MType }) => mixed,
@@ -33,6 +34,7 @@ type TypeGraph = {
       | MType,
   },
 };
+/* eslint-enable no-undef */
 
 /**
  * Decorates each constructor providing the type instance.

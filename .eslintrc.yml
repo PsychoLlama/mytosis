@@ -14,12 +14,14 @@ env:
   shared-node-browser: true
 
 plugins:
-  - import
+- import
 
-extends: freighter-repo
+extends:
+- freighter-repo
 
 rules:
   flowtype/require-valid-file-annotation: off
   lines-around-comment: off
   no-duplicate-imports: off
   import/no-duplicates: error
+  no-prototype-builtins: off
