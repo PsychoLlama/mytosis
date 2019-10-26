@@ -32,9 +32,7 @@ export default class Union extends Primitive {
       if (type instanceof Derivation) {
         assert(
           !typeSet.has(type.subtype),
-          `Union contains ambiguous types (${type.name} & ${
-            type.subtype.name
-          }).`
+          `Union contains ambiguous types (${type.name} & ${type.subtype.name}).`
         );
       }
     });
