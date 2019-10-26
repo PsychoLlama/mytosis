@@ -4,7 +4,10 @@ module.exports = function(api) {
   api.cache(true);
 
   return {
-    presets: [require('@freighter/scripts/babel-preset')],
+    presets: [
+      require('@freighter/scripts/babel-preset'),
+      require('@babel/preset-flow'),
+    ],
     plugins: [
       require('@babel/plugin-proposal-async-generator-functions'),
       require('@babel/plugin-proposal-export-namespace-from'),

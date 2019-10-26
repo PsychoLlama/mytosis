@@ -34,7 +34,7 @@
     "mytosis": "^1.11.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.2.0",
+    "@babel/runtime": "^7.6.3",
     "reconnecting-websocket": "^3.0.7",
     "uuid": "^3.3.3",
     "uws": "^8.14.0"

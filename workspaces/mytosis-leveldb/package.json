@@ -23,7 +23,7 @@
     "graph-crdt": "^0.7.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.2.0"
+    "@babel/runtime": "^7.6.3"
   },
   "repository": {
     "type": "git",

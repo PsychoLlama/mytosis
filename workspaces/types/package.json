@@ -26,7 +26,7 @@
     "@babel/cli": "*"
   },
   "dependencies": {
-    "@babel/runtime": "^7.2.0",
+    "@babel/runtime": "^7.6.3",
     "minimalistic-assert": "^1.0.1"
   }
 }
