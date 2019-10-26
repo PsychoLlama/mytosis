@@ -55,6 +55,7 @@ const wrapConstructors = (type, constructors) => {
  */
 const getTypeGraph = schema => {
   const compositeTypes = Object.keys(schema.types).reduce((types, typeName) => {
+    // $FlowFixMe
     const { type } = schema.types[typeName][SECRET_METADATA_KEY];
     types[typeName] = type;
 
@@ -75,6 +76,7 @@ const applyMigration = (schema, typeName, migration) => {
   const typeGraph = getTypeGraph(schema);
   const { [SECRET_METADATA_KEY]: metadata } = schema.types[typeName];
 
+  // $FlowFixMe
   migration.call(metadata.migrations, typeGraph);
 };
 
