@@ -8,6 +8,7 @@ type Migration = *;
 type MType = *;
 type CRDT = *;
 
+/* eslint-disable no-undef */
 type Initializers = {
   [typeName: string]: {
     initialMigration: ({ [typeName: string]: MType }) => mixed,
@@ -33,6 +34,7 @@ type TypeGraph = {
       | MType,
   },
 };
+/* eslint-enable no-undef */
 
 /**
  * Decorates each constructor providing the type instance.
@@ -53,6 +55,7 @@ const wrapConstructors = (type, constructors) => {
  */
 const getTypeGraph = schema => {
   const compositeTypes = Object.keys(schema.types).reduce((types, typeName) => {
+    // $FlowFixMe
     const { type } = schema.types[typeName][SECRET_METADATA_KEY];
     types[typeName] = type;
 
@@ -73,6 +76,7 @@ const applyMigration = (schema, typeName, migration) => {
   const typeGraph = getTypeGraph(schema);
   const { [SECRET_METADATA_KEY]: metadata } = schema.types[typeName];
 
+  // $FlowFixMe
   migration.call(metadata.migrations, typeGraph);
 };
 

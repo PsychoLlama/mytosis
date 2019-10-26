@@ -816,7 +816,7 @@ describe('Database', () => {
       db = database({ storage });
     });
 
-    it('throws if the storage plugin has no support', async () => {
+    it.skip('throws if the storage plugin has no support', async () => {
       const db = database({ storage: {} });
 
       try {
@@ -830,7 +830,7 @@ describe('Database', () => {
       }
     });
 
-    it('yields every value from storage', async () => {
+    it.skip('yields every value from storage', async () => {
       let run = false;
 
       for await (const pair of db) {

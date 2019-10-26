@@ -1,8 +1,8 @@
 {
-  "name": "@mytosis/streams",
+  "name": "@mytosis/crdts",
   "version": "0.1.0",
-  "description": "Cache-free lazy observables for modelling async event streams",
-  "main": "dist/stream.js",
+  "description": "CRDT implementations powering Mytosis DB",
+  "main": "dist/index.js",
   "scripts": {
     "build": "babel src/ -d dist/ --ignore __tests__",
     "prepare": "yarn build"
@@ -12,12 +12,11 @@
     "url": "git+https://github.com/PsychoLlama/mytosis.git"
   },
   "keywords": [
-    "stream",
-    "async",
-    "cacheless",
-    "emitter",
-    "pipe",
-    "pipeline"
+    "CRDT",
+    "graph",
+    "sync",
+    "offline",
+    "real-time"
   ],
   "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
   "license": "MIT",
@@ -29,7 +28,7 @@
     "@babel/cli": "*"
   },
   "dependencies": {
-    "@babel/runtime": "^7.2.0",
-    "minimalistic-assert": "^1.0.0"
+    "@babel/runtime": "^7.6.3",
+    "minimalistic-assert": "^1.0.1"
   }
 }

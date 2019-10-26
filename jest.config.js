@@ -1,5 +1,5 @@
 // @flow
-const workspace = workspace => `<rootDir>/workspaces/${workspace}`;
+const workspace = workspace => `<rootDir>/packages/${workspace}`;
 
 module.exports = {
   preset: '@freighter/scripts',

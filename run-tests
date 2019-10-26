@@ -2,7 +2,7 @@
 yarn ci || FAIL=1
 
 # sigh... mocha.
-pushd ./workspaces/mytosis > /dev/null
+pushd ./packages/mytosis > /dev/null
 yarn test || FAIL=1
 popd > /dev/null
 

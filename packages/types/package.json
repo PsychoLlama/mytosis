@@ -1,7 +1,7 @@
 {
-  "name": "@mytosis/db",
+  "name": "@mytosis/types",
   "version": "0.1.0",
-  "description": "Real-time p2p database",
+  "description": "Type validation & migration utilities for Mytosis CRDTs",
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src/ -d dist/ --ignore __tests__",
@@ -12,13 +12,9 @@
     "url": "git+https://github.com/PsychoLlama/mytosis.git"
   },
   "keywords": [
-    "database",
-    "real-time",
-    "decentralized",
-    "graph",
     "typed",
-    "replicated",
-    "masterless"
+    "migrations",
+    "CRDT"
   ],
   "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
   "license": "MIT",
@@ -30,16 +26,7 @@
     "@babel/cli": "*"
   },
   "dependencies": {
-    "@babel/runtime": "^7.2.0",
-    "@mytosis/crdts": "^0.1.0",
-    "@mytosis/streams": "^0.1.0",
-    "@mytosis/types": "^0.1.0",
-    "bin-json": "^0.3.1"
-  },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "<rootDir>/node_modules",
-      "<rootDir>/dist"
-    ]
+    "@babel/runtime": "^7.6.3",
+    "minimalistic-assert": "^1.0.1"
   }
 }

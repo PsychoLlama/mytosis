@@ -1,41 +1,45 @@
 {
-  "name": "mytosis-leveldb",
-  "main": "index.js",
-  "description": "Mytosis backend using LevelDB and its ecosystem",
-  "version": "0.3.0",
+  "name": "mytosis-websocket",
+  "version": "0.1.1",
+  "description": "Mytosis WebSocket plugin",
+  "main": "client.js",
   "scripts": {
     "test:watch": "npm run test -- --watch",
     "build": "babel src/ -d dist/ --ignore __tests__",
     "build:watch": "npm run build -- --watch",
     "prepublish": "npm run build"
   },
-  "keywords": [
-    "mytosis",
-    "plugin",
-    "leveldb",
-    "storage"
-  ],
-  "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
-  "license": "MIT",
-  "devDependencies": {
-    "@babel/cli": "*",
-    "@babel/polyfill": "^7.2.5",
-    "graph-crdt": "^0.7.0"
-  },
-  "dependencies": {
-    "@babel/runtime": "^7.2.0"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PsychoLlama/mytosis.git"
   },
+  "keywords": [
+    "mytosis",
+    "plugin",
+    "websocket"
+  ],
+  "author": "Jesse Gibson <overlord@psychollama.io> (http://psychollama.io)",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/PsychoLlama/mytosis/issues"
   },
   "homepage": "https://github.com/PsychoLlama/mytosis#readme",
   "jest": {
     "setupFiles": [
-      "./test-setup.js"
+      "./mock-blob"
     ]
+  },
+  "devDependencies": {
+    "@babel/cli": "*",
+    "mytosis": "^1.11.0"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.6.3",
+    "reconnecting-websocket": "^4.2.0",
+    "uuid": "^3.3.3",
+    "uws": "^8.14.0"
+  },
+  "peerDependencies": {
+    "mytosis": "^1.11.0"
   }
 }

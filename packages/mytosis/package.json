@@ -20,12 +20,13 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "*",
+    "@babel/register": "^7.6.2",
     "expect": "^1.20.2",
-    "mocha": "^3.4.2"
+    "mocha": "^6.2.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.2.0",
-    "eventemitter3": "^2.0.2",
+    "@babel/runtime": "^7.6.3",
+    "eventemitter3": "^4.0.0",
     "graph-crdt": "^0.7.0"
   },
   "repository": {
