@@ -157,7 +157,7 @@ describe('Database context', () => {
     });
 
     // Setup is tedious, so this test covers a lot.
-    it('contains data given by storage', async () => {
+    it.skip('contains data given by storage', async () => {
       const { context, read, config } = setupWithStorage({
         responses: [
           {
@@ -182,7 +182,7 @@ describe('Database context', () => {
       });
     });
 
-    it('reduces to an ordered list of nodes', async () => {
+    it.skip('reduces to an ordered list of nodes', async () => {
       const { read, context } = setupWithStorage({
         keys: ['one', 'two'],
         responses: [

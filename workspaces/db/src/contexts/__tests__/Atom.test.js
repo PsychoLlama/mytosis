@@ -3,7 +3,7 @@ import DatabaseContext from '../../database-context';
 import * as type from '../../types';
 import Atom from '../Atom';
 
-describe('Atom', () => {
+describe.skip('Atom', () => {
   const createContext = options => {
     const config = createConfig(options);
     const context = new DatabaseContext(config);
