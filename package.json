@@ -1,7 +1,6 @@
 {
   "private": true,
   "scripts": {
-    "precommit": "lint-staged",
     "lint": "freighter-scripts lint",
     "test": "freighter-scripts test",
     "ci": "freighter-scripts ci"
