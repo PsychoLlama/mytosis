@@ -38,7 +38,10 @@ describe('Storage plugin', () => {
       const [{ graph }] = write.calls[1].arguments;
       const node = graph.value('state');
 
-      expect([...node]).toEqual([['original', true], ['update', true]]);
+      expect([...node]).toEqual([
+        ['original', true],
+        ['update', true],
+      ]);
     });
 
     it('is passed node updates', async () => {
