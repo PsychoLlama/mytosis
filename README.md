@@ -1,12 +1,20 @@
 # Mytosis
 
-*A decentralized graph database*
+*A peer-to-peer data sync framework*
 
 [![Travis build](https://img.shields.io/travis/PsychoLlama/mytosis/master.svg?style=flat-square)](https://travis-ci.org/PsychoLlama/mytosis)
 [![downloads](https://img.shields.io/npm/dt/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
 [![version](https://img.shields.io/npm/v/mytosis.svg?style=flat-square)](https://www.npmjs.com/package/mytosis)
 
-> **Versioning note:** `v1` is unstable. `v2` will be the first stable release.
+---
+
+## Maintenance Notice
+:warning: None of this is maintained anymore.
+
+It was a proof of concept. I learned a lot, and I'm slowly designing a more
+robust and verifyable system ([see
+here](https://github.com/PsychoLlama/mytosis/wiki)), but in the meantime
+you might as well regard it as abandoned.
 
 ### Introduction
 Mytosis organizes data as one massive object which contains other objects. The root is called the graph, and its children are called nodes.
