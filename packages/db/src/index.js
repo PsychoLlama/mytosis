@@ -1,3 +1,2 @@
-import database from './database';
-
-export default database;
+// TODO
+export default null;

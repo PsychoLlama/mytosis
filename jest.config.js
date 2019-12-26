@@ -9,7 +9,6 @@ module.exports = {
     workspace('db'),
     workspace('mytosis-leveldb'),
     workspace('mytosis-websocket'),
-    workspace('streams'),
     workspace('types'),
   ],
 };

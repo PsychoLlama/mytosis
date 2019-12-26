@@ -32,7 +32,6 @@
   "dependencies": {
     "@babel/runtime": "^7.6.3",
     "@mytosis/crdts": "^0.1.0",
-    "@mytosis/streams": "^0.1.0",
     "@mytosis/types": "^0.1.0",
     "bin-json": "^0.3.1"
   },
