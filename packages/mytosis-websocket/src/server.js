@@ -1,7 +1,7 @@
 /* eslint-env node */
 import { ConnectionGroup, Stream } from 'mytosis';
 import { Server } from 'uws';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 import { asserter } from './utils';
 
