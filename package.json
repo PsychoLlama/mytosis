@@ -7,8 +7,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "freighter-scripts lint --fix",
-      "git add"
+      "freighter-scripts lint --fix"
     ]
   },
   "husky": {
